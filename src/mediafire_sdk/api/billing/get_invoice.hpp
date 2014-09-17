@@ -1,6 +1,6 @@
 /**
  * @file api/billing/get_invoice.hpp
- * @brief API request: /api/billing/get_invoice
+ * @brief API request: /api/1.1/billing/get_invoice
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace billing {
 /** API action "billing/get_invoice" */
 namespace get_invoice {
-/** API path "/api/billing/get_invoice" */
-namespace v0 {
+/** API path "/api/1.1/billing/get_invoice" */
+namespace v1_1 {
 
 enum class Activity
 {
@@ -277,10 +277,10 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v0
+}  // namespace v1_1
 
 // The latest version
-using namespace v0;  // NOLINT
+using namespace v1_1;  // NOLINT
 
 }  // namespace get_invoice
 }  // namespace billing

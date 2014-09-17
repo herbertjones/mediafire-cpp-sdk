@@ -1,6 +1,7 @@
 
 set(API_SOURCES
     ${API_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cancel_plan.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_invoice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_plans.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_products.cpp
@@ -10,6 +11,7 @@ set(API_SOURCES
 
 set(API_HEADERS
     ${API_HEADERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cancel_plan.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_invoice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_plans.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/get_products.hpp

@@ -1,0 +1,94 @@
+{
+    "api": "/api/1.1/billing/cancel_plan",
+    "version": "1.1",
+    "enums": [
+        {
+            "cpp_name": "CancellationReason",
+            "members": [
+            {
+                "cpp_name": "No",
+                "api_value": "0"
+            },
+            {
+                "cpp_name": "Yes",
+                "api_value": "1"
+            }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "comments",
+            "api_path": "comments"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "uploading_problems",
+            "api_path": "x_uploading"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "downloading_problems",
+            "api_path": "x_downloading"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "switching_to_other_service",
+            "api_path": "x_switching"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "download_speed_insufficient",
+            "api_path": "x_speed"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "out_of_money",
+            "api_path": "x_money_problems"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "too_expensive",
+            "api_path": "x_too_expensive"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "no_longer_needed",
+            "api_path": "x_technophobe"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "lacking_features",
+            "api_path": "x_lacking_features"
+        },
+        {
+            "cpp_type": "CancellationReason",
+            "cpp_name": "lacking_service",
+            "api_path": "x_lacking_service"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "cc_expiration",
+            "api_path": "x_other"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "cancel_date",
+            "api_path": "response.cancel_date"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "confirmation",
+            "api_path": "response.confirmation"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "last_invoice",
+            "api_path": "response.last_invoice",
+            "optional" : true
+        }
+    ]
+}

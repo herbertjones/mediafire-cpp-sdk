@@ -17,31 +17,31 @@
 
 #include "boost/property_tree/json_parser.hpp"
 
-namespace v0 = mf::api::billing::get_products::v0;
+namespace v1_1 = mf::api::billing::get_products::v1_1;
 
 
 namespace {
-std::string AsString(const v0::Recurring & value)
+std::string AsString(const v1_1::Recurring & value)
 {
-    if (value == v0::Recurring::NonRecurring)
+    if (value == v1_1::Recurring::NonRecurring)
         return "0";
-    if (value == v0::Recurring::Recurring)
+    if (value == v1_1::Recurring::Recurring)
         return "1";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v0::Activity & value)
+std::string AsString(const v1_1::Activity & value)
 {
-    if (value == v0::Activity::Inactive)
+    if (value == v1_1::Activity::Inactive)
         return "0";
-    if (value == v0::Activity::Active)
+    if (value == v1_1::Activity::Active)
         return "1";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v0::Legacy & value)
+std::string AsString(const v1_1::Legacy & value)
 {
-    if (value == v0::Legacy::No)
+    if (value == v1_1::Legacy::No)
         return "0";
-    if (value == v0::Legacy::Yes)
+    if (value == v1_1::Legacy::Yes)
         return "1";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
@@ -51,7 +51,7 @@ std::string AsString(const v0::Legacy & value)
 
 namespace {
 // get_data_type_struct_extractor begin
-using namespace v0;  // NOLINT
+using namespace v1_1;  // NOLINT
 bool ProductFromPropertyBranch(
         Response * response,
         Response::Product * value,
@@ -296,9 +296,9 @@ namespace api {
 /** API action path "billing" */
 namespace billing {
 namespace get_products {
-namespace v0 {
+namespace v1_1 {
 
-const std::string api_path("/api/billing/get_products");
+const std::string api_path("/api/1.1/billing/get_products");
 
 // Impl ------------------------------------------------------------------------
 
@@ -477,7 +477,7 @@ mf::http::SharedBuffer::Pointer Request::GetPostData()
     return impl_->GetPostData();
 }
 
-}  // namespace v0
+}  // namespace v1_1
 }  // namespace get_products
 }  // namespace billing
 }  // namespace api

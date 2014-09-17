@@ -1,6 +1,6 @@
 /**
  * @file api/billing/get_products.hpp
- * @brief API request: /api/billing/get_products
+ * @brief API request: /api/1.1/billing/get_products
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace billing {
 /** API action "billing/get_products" */
 namespace get_products {
-/** API path "/api/billing/get_products" */
-namespace v0 {
+/** API path "/api/1.1/billing/get_products" */
+namespace v1_1 {
 
 enum class Recurring
 {
@@ -247,10 +247,10 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v0
+}  // namespace v1_1
 
 // The latest version
-using namespace v0;  // NOLINT
+using namespace v1_1;  // NOLINT
 
 }  // namespace get_products
 }  // namespace billing

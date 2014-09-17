@@ -17,14 +17,14 @@
 
 #include "boost/property_tree/json_parser.hpp"
 
-namespace v0 = mf::api::billing::get_invoice::v0;
+namespace v1_1 = mf::api::billing::get_invoice::v1_1;
 
 
 #include "mediafire_sdk/api/type_helpers.hpp"
 
 namespace {
 // get_data_type_struct_extractor begin
-using namespace v0;  // NOLINT
+using namespace v1_1;  // NOLINT
 bool ProductFromPropertyBranch(
         Response * response,
         Response::Product * value,
@@ -262,9 +262,9 @@ namespace api {
 /** API action path "billing" */
 namespace billing {
 namespace get_invoice {
-namespace v0 {
+namespace v1_1 {
 
-const std::string api_path("/api/billing/get_invoice");
+const std::string api_path("/api/1.1/billing/get_invoice");
 
 // Impl ------------------------------------------------------------------------
 
@@ -589,7 +589,7 @@ mf::http::SharedBuffer::Pointer Request::GetPostData()
     return impl_->GetPostData();
 }
 
-}  // namespace v0
+}  // namespace v1_1
 }  // namespace get_invoice
 }  // namespace billing
 }  // namespace api

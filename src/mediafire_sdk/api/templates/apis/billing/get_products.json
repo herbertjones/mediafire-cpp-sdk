@@ -1,7 +1,7 @@
 {
-    "api": "/api/billing/get_products",
+    "api": "/api/1.1/billing/get_products",
     "session_token": false,
-    "version": "0",
+    "version": "1.1",
     "enums": [
     {
         "cpp_name": "Recurring",

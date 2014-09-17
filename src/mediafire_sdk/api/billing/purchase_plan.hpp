@@ -1,6 +1,6 @@
 /**
  * @file api/billing/purchase_plan.hpp
- * @brief API request: /api/billing/purchase_plan
+ * @brief API request: /api/1.1/billing/purchase_plan
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace billing {
 /** API action "billing/purchase_plan" */
 namespace purchase_plan {
-/** API path "/api/billing/purchase_plan" */
-namespace v0 {
+/** API path "/api/1.1/billing/purchase_plan" */
+namespace v1_1 {
 
 enum class PaymentMethod
 {
@@ -259,10 +259,10 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v0
+}  // namespace v1_1
 
 // The latest version
-using namespace v0;  // NOLINT
+using namespace v1_1;  // NOLINT
 
 }  // namespace purchase_plan
 }  // namespace billing

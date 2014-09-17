@@ -1,6 +1,6 @@
 {
-    "api": "/api/billing/purchase_plan",
-    "version": "0",
+    "api": "/api/1.1/billing/purchase_plan",
+    "version": "1.1",
     "enums": [
     {
         "cpp_name": "PaymentMethod",
@@ -29,7 +29,7 @@
         ]
     }
     ],
-        "optional_input_params": [
+    "optional_input_params": [
         {
             "cpp_type": "uint32_t",
             "cpp_name": "product_id",
@@ -126,7 +126,7 @@
             "api_path": "company"
         }
     ],
-        "return_params": [
+    "return_params": [
         {
             "cpp_type": "uint64_t",
             "cpp_name": "invoice",

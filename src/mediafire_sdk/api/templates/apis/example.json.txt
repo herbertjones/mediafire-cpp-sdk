@@ -1,0 +1,46 @@
+{
+    "api": "/api/1.1/billing/example",
+    "version": "1.1",
+    "enums": [
+        {
+            "cpp_name": "EnumCppType",
+            "members": [
+                {
+                    "api_value": "0",
+                    "cpp_name": "Zero"
+                },
+                {
+                    "api_value": "1",
+                    "cpp_name": "One"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Product",
+            "members": [
+                {
+                    "api_path": "base_storage",
+                    "cpp_name": "base_storage",
+                    "cpp_type": "uint64_t",
+                    "default_value": "0"
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "product_id",
+            "api_path": "pid"
+        }
+    ],
+    "return_params": [
+        {
+            "api_path": "response.invoice.invoice_id",
+            "cpp_name": "invoice_id",
+            "cpp_type": "uint32_t"
+        }
+    ]
+}

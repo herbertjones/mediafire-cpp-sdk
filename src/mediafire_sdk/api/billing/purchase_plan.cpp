@@ -17,23 +17,23 @@
 
 #include "boost/property_tree/json_parser.hpp"
 
-namespace v0 = mf::api::billing::purchase_plan::v0;
+namespace v1_1 = mf::api::billing::purchase_plan::v1_1;
 
 
 namespace {
-std::string AsString(const v0::PaymentMethod & value)
+std::string AsString(const v1_1::PaymentMethod & value)
 {
-    if (value == v0::PaymentMethod::NewCredit)
+    if (value == v1_1::PaymentMethod::NewCredit)
         return "newcredit";
-    if (value == v0::PaymentMethod::PreviousCredit)
+    if (value == v1_1::PaymentMethod::PreviousCredit)
         return "prevcredit";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v0::KeepCard & value)
+std::string AsString(const v1_1::KeepCard & value)
 {
-    if (value == v0::KeepCard::DiscardCard)
+    if (value == v1_1::KeepCard::DiscardCard)
         return "0";
-    if (value == v0::KeepCard::KeepCard)
+    if (value == v1_1::KeepCard::KeepCard)
         return "1";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
@@ -46,9 +46,9 @@ namespace api {
 /** API action path "billing" */
 namespace billing {
 namespace purchase_plan {
-namespace v0 {
+namespace v1_1 {
 
-const std::string api_path("/api/billing/purchase_plan");
+const std::string api_path("/api/1.1/billing/purchase_plan");
 
 // Impl ------------------------------------------------------------------------
 
@@ -357,7 +357,7 @@ mf::http::SharedBuffer::Pointer Request::GetPostData()
     return impl_->GetPostData();
 }
 
-}  // namespace v0
+}  // namespace v1_1
 }  // namespace purchase_plan
 }  // namespace billing
 }  // namespace api
