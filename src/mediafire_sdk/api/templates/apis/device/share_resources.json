@@ -1,0 +1,69 @@
+{
+    "api": "/api/device/share_resources",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Permissions",
+        "members": [
+        {
+            "cpp_name": "Read",
+            "api_value": "1"
+        },
+        {
+            "cpp_name": "ReadWrite",
+            "api_value": "2"
+        },
+        {
+            "cpp_name": "Manage",
+            "api_value": "4"
+        }
+        ]
+    }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "resources",
+            "api_path": "resources"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "contacts",
+            "api_path": "contacts"
+        }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "Permissions",
+            "cpp_name": "permissions",
+            "api_path": "permissions"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "message",
+            "api_path": "message"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "fb_access_token",
+            "api_path": "fb_access_token"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "tw_oauth_token",
+            "api_path": "tw_oauth_token"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "tw_oauth_token_secret",
+            "api_path": "tw_oauth_token_secret"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        }
+    ]
+}

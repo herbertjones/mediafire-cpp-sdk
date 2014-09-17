@@ -1,0 +1,17 @@
+/**
+ * @namespace mf::uploader
+ * Upload manager and related classes.
+ */
+/**
+ * @namespace mf::uploader::modification
+ * Namespace for possible modification to make to ongoing uploads.
+ *
+ * States: Cancel, Pause
+ *
+ * Currently pause only cancels the upload.  Add the file again to restart the
+ * upload.
+ */
+/**
+ * @namespace mf::uploader::upload_state
+ * Namespace for states of the upload which are in mf::uploader::UploadStatus.
+ */

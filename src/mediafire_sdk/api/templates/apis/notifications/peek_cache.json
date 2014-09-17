@@ -1,0 +1,21 @@
+{
+    "api": "/api/notifications/peek_cache",
+    "version": "0",
+    "return_params": [
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "total",
+        "api_path": "response.num_total"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "unread",
+        "api_path": "response.num_unread"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "last_timestamp",
+        "api_path": "response.last_timestamp"
+    }
+    ]
+}

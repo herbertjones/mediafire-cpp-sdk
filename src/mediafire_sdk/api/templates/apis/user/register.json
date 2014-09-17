@@ -1,0 +1,71 @@
+{
+    "api": "/api/user/register",
+    "session_token": false,
+    "version": "0",
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "application_id",
+            "api_path": "application_id"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "email",
+            "api_path": "email"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "password",
+            "api_path": "password"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "fb_access_token",
+            "api_path": "fb_access_token"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "first_name",
+            "api_path": "first_name"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "last_name",
+            "api_path": "last_name"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "display_name",
+            "api_path": "display_name"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "email",
+            "api_path": "response.email",
+            "description": "Email associated with the account"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "response.created",
+            "description": "Time account was created"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "pkey",
+            "api_path": "response.pkey",
+            "description": "Unique id that only changes if user's password has changed.  Available in other API calls."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "temporary_password",
+            "api_path": "response.temp_pw",
+            "optional": true,
+            "description": "Temporary password assigned when no password was provided."
+        }
+    ]
+}

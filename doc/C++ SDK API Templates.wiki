@@ -1,0 +1,253 @@
+In order to ease maintenance and keep the API call classes consistent, most API
+calls are generated via templates.  The templates are in the
+<tt>Modules/api/templates/apis</tt> directory.  The templates are organized by
+directory and file, though the directory and the name of the template does not
+affect the output, as the contents of the template determine the final locations
+of the output files.
+
+== Example ==
+
+An API template is a JSON formatted file that should look something like this:
+<source lang="javascript">
+{
+    "api": "/api/billing/get_plans",
+    "version": "0",
+    "session_token": false,
+    "enums": [
+        {
+            "cpp_name": "Recurring",
+            "members": [
+                {
+                    "api_value": "0",
+                    "cpp_name": "NonRecurring"
+                },
+                {
+                    "api_value": "1",
+                    "cpp_name": "Recurring"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Plan",
+            "members": [
+                {
+                    "api_path": "product_id",
+                    "cpp_name": "product_id",
+                    "cpp_type": "uint32_t"
+                },
+                {
+                    "api_path": "description",
+                    "cpp_name": "description",
+                    "cpp_type": "std::string"
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "api_path": "product_id",
+            "cpp_name": "product_id",
+            "cpp_type": "uint32_t"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "api_path": "family",
+            "cpp_name": "family",
+            "cpp_type": "uint32_t"
+        }
+    ],
+    "return_params": [
+        {
+            "api_path": "response.products",
+            "cpp_name": "plans",
+            "cpp_type": "Plan",
+            "json_type": "array"
+        }
+    ]
+}
+</source>
+
+== Format ==
+
+The top level name/value pairs should have the following format:
+;api
+: REQUIRED
+: The API path without the ".php"
+;version
+: REQUIRED
+: The version of the API for namespacing
+;session_token
+: OPTIONAL
+: Set to "false" if the API does not take a session token
+;delivery_method
+: OPTIONAL
+: Accepted parameters: "GET", "POST"
+: Sets the method the session token(if enabled) and other API parameters are sent by default.  Sending parameter to the API is by default via HTTP POST, however this can be overridden with GET.
+;system_cpp_includes
+: OPTIONAL
+: An array of other includes to place within the generated source file
+;system_hpp_includes
+: OPTIONAL
+: An array of other includes to place within the generated header file
+;[[#Enums|enums]]
+: OPTIONAL
+: List of enum classes to generate for converting API parameter values to and from C++ enums
+;[[#Return Structs|return_structs]]
+: OPTIONAL
+: C++ structs to generate for converting responses from the API to C++
+;[[#Input Parameters|input_params]]
+: OPTIONAL
+: Required API request parameters.
+: These become the constructor parameters in order to create the Request object.
+: Enums created in the "enums" section may be used here.
+;[[#Optional Input Parameters|optional_input_params]]
+: OPTIONAL
+: Optional API request parameters.
+: These become Set... functions of the Request object.
+: Enums created in the "enums" section may be used here.
+;[[#Return Parameters|return_params]]
+: OPTIONAL
+: List of expected parameters returned from the API.
+: Enums created in the "enums" section may be used here.
+: Structs created in the "return_structs" section may be used here.
+
+=== JSON paths ===
+
+A '.' is the path separator used for retrieving values from the JSON data.  The
+path "response.file_info.file_name" would refer to the value "DATA" in the
+example below:
+
+<source lang="javascript">
+{
+    "response": {
+        "file_info": {
+            "file_name": "DATA"
+        }
+    }
+}
+</source>
+
+=== JSON Return Types ===
+
+The return type parameters can expect different formats of JSON data.  The
+options are:
+
+;single
+: A simple value that can be assigned to the C++ data type of that return member.  If the C++ data type is one in "enums" or "return_structs", then the value is parsed by the generated code.
+;array
+: The JSON response contains an array here.  The C++ data type will become wrapped in a std::vector and the members of the vector will correspond to the JSON array.
+;array_front
+: The JSON response contains an array here, however only look at the first value.  The C++ data type will not be wrapped.
+
+=== Enums ===
+
+Enums are used when sending data to the API, converting a C++ enum value to an
+API parameter value, and retrieving data from the API request, converting JSON
+data to C++ enum values.
+
+;cpp_name
+: REQUIRED
+: The C++ enum class name
+;members
+: REQUIRED
+: List of enum members
+
+==== Enum Members ====
+
+;cpp_name
+: REQUIRED
+: The C++ enum value name
+;api_value
+: REQUIRED
+: The API value used in the API request, or in the JSON response.
+;additional_api_values
+: OPTIONAL array of strings
+: Additional values that are acceptable return values from the API.  This only affects parsing the JSON response.
+
+=== Return Structs ===
+
+;cpp_name
+: REQUIRED
+: The C++ struct name
+;members
+: REQUIRED
+: C++ struct members
+
+==== Return Struct Members ====
+
+;cpp_name
+: REQUIRED
+: The name of the C++ struct member
+;cpp_type
+: REQUIRED
+: The C++ data type
+: Enums created in the "enums" section may be used here.
+: Structs created in the "return_structs" section may be used here.
+;api_path
+: REQUIRED
+: The relative JSON path to the member.  If the struct is retrieving "response.files" array values and the full path is "response.files[3].file_info.file_name", the api_path here would be "file_info.file_name".
+;json_type
+: OPTIONAL
+: Accepted parameters: "single", "array", "array_front"
+: See [[#JSON Return Types|"JSON Return Types"]] above.
+;default_value
+: OPTIONAL
+: The default C++ value for the member if there is no JSON value at the specified path.
+;optional
+: OPTIONAL
+: If no default value, this will wrap the C++ type in a boost::optional which is only filled if the JSON data exists and is parsable to the C++ type.
+
+=== Input Parameters ===
+
+;cpp_name
+: REQUIRED
+: The C++ name used internally and in the documentation
+;cpp_type
+: REQUIRED
+: C++ type used as a parameter
+: Enums created in the "enums" section may be used here.
+;api_path
+: REQUIRED
+: The GET or POST parameter name used in the API request
+;http_method
+: OPTIONAL
+: Accepted parameters: "GET", "POST"
+: Override the delivery method for this parameter
+;description
+: OPTIONAL
+: Set the documentation for this parameter in the generated C++ header
+
+=== Optional Input Parameters ===
+
+The arguments are the same as [[#Input Parameters|"input_params"]].
+
+=== Return Parameters ===
+
+;cpp_name
+: REQUIRED
+: The C++ Response struct member name
+;cpp_type
+: REQUIRED
+: The C++ Response struct member type
+: Enums created in the "enums" section may be used here.
+: Structs created in the "return_structs" section may be used here.
+;api_path
+: REQUIRED
+: The path in the JSON return data to this member
+;json_type
+: OPTIONAL
+: Accepted parameters: "single", "array", "array_front"
+: See [[#JSON Return Types|"JSON Return Types"]] above.
+;optional
+: OPTIONAL
+: Accepted parameters: true
+: If no default value, this will wrap the C++ type in a boost::optional which is only filled if the JSON data exists and is parsable to the C++ type.
+;default_value
+: OPTIONAL
+: The default C++ value for the member if there is no JSON value at the specified path.
+;description
+: OPTIONAL
+: Set the documentation for this parameter in the generated C++ header

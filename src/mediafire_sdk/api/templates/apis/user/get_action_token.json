@@ -1,0 +1,42 @@
+{
+    "api": "/api/1.0/user/get_action_token",
+    "version": "1.0",
+    "enums": [
+        {
+            "cpp_name": "Type",
+            "members": [
+                {
+                    "api_value": "image",
+                    "cpp_name": "Image"
+                },
+                {
+                    "api_value": "upload",
+                    "cpp_name": "Upload"
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "Type",
+            "cpp_name": "type",
+            "api_path": "type",
+            "description": "Action token type(image or upload)"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "lifespan",
+            "api_path": "lifespan",
+            "description": "The number of minutes before the action token should be destroyed.  Defaults to 24 hours."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "action_token",
+            "api_path": "response.action_token"
+        }
+    ]
+}

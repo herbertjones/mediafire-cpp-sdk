@@ -1,0 +1,11 @@
+{
+    "response":
+    {
+        "action": "user\/get_session_token",
+        "pkey": "09b3b02524",
+        "message": "This account is temporarily locked. Please, try again later",
+        "error": "243",
+        "result": "Error",
+        "current_api_version": "2.14"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "api": "/api/file/move",
+    "version": "0",
+    "input_params": [
+    {
+        "cpp_type": "std::string",
+        "cpp_name": "quickkey",
+        "api_path": "quick_key"
+    },
+    {
+        "cpp_type": "std::string",
+        "cpp_name": "target_parent_folderkey",
+        "api_path": "folder_key"
+    }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        }
+    ]
+}

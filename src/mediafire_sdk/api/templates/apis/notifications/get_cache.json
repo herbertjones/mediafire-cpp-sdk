@@ -1,0 +1,79 @@
+{
+    "api": "/api/notifications/get_cache",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Viewable",
+        "members": [
+        {
+            "cpp_name": "Hidden",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "Viewable",
+            "api_value": "1"
+        }
+        ]
+    }
+    ],
+        "return_structs": [
+        {
+            "cpp_name": "Notification",
+            "members": [
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "actor",
+                "api_path": "actor"
+            },
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "timestamp",
+                "api_path": "timestamp",
+                "default_value": "boost::posix_time::not_a_date_time"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "message",
+                "api_path": "message"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "resource",
+                "api_path": "resource"
+            },
+            {
+                "cpp_type": "Viewable",
+                "cpp_name": "viewable",
+                "api_path": "viewable",
+                "default_value": "Hidden"
+            }
+            ]
+        }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "start",
+            "api_path": "start"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "limit",
+            "api_path": "limit"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "Notification",
+            "cpp_name": "notifications",
+            "api_path": "response.notifications",
+            "json_type": "array",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "number_older",
+            "api_path": "response.num_older"
+        }
+    ]
+}

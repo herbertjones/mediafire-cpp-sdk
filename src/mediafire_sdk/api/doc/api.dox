@@ -1,0 +1,23 @@
+/**
+ * @namespace mf::api
+ * APIs and the session maintainer to make API calls.
+ */
+/**
+ * @namespace mf::api::session_state
+ * Namespace for session states.
+ *
+ * States: Uninitialized, Initialized, CredentialsFailure and Running
+ */
+/**
+ * @namespace mf::api::connection_state
+ * Namespace for connection states.
+ * event.
+ *
+ * States: Uninitialized, Unconnected and Connected
+ */
+/**
+ * @namespace mf::api::credentials
+ * Namespace for credential types.
+ *
+ * Credential types: Email and Facebook
+ */

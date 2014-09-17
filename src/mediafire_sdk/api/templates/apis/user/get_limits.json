@@ -1,0 +1,71 @@
+{
+    "api": "/api/user/get_limits",
+    "version": "0",
+    "return_params": [
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "storage_base",
+        "api_path": "response.storage_base"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "storage_bonus",
+        "api_path": "response.storage_bonus"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "storage_limit",
+        "api_path": "response.storage_limit"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "storage_used",
+        "api_path": "response.storage_used"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "bandwidth_limit",
+        "api_path": "response.bandwidth_limit"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "bandwidth_used",
+        "api_path": "response.bandwidth_used"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "collaboration_limit",
+        "api_path": "response.collaboration_limit"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "collaboration_today",
+        "api_path": "response.collaboration_today"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "one_time_downloads_limit",
+        "api_path": "response.one_time_downloads_limit"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "one_time_downloads_today",
+        "api_path": "response.one_time_downloads_today"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "streaming_bandwidth_limit",
+        "api_path": "response.streaming_bandwidth_limit"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "streaming_bandwidth_today",
+        "api_path": "response.streaming_bandwidth_today"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "upload_size_limit",
+        "api_path": "response.upload_size_limit"
+    }
+    ]
+}

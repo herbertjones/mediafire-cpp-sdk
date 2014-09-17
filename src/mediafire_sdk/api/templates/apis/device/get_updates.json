@@ -1,0 +1,69 @@
+{
+    "api": "/api/device/get_updates",
+    "version": "0",
+    "return_structs": [
+    {
+        "cpp_name": "Update",
+        "members": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "source_revision",
+            "api_path": "source_revision"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "source_hash",
+            "api_path": "source_hash"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "target_revision",
+            "api_path": "target_revision"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "target_hash",
+            "api_path": "target_hash"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "timestamp",
+            "api_path": "timestamp"
+        }
+        ]
+    }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "revision",
+            "api_path": "revision"
+        }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "target_revision",
+            "api_path": "target_revision"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "current_revision",
+            "api_path": "response.current_revision"
+        },
+        {
+            "cpp_type": "Update",
+            "cpp_name": "updates",
+            "api_path": "response.updates",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

@@ -1,0 +1,87 @@
+{
+    "response": {
+        "action": "folder/get_content",
+        "folder_content": {
+            "chunk_size": "100",
+            "content_type": "folders",
+            "chunk_number": "1",
+            "folders": [
+                {
+                    "folderkey": "a1xcgfr75j3cs",
+                    "name": "noooo",
+                    "description": "",
+                    "privacy": "public",
+                    "created": "2014-05-29 08:51:45",
+                    "revision": "1475",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "1",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "0"
+                    },
+                    "file_count": "10",
+                    "folder_count": "0",
+                    "dropbox_enabled": "no"
+                },
+                {
+                    "folderkey": "coohp1much6ru",
+                    "name": "retry",
+                    "description": "",
+                    "privacy": "public",
+                    "created": "2014-05-29 16:47:55",
+                    "revision": "1563",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "1",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "0"
+                    },
+                    "file_count": "0",
+                    "folder_count": "0",
+                    "dropbox_enabled": "no"
+                },
+                {
+                    "folderkey": "91x1wfodnnihd",
+                    "name": "Tada",
+                    "description": "",
+                    "privacy": "public",
+                    "created": "2014-05-29 13:57:20",
+                    "revision": "1536",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "1",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "0"
+                    },
+                    "file_count": "10",
+                    "folder_count": "0",
+                    "dropbox_enabled": "no"
+                },
+                {
+                    "folderkey": "9zqnaax9a2bpm",
+                    "name": "Tada2",
+                    "description": "",
+                    "privacy": "public",
+                    "created": "2014-05-29 14:18:33",
+                    "revision": "1584",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "1",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "0"
+                    },
+                    "file_count": "11",
+                    "folder_count": "0",
+                    "dropbox_enabled": "no"
+                }
+            ]
+        },
+        "result": "Success",
+        "new_key": "yes",
+        "current_api_version": "1.0"
+    }
+}

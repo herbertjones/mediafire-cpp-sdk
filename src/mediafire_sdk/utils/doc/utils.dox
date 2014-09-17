@@ -1,0 +1,4 @@
+/**
+ * @namespace mf::utils
+ * Holds utility functions that can be used throughout the project.
+ */

@@ -1,0 +1,9 @@
+void Request::SetSessionToken(
+        std::string session_token,
+        std::string time,
+        int secret_key
+    )
+{
+    impl_->SetSessionToken(session_token, time, secret_key);
+}
+

@@ -1,0 +1,56 @@
+{
+    "api": "/api/system/get_limits",
+    "version": "0",
+    "return_params": [
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "max_objects",
+        "api_path": "response.limits.max_objects"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "max_keys",
+        "api_path": "response.limits.max_keys"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "max_image_size",
+        "api_path": "response.limits.max_image_size"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "zip_max_filesize",
+        "api_path": "response.limits.zip_max_filesize"
+    },
+    {
+        "cpp_type": "uint64_t",
+        "cpp_name": "zip_max_total_filesize",
+        "api_path": "response.limits.zip_max_total_filesize"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "folder_content_chunk_size",
+        "api_path": "response.limits.folder_content_chunk_size"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "folder_depth_limit",
+        "api_path": "response.limits.folder_depth_limit"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "limit_search_results",
+        "api_path": "response.limits.limit_search_results"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "daily_shares_limit",
+        "api_path": "response.limits.daily_shares_limit"
+    },
+    {
+        "cpp_type": "uint32_t",
+        "cpp_name": "device_changes_list_limit",
+        "api_path": "response.limits.device_changes_list_limit"
+    }
+    ]
+}

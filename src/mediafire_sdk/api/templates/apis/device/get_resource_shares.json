@@ -1,0 +1,87 @@
+{
+    "api": "/api/device/get_resource_shares",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Permissions",
+        "members": [
+        {
+            "cpp_name": "Read",
+            "api_value": "1"
+        },
+        {
+            "cpp_name": "ReadWrite",
+            "api_value": "2"
+        },
+        {
+            "cpp_name": "Manage",
+            "api_value": "4"
+        }
+        ]
+    }
+    ],
+        "return_structs": [
+        {
+            "cpp_name": "Share",
+            "members": [
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "contact_key",
+                "api_path": "contact_key"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "contact_type",
+                "api_path": "contact_type"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "contact_indirect",
+                "api_path": "contact_indirect"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "display_name",
+                "api_path": "display_name"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "avatar",
+                "api_path": "avatar",
+                "optional": true
+            },
+            {
+                "cpp_type": "Permissions",
+                "cpp_name": "share_permissions",
+                "api_path": "permissions"
+            }
+            ]
+        }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "source_revision",
+            "api_path": "source_revision"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "target_revision",
+            "api_path": "target_revision"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "Share",
+            "cpp_name": "shares",
+            "api_path": "response.shares",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

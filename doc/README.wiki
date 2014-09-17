@@ -1,0 +1,30 @@
+<!--
+This document is formatted according to the rules at
+http://www.mediawiki.org/wiki/Help:Formatting
+
+This format is compatible with mediawiki and github and is human readable.
+-->
+
+== Doxygen Documenation ==
+
+This project has been documented using the
+[http://www.stack.nl/~dimitri/doxygen/index.html doxygen] style of
+documentation.  A doxygen config file has been provided to convert the inline
+documentation to HTML.
+
+Run:<br>
+<code>doxygen doxygen.conf</code><br>
+Then browse the documentation at <tt>html/index.html</tt>.
+
+== Documentation TODO ==
+
+* API framework
+* Example project
+
+== Getting Started ==
+
+* [[C++ SDK Requirements|Requirements]]
+* [[C++ SDK Project Integration|Project Integration]]
+* [[C++ SDK Basic Usage|Basic Usage]]
+* [[C++ SDK API Templates|API Templates]]
+

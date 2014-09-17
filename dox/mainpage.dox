@@ -1,0 +1,17 @@
+/**
+@mainpage notitle
+@section Welcome Developer
+
+This is the source based generated documentation to the MediaFire C++ API SDK.
+For more information on our SDK see the C++ SDK documentation here:
+
+http://www.mediafire.com/developers/sdks_and_tools/
+
+@section API Documentation
+
+This SDK simplifies direct communication with the MediaFire API.  To learn more
+about the MediaFire API, see the documentation here:
+
+http://www.mediafire.com/developers/core_api/
+
+ */

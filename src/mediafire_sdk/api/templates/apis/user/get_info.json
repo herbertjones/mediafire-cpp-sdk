@@ -1,0 +1,310 @@
+{
+    "api": "/api/user/get_info",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Gender",
+        "members": [
+        {
+            "cpp_name": "Unknown",
+            "api_value": "unknown"
+        },
+        {
+            "cpp_name": "Male",
+            "api_value": "male"
+        },
+        {
+            "cpp_name": "Female",
+            "api_value": "female"
+        }
+        ]
+    },
+    {
+        "cpp_name": "AccountType",
+        "members": [
+        {
+            "cpp_name": "Basic",
+            "api_value": "No"
+        },
+        {
+            "cpp_name": "Premium",
+            "api_value": "Yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Validated",
+        "members": [
+        {
+            "cpp_name": "NotValidated",
+            "api_value": "No"
+        },
+        {
+            "cpp_name": "Validated",
+            "api_value": "Yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "LimitExceeded",
+        "members": [
+        {
+            "cpp_name": "WithinBounds",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Exceeded",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "FacebookLinked",
+        "members": [
+        {
+            "cpp_name": "Unlinked",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Linked",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "TwitterLinked",
+        "members": [
+        {
+            "cpp_name": "Unlinked",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Linked",
+            "api_value": "yes"
+        }
+        ]
+    }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "ekey",
+            "api_path": "response.user_info.ekey"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "email",
+            "api_path": "response.user_info.email"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "first_name",
+            "api_path": "response.user_info.first_name",
+            "default_value": "\"\""
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "last_name",
+            "api_path": "response.user_info.last_name",
+            "default_value": "\"\""
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "display_name",
+            "api_path": "response.user_info.display_name"
+        },
+        {
+            "cpp_type": "Gender",
+            "cpp_name": "gender",
+            "api_path": "response.user_info.gender",
+            "default_value": "Unknown"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "birth_date",
+            "api_path": "response.user_info.birth_date",
+            "default_value": "boost::posix_time::not_a_date_time"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "location",
+            "api_path": "response.user_info.location",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "website",
+            "api_path": "response.user_info.website",
+            "optional": true
+        },
+        {
+            "cpp_type": "AccountType",
+            "cpp_name": "account_type",
+            "api_path": "response.user_info.premium"
+        },
+        {
+            "cpp_type": "int64_t",
+            "cpp_name": "bandwidth",
+            "api_path": "response.user_info.bandwidth"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "response.user_info.created",
+            "default_value": "boost::posix_time::not_a_date_time"
+        },
+        {
+            "cpp_type": "Validated",
+            "cpp_name": "validated",
+            "api_path": "response.user_info.validated"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "max_upload_size",
+            "api_path": "response.user_info.max_upload_size"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "max_instant_upload_size",
+            "api_path": "response.user_info.max_instant_upload_size"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "tos_accepted",
+            "api_path": "response.user_info.tos_accepted",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "used_storage_size",
+            "api_path": "response.user_info.used_storage_size"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "base_storage",
+            "api_path": "response.user_info.base_storage"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "bonus_storage",
+            "api_path": "response.user_info.bonus_storage"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "storage_limit",
+            "api_path": "response.user_info.storage_limit"
+        },
+        {
+            "cpp_type": "LimitExceeded",
+            "cpp_name": "storage_limit_exceeded",
+            "api_path": "response.user_info.storage_limit_exceeded"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "options",
+            "api_path": "response.user_info.options"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_id",
+            "api_path": "response.user_info.facebook.facebook_id",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_date_created",
+            "api_path": "response.user_info.facebook.date_created",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_url",
+            "api_path": "response.user_info.facebook.facebook_url",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_name",
+            "api_path": "response.user_info.facebook.name",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_firstname",
+            "api_path": "response.user_info.facebook.firstname",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_lastname",
+            "api_path": "response.user_info.facebook.lastname",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_hometown",
+            "api_path": "response.user_info.facebook.hometown",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_location",
+            "api_path": "response.user_info.facebook.location",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "facebook_i18n",
+            "api_path": "response.user_info.facebook.i18n",
+            "optional": true
+        },
+        {
+            "cpp_type": "int32_t",
+            "cpp_name": "facebook_timezone",
+            "api_path": "response.user_info.facebook.timezone",
+            "optional": true
+        },
+        {
+            "cpp_type": "FacebookLinked",
+            "cpp_name": "facebook_linked",
+            "api_path": "response.user_info.facebook.linked",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "twitter_id",
+            "api_path": "response.user_info.twitter.twitter_id",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "twitter_date_created",
+            "api_path": "response.user_info.twitter.date_created",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "twitter_screen_name",
+            "api_path": "response.user_info.twitter.screen_name",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "twitter_name",
+            "api_path": "response.user_info.twitter.name",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "twitter_i18n",
+            "api_path": "response.user_info.twitter.i18n",
+            "optional": true
+        },
+        {
+            "cpp_type": "TwitterLinked",
+            "cpp_name": "twitter_linked",
+            "api_path": "response.user_info.twitter.linked",
+            "optional": true
+        }
+    ]
+}

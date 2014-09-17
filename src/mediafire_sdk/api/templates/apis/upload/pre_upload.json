@@ -1,0 +1,216 @@
+{
+    "api": "/api/upload/pre_upload",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Resumability",
+        "members": [
+        {
+            "cpp_name": "NotResumable",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Resumable",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "ActionOnDuplicate",
+        "members": [
+        {
+            "cpp_name": "Skip",
+            "api_value": "skip"
+        },
+        {
+            "cpp_name": "Keep",
+            "api_value": "keep"
+        },
+        {
+            "cpp_name": "Replace",
+            "api_value": "replace"
+        }
+        ]
+    },
+    {
+        "cpp_name": "StorageLimit",
+        "members": [
+        {
+            "cpp_name": "WithinBounds",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Exceeded",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "DuplicateName",
+        "members": [
+        {
+            "cpp_name": "NoPreexistingName",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "DuplicateNameExists",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "UnitsReady",
+        "members": [
+        {
+            "cpp_name": "NotReady",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "AllUnitsReady",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "KnownByCloud",
+        "members": [
+        {
+            "cpp_name": "Known",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Unknown",
+            "api_value": "yes"
+        }
+        ]
+    }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "Resumability",
+            "cpp_name": "resumable",
+            "api_path": "resumable"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "filename"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "hash",
+            "api_path": "hash"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "filesize",
+            "api_path": "size"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "upload_folder_key",
+            "api_path": "upload_folder_key"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "relative_path",
+            "api_path": "path"
+        },
+        {
+            "cpp_type": "ActionOnDuplicate",
+            "cpp_name": "action_on_duplicate",
+            "api_path": "action_on_duplicate"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "mtime",
+            "api_path": "mtime"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "StorageLimit",
+            "cpp_name": "storage_limit_exceeded",
+            "api_path": "response.storage_limit_exceeded",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "storage_limit",
+            "api_path": "response.storage_limit",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "used_storage_size",
+            "api_path": "response.used_storage_size",
+            "optional": true
+        },
+        {
+            "cpp_type": "KnownByCloud",
+            "cpp_name": "known_by_cloud",
+            "api_path": "response.new_hash",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "response.quickkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "duplicate_quickkey",
+            "api_path": "response.duplicate_quickkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "DuplicateName",
+            "cpp_name": "duplicate_name",
+            "api_path": "response.duplicate_name",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "upload_key",
+            "api_path": "response.resumable_upload.upload_key",
+            "optional": true
+        },
+        {
+            "cpp_type": "UnitsReady",
+            "cpp_name": "all_units_ready",
+            "api_path": "response.resumable_upload.all_units_ready",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "number_of_units",
+            "api_path": "response.resumable_upload.number_of_units",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "unit_size",
+            "api_path": "response.resumable_upload.unit_size",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "bitmap_count",
+            "api_path": "response.resumable_upload.bitmap.count",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint16_t",
+            "cpp_name": "bitmap_words",
+            "api_path": "response.resumable_upload.bitmap.words",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

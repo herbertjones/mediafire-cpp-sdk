@@ -1,0 +1,113 @@
+{
+    "api": "/api/billing/get_plans",
+    "session_token": false,
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Recurring",
+        "members": [
+        {
+            "cpp_name": "NonRecurring",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "Recurring",
+            "api_value": "1"
+        }
+        ]
+    }
+    ],
+        "return_structs": [
+        {
+            "cpp_name": "Plan",
+            "members": [
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "product_id",
+                "api_path": "product_id"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "description",
+                "api_path": "description"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "short_description",
+                "api_path": "short_description"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "initial_amount",
+                "api_path": "initial_amount"
+            },
+            {
+                "cpp_type": "uint64_t",
+                "cpp_name": "initial_units",
+                "api_path": "initial_units"
+            },
+            {
+                "cpp_type": "Recurring",
+                "cpp_name": "is_recurring",
+                "api_path": "is_recurring",
+                "default_value": "NonRecurring"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "recurring_amount",
+                "api_path": "recurring_amount"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "recurring_units",
+                "api_path": "recurring_units",
+                "default_value": "0"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "frequency_text",
+                "api_path": "frequency_text",
+                "default_value": "\"\""
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "product_class",
+                "api_path": "product_class",
+                "default_value": "0"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "free_months",
+                "api_path": "free_months",
+                "default_value": "0"
+            },
+            {
+                "cpp_type": "uint64_t",
+                "cpp_name": "base_storage",
+                "api_path": "base_storage",
+                "default_value": "0"
+            }
+            ]
+        }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "product_id",
+            "api_path": "product_id"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "family",
+            "api_path": "family"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "Plan",
+            "cpp_name": "plans",
+            "api_path": "response.products",
+            "json_type": "array"
+        }
+    ]
+}

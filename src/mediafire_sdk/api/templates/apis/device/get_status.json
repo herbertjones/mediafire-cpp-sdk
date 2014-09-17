@@ -1,0 +1,38 @@
+{
+    "api": "/api/device/get_status",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "AsyncJobs",
+        "members": [
+        {
+            "cpp_name": "Stopped",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Running",
+            "api_value": "yes"
+        }
+        ]
+    }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_id",
+            "api_path": "device_id"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "AsyncJobs",
+            "cpp_name": "async_jobs_in_progress",
+            "api_path": "response.async_jobs_in_progress"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        }
+    ]
+}

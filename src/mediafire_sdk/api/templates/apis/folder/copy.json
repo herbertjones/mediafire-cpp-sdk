@@ -1,0 +1,49 @@
+{
+    "api": "/api/folder/copy",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Asynchronous",
+        "members": [
+        {
+            "cpp_name": "Synchronous",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Asynchronous",
+            "api_value": "yes"
+        }
+        ]
+    }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folderkey",
+            "api_path": "folder_key_src"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "target_parent_folderkey",
+            "api_path": "folder_key_dst"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "Asynchronous",
+            "cpp_name": "asynchronous",
+            "api_path": "response.asynchronous"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folderkey",
+            "api_path": "response.new_folderkeys",
+            "json_type": "array_front"
+        }
+    ]
+}

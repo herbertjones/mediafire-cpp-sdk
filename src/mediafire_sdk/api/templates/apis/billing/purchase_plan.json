@@ -1,0 +1,163 @@
+{
+    "api": "/api/billing/purchase_plan",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "PaymentMethod",
+        "members": [
+        {
+            "cpp_name": "NewCredit",
+            "api_value": "newcredit"
+        },
+        {
+            "cpp_name": "PreviousCredit",
+            "api_value": "prevcredit"
+        }
+        ]
+    },
+    {
+        "cpp_name": "KeepCard",
+        "members": [
+        {
+            "cpp_name": "DiscardCard",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "KeepCard",
+            "api_value": "1"
+        }
+        ]
+    }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "product_id",
+            "api_path": "pid"
+        },
+        {
+            "cpp_type": "PaymentMethod",
+            "cpp_name": "payment_method",
+            "api_path": "payment_method"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "first_name_info",
+            "api_path": "first_name_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "last_name_info",
+            "api_path": "last_name_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "address1_info",
+            "api_path": "address1_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "city_info",
+            "api_path": "city_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "zip_info",
+            "api_path": "zip_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "state_info",
+            "api_path": "state_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "country_info",
+            "api_path": "country_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "region_info",
+            "api_path": "region_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "postal_code_info",
+            "api_path": "postal_code_info"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "card_number",
+            "api_path": "card_number"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "card_code",
+            "api_path": "card_code"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "exp_month",
+            "api_path": "exp_month"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "exp_year",
+            "api_path": "exp_year"
+        },
+        {
+            "cpp_type": "KeepCard",
+            "cpp_name": "keep_card",
+            "api_path": "keep_card"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "prev_card_code",
+            "api_path": "prev_card_code"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "subdomain",
+            "api_path": "subdomain"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "company",
+            "api_path": "company"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "invoice",
+            "api_path": "response.invoice"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "created",
+            "default_value": "boost::posix_time::not_a_date_time"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "total",
+            "api_path": "response.total"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "product_id",
+            "api_path": "response.product"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "premium",
+            "api_path": "response.premium"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "previous_invoice_datetime",
+            "api_path": "lastpremium",
+            "default_value": "boost::posix_time::not_a_date_time"
+        }
+    ]
+}

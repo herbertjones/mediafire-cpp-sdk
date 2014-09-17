@@ -1,0 +1,66 @@
+In your project, you need to provide the following. Example code is provided in
+the Examples directory.
+
+== Required Variables ==
+
+=== CMake variables ===
+
+A few variables should be defined in your cmake cache in order to run all the
+unit tests.
+
+;TEST_USER_1_USERNAME
+: Username to first test account.
+;TEST_USER_1_PASSWORD
+: Password to first test account.
+;TEST_USER_2_USERNAME
+: Username to second test account.
+;TEST_USER_2_PASSWORD
+: Password to second test account.
+
+==== Example config ====
+
+ <nowiki>
+SET(TEST_USER_1_USERNAME "test@test.com" CACHE STRING "User 1 username")
+SET(TEST_USER_1_PASSWORD "password" CACHE STRING "User 1 password")
+SET(TEST_USER_2_USERNAME "test2@test.com" CACHE STRING "User 2 username")
+SET(TEST_USER_2_PASSWORD "password" CACHE STRING "User 2 password")</nowiki>
+
+== Optional Variables ==
+
+=== CMake variables ===
+
+;MFD_API_APP_CONSTANTS_LIBRARY
+: If supplying your own kAppId or BuildSignature, you will need to pass the library name to link against in the SDK.
+
+=== Defines ===
+
+;MDF_API_OVERRIDE_APP_ID
+: Define if supplying your own app_constants::kAppId.
+;MDF_API_OVERRIDE_BUILD_SIGNATURE
+: Define if supplying your own app_constants::BuildSignature.
+;MDF_API_APP_ID
+: Set the application ID.
+;MDF_API_APP_KEY
+: Set the application key.
+
+=== Example ===
+
+ <nowiki>
+# We supply the app id variable app_constants::kAppId
+add_definitions(-DMDF_API_OVERRIDE_APP_ID)
+
+# We supply the function app_constants::BuildSignature
+add_definitions(-DMDF_API_OVERRIDE_BUILD_SIGNATURE)
+
+# We supply those functions in a library we name our_app_constants
+set(MFD_API_APP_CONSTANTS_LIBRARY our_app_constants)
+
+# We don't use the internal app_constants::kAppId in the SDK
+#add_definitions(-DMDF_API_APP_ID=My_app_id)
+
+# We don't supply an application key for use in app_constants::BuildSignature
+# inside the SDK.
+#add_definitions(-DMDF_API_APP_KEY=My_app_key)
+
+include_directories("api_sdk/src")
+add_subdirectory("api_sdk/src" "${PROJECT_BINARY_DIR}/api_sdk")</nowiki>

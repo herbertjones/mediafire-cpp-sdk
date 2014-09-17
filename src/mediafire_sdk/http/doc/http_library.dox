@@ -1,0 +1,4 @@
+/**
+ * @namespace mf::http
+ * HttpRequest and associated classes.
+ */

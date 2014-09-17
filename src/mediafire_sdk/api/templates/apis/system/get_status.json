@@ -1,0 +1,16 @@
+{
+    "api": "/api/system/get_status",
+    "version": "0",
+    "return_params": [
+    {
+        "cpp_type": "int32_t",
+        "cpp_name": "database",
+        "api_path": "response.database"
+    },
+    {
+        "cpp_type": "int32_t",
+        "cpp_name": "memcache",
+        "api_path": "response.memcache"
+    }
+    ]
+}

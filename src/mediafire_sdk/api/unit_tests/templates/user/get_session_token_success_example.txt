@@ -1,0 +1,12 @@
+{
+    "response":
+    {
+        "action": "user\/get_session_token",
+        "result": "Success",
+        "session_token": "r96yavl1zsogv3lrd1b6tugfhhnwo5b28q27riwqow4e2do49j0zblzdw7v1yfnlt2c3oljqy05poyr9eertq2pgutmbtddmzvz5pe04o6lguajluk5qvrg8unvvsx1ovdvwzmdbf5e
+8xt62",
+        "secret_key": "1878520462",
+        "time": "1397755702.0581",
+        "pkey": "w2cv0tdgbw"
+    }
+}

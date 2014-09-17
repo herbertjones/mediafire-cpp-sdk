@@ -1,0 +1,184 @@
+{
+    "api": "/api/folder/get_info",
+    "version": "0",
+    "enums": [
+    {
+        "cpp_name": "Details",
+        "members": [
+        {
+            "cpp_name": "NoDetails",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "FullDetails",
+            "api_value": "yes"
+        },
+        {
+            "cpp_name": "ShallowDetails",
+            "api_value": "shallow"
+        }
+        ]
+    },
+    {
+        "cpp_name": "FileDrop",
+        "members": [
+        {
+            "cpp_name": "Disabled",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Enabled",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "SharedByUser",
+        "members": [
+        {
+            "cpp_name": "Unshared",
+            "api_value": ""
+        },
+        {
+            "cpp_name": "Shared",
+            "api_value": "1"
+        }
+        ]
+    }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folderkey",
+            "api_path": "folder_key"
+        }
+    ],
+        "optional_input_params": [
+        {
+            "cpp_type": "Details",
+            "cpp_name": "details",
+            "api_path": "details"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_id",
+            "api_path": "device_id"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folderkey",
+            "api_path": "response.folder_info.folderkey"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "name",
+            "api_path": "response.folder_info.name"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "description",
+            "api_path": "response.folder_info.description",
+            "optional": true
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "response.folder_info.created",
+            "default_value": "boost::posix_time::not_a_date_time"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "deleted_datetime",
+            "api_path": "response.folder_info.delete_date",
+            "default_value": "boost::posix_time::not_a_date_time"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "parent_folderkey",
+            "api_path": "response.folder_info.parent_folderkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "custom_url",
+            "api_path": "response.folder_info.custom_url",
+            "optional": true
+        },
+        {
+            "cpp_type": "FileDrop",
+            "cpp_name": "filedrop",
+            "api_path": "response.folder_info.dropbox_enabled",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "file_count",
+            "api_path": "response.folder_info.file_count"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "folder_count",
+            "api_path": "response.folder_info.folder_count"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "size",
+            "api_path": "response.folder_info.size",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "total_folders",
+            "api_path": "response.folder_info.total_folders",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "total_files",
+            "api_path": "response.folder_info.total_files",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "total_size",
+            "api_path": "response.folder_info.total_size",
+            "optional": true
+        },
+        {
+            "cpp_type": "SharedByUser",
+            "cpp_name": "shared_by_user",
+            "api_path": "response.folder_info.shared_by_user",
+            "default_value": "Unshared"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "permissions",
+            "api_path": "response.folder_info.permissions",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "owner_name",
+            "api_path": "response.folder_info.owner_name",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "avatar",
+            "api_path": "response.folder_info.avatar",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "flag",
+            "api_path": "response.folder_info.flag"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "response.folder_info.revision"
+        }
+    ]
+}

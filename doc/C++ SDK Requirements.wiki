@@ -1,0 +1,14 @@
+The library requires a few functions and an API constants in order to function.
+See [[C++ SDK Project Integration|Project Integration]].
+
+== C++ ==
+
+This library uses the C++11 version of C++.
+
+== Libraries ==
+
+[http://www.boost.org/ Boost] is required to build this library.
+
+== Build System ==
+
+This library requires [http://www.cmake.org/ cmake] in order to be built.

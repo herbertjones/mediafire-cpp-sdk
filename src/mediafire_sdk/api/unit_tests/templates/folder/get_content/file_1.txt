@@ -1,0 +1,150 @@
+{
+    "response": {
+        "action": "folder/get_content",
+        "folder_content": {
+            "chunk_size": "100",
+            "content_type": "files",
+            "chunk_number": "1",
+            "files": [
+                {
+                    "quickkey": "cotmhq9wc1h911j",
+                    "hash": "d1cf6071feac3de3e3e1eae33bd7025d73b62e9008735b543aa382ecd023760c",
+                    "filename": "1401815547_1.dat",
+                    "description": "",
+                    "size": "5292032",
+                    "privacy": "public",
+                    "created": "2014-06-03 07:13:30",
+                    "password_protected": "no",
+                    "mimetype": "application/octet-stream",
+                    "filetype": "other",
+                    "view": "0",
+                    "edit": "0",
+                    "revision": "1657",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "2",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "1"
+                    },
+                    "downloads": "0",
+                    "views": "0",
+                    "links": {
+                        "normal_download": "http://sandbox.mediafire.com/download/cotmhq9wc1h911j/1401815547_1.dat"
+                    }
+                },
+                {
+                    "quickkey": "wy1zgub13rk4638",
+                    "hash": "cad0350e5cce8ae2728d3b87ca0021f2f0e1aece8cb2a53096ba5b09dfdabc9d",
+                    "filename": "1401815580_1.dat",
+                    "description": "",
+                    "size": "1048576",
+                    "privacy": "public",
+                    "created": "2014-06-03 12:13:41",
+                    "password_protected": "no",
+                    "mimetype": "application/octet-stream",
+                    "filetype": "other",
+                    "view": "0",
+                    "edit": "0",
+                    "revision": "1568",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "2",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "1"
+                    },
+                    "downloads": "0",
+                    "views": "0",
+                    "links": {
+                        "normal_download": "http://sandbox.mediafire.com/download/wy1zgub13rk4638/1401815580_1.dat"
+                    }
+                },
+                {
+                    "quickkey": "2t0t48clys52jj5",
+                    "hash": "4394e187f090a35cf791f06318290ea6f20fbb30573741b4aee93f943cb782a3",
+                    "filename": "1401815580_2.dat",
+                    "description": "",
+                    "size": "1048576",
+                    "privacy": "public",
+                    "created": "2014-06-03 12:13:42",
+                    "password_protected": "no",
+                    "mimetype": "application/octet-stream",
+                    "filetype": "other",
+                    "view": "0",
+                    "edit": "0",
+                    "revision": "1571",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "2",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "1"
+                    },
+                    "downloads": "0",
+                    "views": "0",
+                    "links": {
+                        "normal_download": "http://sandbox.mediafire.com/download/2t0t48clys52jj5/1401815580_2.dat"
+                    }
+                },
+                {
+                    "quickkey": "e86s71hq44fow6v",
+                    "hash": "9285d7ac9f8921afa7af298e6c92987e87341e582b8b1f6897540fc1ce830cb1",
+                    "filename": "1401815580_3.dat",
+                    "description": "",
+                    "size": "1048576",
+                    "privacy": "public",
+                    "created": "2014-06-03 12:13:45",
+                    "password_protected": "no",
+                    "mimetype": "application/octet-stream",
+                    "filetype": "other",
+                    "view": "0",
+                    "edit": "0",
+                    "revision": "1574",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "2",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "1"
+                    },
+                    "downloads": "0",
+                    "views": "0",
+                    "links": {
+                        "normal_download": "http://sandbox.mediafire.com/download/e86s71hq44fow6v/1401815580_3.dat"
+                    }
+                },
+                {
+                    "quickkey": "fl6kmh4wh8vgm67",
+                    "hash": "d45dce0d74ec376807e438830837220d12ca9083119917d2ef90b47b01d0ce43",
+                    "filename": "1401815580_4.dat",
+                    "description": "",
+                    "size": "1048576",
+                    "privacy": "public",
+                    "created": "2014-06-03 12:13:47",
+                    "password_protected": "no",
+                    "mimetype": "application/octet-stream",
+                    "filetype": "other",
+                    "view": "0",
+                    "edit": "0",
+                    "revision": "1577",
+                    "flag": "0",
+                    "permissions": {
+                        "value": "2",
+                        "explicit": "0",
+                        "read": "1",
+                        "write": "1"
+                    },
+                    "downloads": "0",
+                    "views": "0",
+                    "links": {
+                        "normal_download": "http://sandbox.mediafire.com/download/fl6kmh4wh8vgm67/1401815580_4.dat"
+                    }
+                }
+            ]
+        },
+        "result": "Success",
+        "new_key": "yes",
+        "current_api_version": "1.0"
+    }
+}

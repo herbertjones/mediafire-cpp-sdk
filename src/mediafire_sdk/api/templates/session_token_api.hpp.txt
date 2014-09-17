@@ -1,0 +1,6 @@
+    /** SessionMaintainer expected method. */
+    void SetSessionToken(
+            std::string session_token,
+            std::string time,
+            int secret_key
+        );

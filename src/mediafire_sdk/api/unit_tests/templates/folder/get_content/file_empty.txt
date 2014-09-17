@@ -1,0 +1,14 @@
+{
+    "response": {
+        "action": "folder/get_content",
+        "folder_content": {
+            "chunk_size": "100",
+            "content_type": "files",
+            "chunk_number": "1",
+            "files": [],
+        },
+        "result": "Success",
+        "new_key": "yes",
+        "current_api_version": "1.0"
+    }
+}
