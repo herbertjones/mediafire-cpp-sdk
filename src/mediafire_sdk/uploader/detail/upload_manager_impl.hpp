@@ -62,6 +62,8 @@ private:
     std::deque<StateMachinePointer> to_hash_;
     std::deque<StateMachinePointer> to_upload_;
 
+    std::set<std::string> uploading_hashes_;
+
     std::set<StateMachinePointer> requests_;
 
     std::deque<StateMachinePointer> ready_for_upload_chunks_;

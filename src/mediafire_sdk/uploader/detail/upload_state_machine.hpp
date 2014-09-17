@@ -77,6 +77,13 @@ struct UploadConfig
     UploadTarget target_folder;
 };
 
+struct ChunkData
+{
+    std::string hash;
+    std::vector<std::pair<uint64_t,uint64_t>> chunk_ranges;
+    std::vector<std::string> chunk_hashes;
+};
+
 /**
  * @interface UploadStateMachineCallbackInterface
  */
@@ -690,6 +697,11 @@ public:
     void SendStatus(const UploadState & state)
     {
         status_callback_( UploadStatus{ filepath_, state } );
+    }
+
+    ChunkData GetChunkData() const
+    {
+        return ChunkData { hash_, chunk_ranges_, chunk_hashes_ };
     }
 
 protected:

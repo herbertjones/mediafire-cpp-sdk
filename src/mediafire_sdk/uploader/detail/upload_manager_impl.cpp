@@ -168,6 +168,13 @@ void UploadManagerImpl::Tick_StartHashings()
 
 void UploadManagerImpl::Tick_StartUploads()
 {
+#ifndef NDEBUG
+    // Ensure calling process event never causes recursion here.
+    static bool recursing = false;
+    assert(!recursing);
+    recursing = true;
+#endif
+
     auto current_count = current_uploads_;
 
     if ( ! to_upload_.empty() )
@@ -200,14 +207,34 @@ void UploadManagerImpl::Tick_StartUploads()
         }
         else if ( current_count < max_concurrent_uploads_ )
         {
+            assert( ! action_token_.empty() );
+
             ++current_count;
 
-            auto request = to_upload_.front();
-            to_upload_.pop_front();
-            assert( ! action_token_.empty() );
-            request->process_event(event::StartUpload{action_token_});
+            for (auto it = to_upload_.begin(); it != to_upload_.end(); ++it)
+            {
+                // Skip duplicate hashes
+                auto request = *it;
+                if (uploading_hashes_.find(request->Hash()) ==
+                    uploading_hashes_.end())
+                {
+                    // Remove iterator before process event.
+                    to_upload_.erase(it);
+
+                    request->process_event(event::StartUpload{action_token_});
+
+                    uploading_hashes_.insert(request->Hash());
+
+                    // Only do one
+                    break;
+                }
+            }
         }
     }
+
+#ifndef NDEBUG
+    recursing = false;
+#endif
 }
 
 void UploadManagerImpl::HandleActionToken(
@@ -286,6 +313,14 @@ void UploadManagerImpl::HandleRemoveToUpload(StateMachinePointer request)
 void UploadManagerImpl::HandleComplete(StateMachinePointer request)
 {
     requests_.erase(request);
+
+    const auto chunk_data = request->GetChunkData();
+
+    // Remove hashes to allow duplicates
+    if ( ! chunk_data.hash.empty() )
+    {
+        uploading_hashes_.erase(request->Hash());
+    }
 
     EnqueueTick();
 }
