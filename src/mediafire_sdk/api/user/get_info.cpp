@@ -85,7 +85,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.ekey",
             &response->ekey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.ekey\"");
 
     // create_content_parse_single required
@@ -94,7 +94,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.email",
             &response->email ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.email\"");
 
     // create_content_parse_single optional with default
@@ -115,7 +115,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.display_name",
             &response->display_name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.display_name\"");
 
     {
@@ -179,12 +179,12 @@ void Impl::ParseResponse( Response * response )
                 response->account_type = AccountType::Premium;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.user_info.premium");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.user_info.premium");
     }
 
@@ -194,7 +194,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.bandwidth",
             &response->bandwidth ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.bandwidth\"");
 
     // create_content_parse_single optional with default
@@ -217,12 +217,12 @@ void Impl::ParseResponse( Response * response )
                 response->validated = Validated::Validated;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.user_info.validated");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.user_info.validated");
     }
 
@@ -232,7 +232,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.max_upload_size",
             &response->max_upload_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.max_upload_size\"");
 
     // create_content_parse_single required
@@ -241,7 +241,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.max_instant_upload_size",
             &response->max_instant_upload_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.max_instant_upload_size\"");
 
     // create_content_parse_single optional no default
@@ -262,7 +262,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.used_storage_size",
             &response->used_storage_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.used_storage_size\"");
 
     // create_content_parse_single required
@@ -271,7 +271,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.base_storage",
             &response->base_storage ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.base_storage\"");
 
     // create_content_parse_single required
@@ -280,7 +280,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.bonus_storage",
             &response->bonus_storage ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.bonus_storage\"");
 
     // create_content_parse_single required
@@ -289,7 +289,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.storage_limit",
             &response->storage_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.storage_limit\"");
 
     {
@@ -306,12 +306,12 @@ void Impl::ParseResponse( Response * response )
                 response->storage_limit_exceeded = LimitExceeded::Exceeded;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.user_info.storage_limit_exceeded");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.user_info.storage_limit_exceeded");
     }
 
@@ -321,7 +321,7 @@ void Impl::ParseResponse( Response * response )
             "response.user_info.options",
             &response->options ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.user_info.options\"");
 
     // create_content_parse_single optional no default

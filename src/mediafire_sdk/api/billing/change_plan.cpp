@@ -123,12 +123,12 @@ void Impl::ParseResponse( Response * response )
                 response->info_only = InfoOnly::Yes;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.info_only");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.info_only");
     }
 
@@ -138,7 +138,7 @@ void Impl::ParseResponse( Response * response )
             "response.newpid",
             &response->new_pid ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.newpid\"");
 
     // create_content_parse_single required
@@ -147,7 +147,7 @@ void Impl::ParseResponse( Response * response )
             "response.amount",
             &response->amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.amount\"");
 
     // create_content_parse_single required
@@ -156,7 +156,7 @@ void Impl::ParseResponse( Response * response )
             "response.interval",
             &response->interval ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.interval\"");
 
 #   undef return_error

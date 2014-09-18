@@ -272,7 +272,8 @@ public:
         {
             // Certain errors should be retried.
             if ( IsInvalidSessionTokenError(response.error_code)
-                || response.error_code == errc::AsyncOperationInProgress )
+                || response.error_code ==
+                    api::result_code::AsyncOperationInProgress )
             {
                 request_retry_alert_(this->shared_from_this(), &response);
             }

@@ -9,8 +9,6 @@
 #include <string>
 #include <system_error>
 
-#include "mediafire_sdk/utils/noexcept.hpp"
-
 namespace mf {
 namespace api {
 
@@ -21,7 +19,9 @@ namespace api {
  */
 enum class errc
 {
-    ContentInvalidFormat,
+    // api_code here
+
+    ContentInvalidFormat = 1, // 0 not allowed
     ContentInvalidData,
     BadRequest,
     Forbidden,
@@ -154,15 +154,6 @@ enum class errc
 std::error_condition make_error_condition(errc e);
 
 /**
- * @brief Create an error code for std::error_code usage.
- *
- * @param[in] e Error code
- *
- * @return Error code
- */
-std::error_code make_error_code(errc e);
-
-/**
  * @brief Create/get the instance of the error category.
  *
  * @return The std::error_category beloging to our error codes.
@@ -178,4 +169,3 @@ namespace std
     struct is_error_condition_enum<mf::api::errc>
         : public true_type {};
 }  // End namespace std
-

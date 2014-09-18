@@ -87,7 +87,7 @@ void Impl::ParseResponse( Response * response )
             "response.device_revision",
             &response->device_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.device_revision\"");
 
     // create_content_parse_array_front required
@@ -96,7 +96,7 @@ void Impl::ParseResponse( Response * response )
             "response.new_quickkeys",
             &response->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.new_quickkeys\"");
 
 #   undef return_error

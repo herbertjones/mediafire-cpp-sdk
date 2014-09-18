@@ -45,7 +45,7 @@ bool UpdateFromPropertyBranch(
             "source_revision",
             &value->source_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"source_revision\"");
 
     // create_content_parse_single required
@@ -54,7 +54,7 @@ bool UpdateFromPropertyBranch(
             "source_hash",
             &value->source_hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"source_hash\"");
 
     // create_content_parse_single required
@@ -63,7 +63,7 @@ bool UpdateFromPropertyBranch(
             "target_revision",
             &value->target_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"target_revision\"");
 
     // create_content_parse_single required
@@ -72,7 +72,7 @@ bool UpdateFromPropertyBranch(
             "target_hash",
             &value->target_hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"target_hash\"");
 
     // create_content_parse_single required
@@ -81,7 +81,7 @@ bool UpdateFromPropertyBranch(
             "timestamp",
             &value->timestamp ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"timestamp\"");
 
     // get_data_type_struct_extractor conclusion
@@ -159,7 +159,7 @@ void Impl::ParseResponse( Response * response )
             "response.current_revision",
             &response->current_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.current_revision\"");
 
     // create_content_struct_parse TArray

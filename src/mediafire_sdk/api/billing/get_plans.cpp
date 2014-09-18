@@ -51,7 +51,7 @@ bool PlanFromPropertyBranch(
             "product_id",
             &value->product_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"product_id\"");
 
     // create_content_parse_single required
@@ -60,7 +60,7 @@ bool PlanFromPropertyBranch(
             "description",
             &value->description ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"description\"");
 
     // create_content_parse_single required
@@ -69,7 +69,7 @@ bool PlanFromPropertyBranch(
             "short_description",
             &value->short_description ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"short_description\"");
 
     // create_content_parse_single required
@@ -78,7 +78,7 @@ bool PlanFromPropertyBranch(
             "initial_amount",
             &value->initial_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"initial_amount\"");
 
     // create_content_parse_single required
@@ -87,7 +87,7 @@ bool PlanFromPropertyBranch(
             "initial_units",
             &value->initial_units ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"initial_units\"");
 
     {
@@ -111,7 +111,7 @@ bool PlanFromPropertyBranch(
             "recurring_amount",
             &value->recurring_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"recurring_amount\"");
 
     // create_content_parse_single optional with default
@@ -225,7 +225,7 @@ void Impl::ParseResponse( Response * response )
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.products\"");
     }
 

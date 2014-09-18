@@ -47,7 +47,7 @@ bool NotificationFromPropertyBranch(
             "actor",
             &value->actor ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"actor\"");
 
     // create_content_parse_single optional with default
@@ -62,7 +62,7 @@ bool NotificationFromPropertyBranch(
             "message",
             &value->message ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"message\"");
 
     // create_content_parse_single required
@@ -71,7 +71,7 @@ bool NotificationFromPropertyBranch(
             "resource",
             &value->resource ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"resource\"");
 
     {
@@ -174,7 +174,7 @@ void Impl::ParseResponse( Response * response )
             "response.num_older",
             &response->number_older ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.num_older\"");
 
 #   undef return_error

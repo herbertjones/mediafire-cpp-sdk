@@ -80,7 +80,7 @@ void Impl::ParseResponse( Response * response )
             "response.database",
             &response->database ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.database\"");
 
     // create_content_parse_single required
@@ -89,7 +89,7 @@ void Impl::ParseResponse( Response * response )
             "response.memcache",
             &response->memcache ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.memcache\"");
 
 #   undef return_error

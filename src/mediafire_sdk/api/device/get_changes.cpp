@@ -46,7 +46,7 @@ bool FileFromPropertyBranch(
             "quickkey",
             &value->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"quickkey\"");
 
     // create_content_parse_single optional no default
@@ -67,7 +67,7 @@ bool FileFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     // create_content_parse_single optional with default
@@ -103,7 +103,7 @@ bool FolderFromPropertyBranch(
             "folderkey",
             &value->folderkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"folderkey\"");
 
     // create_content_parse_single optional no default
@@ -124,7 +124,7 @@ bool FolderFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     // create_content_parse_single optional with default
@@ -203,7 +203,7 @@ void Impl::ParseResponse( Response * response )
             "response.device_revision",
             &response->device_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.device_revision\"");
 
     // create_content_parse_single required
@@ -212,7 +212,7 @@ void Impl::ParseResponse( Response * response )
             "response.changes_list_block",
             &response->changes_list_block ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.changes_list_block\"");
 
     // create_content_struct_parse TArray

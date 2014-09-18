@@ -174,7 +174,7 @@ bool LinksFromPropertyBranch(
             "quickkey",
             &value->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"quickkey\"");
 
     // create_content_parse_single optional no default
@@ -301,7 +301,7 @@ void Impl::ParseResponse( Response * response )
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.links\"");
     }
 

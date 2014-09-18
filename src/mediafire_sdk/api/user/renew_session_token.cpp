@@ -64,7 +64,7 @@ void v0::Request::HandleContent(
                     &response.session_token ) )
         {
             response.error_code = make_error_code(
-                    api::errc::ContentInvalidData );
+                    api::api_code::ContentInvalidData );
             response.error_string = "missing session token";
         }
     }

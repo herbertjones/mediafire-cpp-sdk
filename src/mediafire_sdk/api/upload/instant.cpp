@@ -114,7 +114,7 @@ void Impl::ParseResponse( Response * response )
             "response.quickkey",
             &response->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.quickkey\"");
 
     // create_content_parse_single required
@@ -123,7 +123,7 @@ void Impl::ParseResponse( Response * response )
             "response.filename",
             &response->filename ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.filename\"");
 
 #   undef return_error

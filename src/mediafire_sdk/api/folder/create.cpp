@@ -100,7 +100,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_key",
             &response->folderkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_key\"");
 
     // create_content_parse_single required
@@ -109,7 +109,7 @@ void Impl::ParseResponse( Response * response )
             "response.upload_key",
             &response->uploadkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.upload_key\"");
 
     // create_content_parse_single required
@@ -118,7 +118,7 @@ void Impl::ParseResponse( Response * response )
             "response.name",
             &response->name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.name\"");
 
     // create_content_parse_single required
@@ -127,7 +127,7 @@ void Impl::ParseResponse( Response * response )
             "response.created",
             &response->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.created\"");
 
     {
@@ -144,12 +144,12 @@ void Impl::ParseResponse( Response * response )
                 response->privacy = Privacy::Private;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.privacy");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.privacy");
     }
 

@@ -80,7 +80,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.max_objects",
             &response->max_objects ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.max_objects\"");
 
     // create_content_parse_single required
@@ -89,7 +89,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.max_keys",
             &response->max_keys ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.max_keys\"");
 
     // create_content_parse_single required
@@ -98,7 +98,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.max_image_size",
             &response->max_image_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.max_image_size\"");
 
     // create_content_parse_single required
@@ -107,7 +107,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.zip_max_filesize",
             &response->zip_max_filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.zip_max_filesize\"");
 
     // create_content_parse_single required
@@ -116,7 +116,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.zip_max_total_filesize",
             &response->zip_max_total_filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.zip_max_total_filesize\"");
 
     // create_content_parse_single required
@@ -125,7 +125,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.folder_content_chunk_size",
             &response->folder_content_chunk_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.folder_content_chunk_size\"");
 
     // create_content_parse_single required
@@ -134,7 +134,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.folder_depth_limit",
             &response->folder_depth_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.folder_depth_limit\"");
 
     // create_content_parse_single required
@@ -143,7 +143,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.limit_search_results",
             &response->limit_search_results ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.limit_search_results\"");
 
     // create_content_parse_single required
@@ -152,7 +152,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.daily_shares_limit",
             &response->daily_shares_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.daily_shares_limit\"");
 
     // create_content_parse_single required
@@ -161,7 +161,7 @@ void Impl::ParseResponse( Response * response )
             "response.limits.device_changes_list_limit",
             &response->device_changes_list_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.limits.device_changes_list_limit\"");
 
 #   undef return_error

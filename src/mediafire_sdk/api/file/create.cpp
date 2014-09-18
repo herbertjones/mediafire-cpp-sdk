@@ -143,7 +143,7 @@ void Impl::ParseResponse( Response * response )
             "response.device_revision",
             &response->device_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.device_revision\"");
 
     // create_content_parse_single required
@@ -152,7 +152,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.quickkey",
             &response->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.quickkey\"");
 
     // create_content_parse_single required
@@ -161,7 +161,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.filename",
             &response->filename ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.filename\"");
 
     // create_content_parse_single required
@@ -170,7 +170,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.created",
             &response->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.created\"");
 
     // create_content_parse_single required
@@ -179,7 +179,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.size",
             &response->filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.size\"");
 
     // create_content_parse_single required
@@ -188,7 +188,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.filetype",
             &response->filetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.filetype\"");
 
     // create_content_parse_single required
@@ -197,7 +197,7 @@ void Impl::ParseResponse( Response * response )
             "response.fileinfo.flag",
             &response->flag ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.flag\"");
 
     // create_content_struct_parse TSingle
@@ -216,7 +216,7 @@ void Impl::ParseResponse( Response * response )
             // JSON response still has element if expected.
             // This is really an error.
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "missing \"response.fileinfo.links\"");
         }
     }
@@ -225,7 +225,7 @@ void Impl::ParseResponse( Response * response )
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.fileinfo.links\"");
     }
 

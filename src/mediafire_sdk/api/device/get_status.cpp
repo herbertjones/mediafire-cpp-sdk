@@ -89,12 +89,12 @@ void Impl::ParseResponse( Response * response )
                 response->async_jobs_in_progress = AsyncJobs::Running;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.async_jobs_in_progress");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.async_jobs_in_progress");
     }
 
@@ -104,7 +104,7 @@ void Impl::ParseResponse( Response * response )
             "response.device_revision",
             &response->device_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.device_revision\"");
 
 #   undef return_error

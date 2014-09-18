@@ -45,7 +45,7 @@ bool ShareFromPropertyBranch(
             "contact_key",
             &value->contact_key ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"contact_key\"");
 
     // create_content_parse_single required
@@ -54,7 +54,7 @@ bool ShareFromPropertyBranch(
             "contact_type",
             &value->contact_type ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"contact_type\"");
 
     // create_content_parse_single required
@@ -63,7 +63,7 @@ bool ShareFromPropertyBranch(
             "contact_indirect",
             &value->contact_indirect ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"contact_indirect\"");
 
     // create_content_parse_single required
@@ -72,7 +72,7 @@ bool ShareFromPropertyBranch(
             "display_name",
             &value->display_name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"display_name\"");
 
     // create_content_parse_single optional no default
@@ -103,12 +103,12 @@ bool ShareFromPropertyBranch(
                 value->share_permissions = Permissions::Manage;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in permissions");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in permissions");
     }
 

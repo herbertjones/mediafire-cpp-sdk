@@ -63,7 +63,7 @@ void api::ResponseBase::InitializeWithContent(
     catch ( boost::property_tree::json_parser_error & err )
     {
         error_code = make_error_code(
-                api::errc::ContentInvalidFormat );
+                api::api_code::ContentInvalidFormat );
         error_string = err.what();
     }
 
@@ -71,20 +71,10 @@ void api::ResponseBase::InitializeWithContent(
     // HTTP response code.
     if ( headers.status_code != 200 )
     {
-        // Use the HTTP error code if possible.
-#define EC(n,m) case n: error_code = make_error_code( api::errc::m ); break;
-        switch (headers.status_code)
-        {
-            EC( 400, BadRequest );
-            EC( 403, Forbidden );
-            EC( 404, NotFound );
-            EC( 500, InternalServerError );
-            EC( 900, ApiInternalServerError );
-        default:
-            error_code = make_error_code( api::errc::UnknownApiError );
-            break;
-        }
-#undef EC
+        // Use the HTTP error code.  Will be replaced if error can be parsed
+        // below.
+        error_code = std::error_code(headers.status_code,
+            api::http_status_category());
 
         // Try to get the error from the remote API call.
         if ( parsing_success )
@@ -105,7 +95,7 @@ void api::ResponseBase::InitializeWithContent(
             if ( GetIfExists( pt, "response.error", &api_code ) )
             {
                 api_error_code = api_code;
-                error_code = std::error_code(api_code, api_category());
+                error_code = std::error_code(api_code, result_category());
             }
         }
         else
@@ -123,11 +113,11 @@ void api::ResponseBase::InitializeWithContent(
             if ( GetIfExists( pt, "response.error", &api_code ) )
             {
                 api_error_code = api_code;
-                error_code = std::error_code(api_code, api_category());
+                error_code = std::error_code(api_code, result_category());
             }
             else
             {
-                error_code = make_error_code( api::errc::UnknownApiError );
+                error_code = make_error_code( api::api_code::UnknownApiError );
             }
 
             std::string api_message;

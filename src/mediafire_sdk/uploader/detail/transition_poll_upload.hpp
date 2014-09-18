@@ -48,7 +48,7 @@ void HandlePollCompleteResponse(
     else
     {
         fsm.ProcessEvent(event::Error{
-            make_error_code(api::errc::ContentInvalidData),
+            make_error_code(api::api_code::ContentInvalidData),
             "Successful response missing quickkey"
             });
     }

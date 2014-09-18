@@ -515,7 +515,7 @@ private:
                     waiting_st_requests_.erase(it);
                     request->Fail(
                         make_error_code(
-                            api::errc::SessionTokenUnavailableTimeout ),
+                            api::api_code::SessionTokenUnavailableTimeout ),
                         "No session token was available before the timeout was"
                         " reached."
                     );
@@ -533,7 +533,7 @@ private:
                     waiting_non_st_requests_.erase(it);
                     request->Fail(
                         make_error_code(
-                            api::errc::ConnectionUnavailableTimeout ),
+                            api::api_code::ConnectionUnavailableTimeout ),
                         "connection unavailable before the timeout was reached."
                     );
                 }
@@ -774,7 +774,7 @@ void api::SessionMaintainer::HandleSessionTokenResponse(
         );
 
         // If username or password is incorrect, stop.
-        if (response.error_code == api::errc::CredentialsInvalid)
+        if (response.error_code == api::result_code::CredentialsInvalid)
         {
             if (IsInitialized(session_state) || IsRunning(session_state))
             {

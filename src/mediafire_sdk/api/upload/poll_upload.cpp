@@ -87,7 +87,7 @@ void Impl::ParseResponse( Response * response )
             "response.doupload.result",
             &response->result ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.doupload.result\"");
 
     // create_content_parse_single required
@@ -96,7 +96,7 @@ void Impl::ParseResponse( Response * response )
             "response.doupload.status",
             &response->status ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.doupload.status\"");
 
     // create_content_parse_single optional with default

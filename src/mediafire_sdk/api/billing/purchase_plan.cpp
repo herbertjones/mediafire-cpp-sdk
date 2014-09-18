@@ -120,7 +120,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice",
             &response->invoice ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice\"");
 
     // create_content_parse_single optional with default
@@ -135,7 +135,7 @@ void Impl::ParseResponse( Response * response )
             "response.total",
             &response->total ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.total\"");
 
     // create_content_parse_single required
@@ -144,7 +144,7 @@ void Impl::ParseResponse( Response * response )
             "response.product",
             &response->product_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.product\"");
 
     // create_content_parse_single required
@@ -153,7 +153,7 @@ void Impl::ParseResponse( Response * response )
             "response.premium",
             &response->premium ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.premium\"");
 
     // create_content_parse_single optional with default

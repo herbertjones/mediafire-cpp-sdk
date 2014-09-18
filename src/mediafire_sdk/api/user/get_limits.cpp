@@ -80,7 +80,7 @@ void Impl::ParseResponse( Response * response )
             "response.storage_base",
             &response->storage_base ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.storage_base\"");
 
     // create_content_parse_single required
@@ -89,7 +89,7 @@ void Impl::ParseResponse( Response * response )
             "response.storage_bonus",
             &response->storage_bonus ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.storage_bonus\"");
 
     // create_content_parse_single required
@@ -98,7 +98,7 @@ void Impl::ParseResponse( Response * response )
             "response.storage_limit",
             &response->storage_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.storage_limit\"");
 
     // create_content_parse_single required
@@ -107,7 +107,7 @@ void Impl::ParseResponse( Response * response )
             "response.storage_used",
             &response->storage_used ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.storage_used\"");
 
     // create_content_parse_single required
@@ -116,7 +116,7 @@ void Impl::ParseResponse( Response * response )
             "response.bandwidth_limit",
             &response->bandwidth_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.bandwidth_limit\"");
 
     // create_content_parse_single required
@@ -125,7 +125,7 @@ void Impl::ParseResponse( Response * response )
             "response.bandwidth_used",
             &response->bandwidth_used ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.bandwidth_used\"");
 
     // create_content_parse_single required
@@ -134,7 +134,7 @@ void Impl::ParseResponse( Response * response )
             "response.collaboration_limit",
             &response->collaboration_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.collaboration_limit\"");
 
     // create_content_parse_single required
@@ -143,7 +143,7 @@ void Impl::ParseResponse( Response * response )
             "response.collaboration_today",
             &response->collaboration_today ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.collaboration_today\"");
 
     // create_content_parse_single required
@@ -152,7 +152,7 @@ void Impl::ParseResponse( Response * response )
             "response.one_time_downloads_limit",
             &response->one_time_downloads_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.one_time_downloads_limit\"");
 
     // create_content_parse_single required
@@ -161,7 +161,7 @@ void Impl::ParseResponse( Response * response )
             "response.one_time_downloads_today",
             &response->one_time_downloads_today ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.one_time_downloads_today\"");
 
     // create_content_parse_single required
@@ -170,7 +170,7 @@ void Impl::ParseResponse( Response * response )
             "response.streaming_bandwidth_limit",
             &response->streaming_bandwidth_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.streaming_bandwidth_limit\"");
 
     // create_content_parse_single required
@@ -179,7 +179,7 @@ void Impl::ParseResponse( Response * response )
             "response.streaming_bandwidth_today",
             &response->streaming_bandwidth_today ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.streaming_bandwidth_today\"");
 
     // create_content_parse_single required
@@ -188,7 +188,7 @@ void Impl::ParseResponse( Response * response )
             "response.upload_size_limit",
             &response->upload_size_limit ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.upload_size_limit\"");
 
 #   undef return_error

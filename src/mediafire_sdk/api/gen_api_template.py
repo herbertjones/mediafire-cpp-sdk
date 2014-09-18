@@ -719,7 +719,7 @@ def create_content_struct_parse(api, ob, t, full_type_name, n, r, dt, optional, 
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \\"'''+r+'''\\"");'''
         else:
             ret = ret + '''
@@ -747,7 +747,7 @@ def create_content_struct_parse(api, ob, t, full_type_name, n, r, dt, optional, 
             // JSON response still has element if expected.
             // This is really an error.
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "missing \\"''' + r + '''\\"");
         }'''
 
@@ -761,7 +761,7 @@ def create_content_struct_parse(api, ob, t, full_type_name, n, r, dt, optional, 
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \\"'''+r+'''\\"");'''
         else:
             ret = ret + '''
@@ -818,7 +818,7 @@ def create_content_enum_parse(api, ob, t, n, r, dt, optional, pt):
                 ret = ret + '''
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in ''' + r + '''");'''
 
     ret = ret + '''
@@ -827,7 +827,7 @@ def create_content_enum_parse(api, ob, t, n, r, dt, optional, pt):
         ret = ret + '''
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in ''' + r + '''");'''
     ret = ret + '''
     }'''
@@ -849,7 +849,7 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
         if (branch.empty())
         {
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "invalid value in ''' + r + '''");
         }'''
 
@@ -868,7 +868,7 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
     if optional is Required:
         ret = ret + '''
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in ''' + r + '''");'''
     else:
         ret = ret + '''
@@ -886,7 +886,7 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
         // JSON response still has element if expected.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \\"''' + r + '''\\"");'''
     else:
         ret = ret + '''
@@ -929,7 +929,7 @@ def create_content_parse_array_front(api, ob, t, n, r, dt, optional, pt):
             "''' + r + '''",
             &''' + ob + '''->''' + n + ''' ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \\"''' + r + '''\\"");'''
 
 
@@ -964,7 +964,7 @@ def create_content_parse_single(api, ob, t, n, r, dt, optional, pt):
             "''' + r + '''",
             &''' + ob + '''->''' + n + ''' ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \\"''' + r + '''\\"");'''
 
 def create_content_parse(api, ob, t, n, r, parse_data_type, optional, pt):

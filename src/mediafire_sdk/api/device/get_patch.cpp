@@ -94,7 +94,7 @@ void Impl::ParseResponse( Response * response )
             "response.patch_link",
             &response->patch_link ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.patch_link\"");
 
     // create_content_parse_single required
@@ -103,7 +103,7 @@ void Impl::ParseResponse( Response * response )
             "response.patch_hash",
             &response->patch_hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.patch_hash\"");
 
 #   undef return_error

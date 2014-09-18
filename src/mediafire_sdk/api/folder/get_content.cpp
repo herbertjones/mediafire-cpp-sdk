@@ -169,7 +169,7 @@ bool FileFromPropertyBranch(
             "created",
             &value->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"created\"");
 
     // create_content_parse_single optional with default
@@ -196,7 +196,7 @@ bool FileFromPropertyBranch(
             "downloads",
             &value->download_count ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"downloads\"");
 
     // create_content_parse_single required
@@ -205,7 +205,7 @@ bool FileFromPropertyBranch(
             "filename",
             &value->filename ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"filename\"");
 
     // create_content_parse_single required
@@ -214,7 +214,7 @@ bool FileFromPropertyBranch(
             "size",
             &value->filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"size\"");
 
     // create_content_parse_single required
@@ -223,7 +223,7 @@ bool FileFromPropertyBranch(
             "filetype",
             &value->filetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"filetype\"");
 
     // create_content_parse_single required
@@ -232,7 +232,7 @@ bool FileFromPropertyBranch(
             "flag",
             &value->flag ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"flag\"");
 
     // create_content_parse_single required
@@ -241,7 +241,7 @@ bool FileFromPropertyBranch(
             "hash",
             &value->hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"hash\"");
 
     // create_content_struct_parse TSingle
@@ -260,7 +260,7 @@ bool FileFromPropertyBranch(
             // JSON response still has element if expected.
             // This is really an error.
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "missing \"links\"");
         }
     }
@@ -269,7 +269,7 @@ bool FileFromPropertyBranch(
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"links\"");
     }
 
@@ -279,7 +279,7 @@ bool FileFromPropertyBranch(
             "mimetype",
             &value->mimetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"mimetype\"");
 
     {
@@ -296,12 +296,12 @@ bool FileFromPropertyBranch(
                 value->password_protected = PasswordProtected::Protected;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in password_protected");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in password_protected");
     }
 
@@ -331,12 +331,12 @@ bool FileFromPropertyBranch(
                 value->privacy = Privacy::Private;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in privacy");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in privacy");
     }
 
@@ -346,7 +346,7 @@ bool FileFromPropertyBranch(
             "quickkey",
             &value->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"quickkey\"");
 
     // create_content_parse_single required
@@ -355,7 +355,7 @@ bool FileFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     {
@@ -394,7 +394,7 @@ bool FileFromPropertyBranch(
             "views",
             &value->views ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"views\"");
 
     // get_data_type_struct_extractor conclusion
@@ -426,7 +426,7 @@ bool FolderFromPropertyBranch(
             "created",
             &value->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"created\"");
 
     // create_content_parse_single optional with default
@@ -453,7 +453,7 @@ bool FolderFromPropertyBranch(
             "file_count",
             &value->file_count ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"file_count\"");
 
     {
@@ -470,12 +470,12 @@ bool FolderFromPropertyBranch(
                 value->filedrop = FileDrop::Enabled;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in dropbox_enabled");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in dropbox_enabled");
     }
 
@@ -485,7 +485,7 @@ bool FolderFromPropertyBranch(
             "flag",
             &value->flag ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"flag\"");
 
     // create_content_parse_single required
@@ -494,7 +494,7 @@ bool FolderFromPropertyBranch(
             "folder_count",
             &value->folder_count ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"folder_count\"");
 
     // create_content_parse_single required
@@ -503,7 +503,7 @@ bool FolderFromPropertyBranch(
             "folderkey",
             &value->folderkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"folderkey\"");
 
     // create_content_parse_single required
@@ -512,7 +512,7 @@ bool FolderFromPropertyBranch(
             "name",
             &value->name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"name\"");
 
     // create_content_parse_single optional no default
@@ -541,12 +541,12 @@ bool FolderFromPropertyBranch(
                 value->privacy = Privacy::Private;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in privacy");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in privacy");
     }
 
@@ -556,7 +556,7 @@ bool FolderFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     {
@@ -720,7 +720,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_content.chunk_size",
             &response->chunk_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_content.chunk_size\"");
 
     {
@@ -737,12 +737,12 @@ void Impl::ParseResponse( Response * response )
                 response->content_type = ContentType::Files;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.folder_content.content_type");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.folder_content.content_type");
     }
 
@@ -752,7 +752,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_content.chunk_number",
             &response->chunk_number ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_content.chunk_number\"");
 
     // create_content_struct_parse TArray

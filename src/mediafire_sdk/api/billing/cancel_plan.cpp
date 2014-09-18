@@ -102,7 +102,7 @@ void Impl::ParseResponse( Response * response )
             "response.cancel_date",
             &response->cancel_date ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.cancel_date\"");
 
     // create_content_parse_single required
@@ -111,7 +111,7 @@ void Impl::ParseResponse( Response * response )
             "response.confirmation",
             &response->confirmation ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.confirmation\"");
 
     // create_content_parse_single optional no default

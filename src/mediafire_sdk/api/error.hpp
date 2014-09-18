@@ -7,8 +7,13 @@
  */
 #pragma once
 
-#include "mediafire_sdk/api/error/api_category.hpp"
-#include "mediafire_sdk/api/error/api_condition.hpp"
+//#include "mediafire_sdk/api/error/api_category.hpp"
+//#include "mediafire_sdk/api/error/api_condition.hpp"
+
+#include "mediafire_sdk/api/error/codes/api_code.hpp"
+#include "mediafire_sdk/api/error/codes/http_status.hpp"
+#include "mediafire_sdk/api/error/codes/result_code.hpp"
+#include "mediafire_sdk/api/error/conditions/generic.hpp"
 
 namespace mf {
 namespace api {

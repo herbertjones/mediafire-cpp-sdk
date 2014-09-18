@@ -104,7 +104,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.folderkey",
             &response->folderkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.folderkey\"");
 
     // create_content_parse_single required
@@ -113,7 +113,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.name",
             &response->name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.name\"");
 
     // create_content_parse_single optional no default
@@ -185,7 +185,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.file_count",
             &response->file_count ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.file_count\"");
 
     // create_content_parse_single required
@@ -194,7 +194,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.folder_count",
             &response->folder_count ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.folder_count\"");
 
     // create_content_parse_single optional no default
@@ -302,7 +302,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.flag",
             &response->flag ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.flag\"");
 
     // create_content_parse_single required
@@ -311,7 +311,7 @@ void Impl::ParseResponse( Response * response )
             "response.folder_info.revision",
             &response->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_info.revision\"");
 
 #   undef return_error

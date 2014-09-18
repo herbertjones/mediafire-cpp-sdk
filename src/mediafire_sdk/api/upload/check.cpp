@@ -57,7 +57,7 @@ bool ResumableDataFromPropertyBranch(
             "number_of_units",
             &value->number_of_units ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"number_of_units\"");
 
     {
@@ -81,7 +81,7 @@ bool ResumableDataFromPropertyBranch(
             "unit_size",
             &value->unit_size ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"unit_size\"");
 
     // create_content_parse_array TArray
@@ -92,7 +92,7 @@ bool ResumableDataFromPropertyBranch(
         if (branch.empty())
         {
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "invalid value in bitmap.words");
         }
         for ( auto & it : branch )
@@ -106,7 +106,7 @@ bool ResumableDataFromPropertyBranch(
             else
             {
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in bitmap.words");
             }
         }
@@ -116,7 +116,7 @@ bool ResumableDataFromPropertyBranch(
         // JSON response still has element if expected.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"bitmap.words\"");
     }
 

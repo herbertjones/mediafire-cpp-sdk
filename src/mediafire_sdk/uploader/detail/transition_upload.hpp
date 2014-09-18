@@ -229,7 +229,7 @@ void HandleUploadResponse(
             else
             {
                 fsm.ProcessEvent(event::Error{
-                    make_error_code(mf::api::errc::ContentInvalidData),
+                    make_error_code(mf::api::api_code::ContentInvalidData),
                     "Upload response missing uploadkey"
                     });
             }
@@ -416,7 +416,7 @@ void HandleChunkResponse(
             else
             {
                 fsm.ProcessEvent(event::Error{
-                    make_error_code(mf::api::errc::ContentInvalidData),
+                    make_error_code(mf::api::api_code::ContentInvalidData),
                     "Upload response missing uploadkey"
                     });
             }

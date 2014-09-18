@@ -88,7 +88,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.quickkey",
             &response->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.quickkey\"");
 
     // create_content_parse_single required
@@ -97,7 +97,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.filename",
             &response->filename ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.filename\"");
 
     // create_content_parse_single required
@@ -106,7 +106,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.created",
             &response->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.created\"");
 
     // create_content_parse_single optional with default
@@ -133,7 +133,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.size",
             &response->filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.size\"");
 
     {
@@ -150,12 +150,12 @@ void Impl::ParseResponse( Response * response )
                 response->privacy = Privacy::Private;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.file_info.privacy");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.file_info.privacy");
     }
 
@@ -173,12 +173,12 @@ void Impl::ParseResponse( Response * response )
                 response->password_protected = PasswordProtected::Protected;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.file_info.password_protected");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.file_info.password_protected");
     }
 
@@ -188,7 +188,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.hash",
             &response->hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.hash\"");
 
     // create_content_parse_single required
@@ -197,7 +197,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.filetype",
             &response->filetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.filetype\"");
 
     // create_content_parse_single required
@@ -206,7 +206,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.mimetype",
             &response->mimetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.mimetype\"");
 
     // create_content_parse_single required
@@ -215,7 +215,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.owner_name",
             &response->owner_name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.owner_name\"");
 
     {
@@ -263,7 +263,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.revision",
             &response->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.revision\"");
 
     // create_content_parse_single required
@@ -272,7 +272,7 @@ void Impl::ParseResponse( Response * response )
             "response.file_info.flag",
             &response->flag ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.flag\"");
 
 #   undef return_error

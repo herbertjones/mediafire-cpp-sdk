@@ -164,7 +164,7 @@ public:
         if ( ! self->headers_ )
         {
             RequestResponseErrorEvent(
-                    make_error_code( api::errc::ContentInvalidData ),
+                    make_error_code( api::api_code::ContentInvalidData ),
                     "Content received with no headers."
                 );
         }

@@ -80,7 +80,7 @@ void Impl::ParseResponse( Response * response )
             "response.num_total",
             &response->total ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.num_total\"");
 
     // create_content_parse_single required
@@ -89,7 +89,7 @@ void Impl::ParseResponse( Response * response )
             "response.num_unread",
             &response->unread ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.num_unread\"");
 
     // create_content_parse_single required
@@ -98,7 +98,7 @@ void Impl::ParseResponse( Response * response )
             "response.last_timestamp",
             &response->last_timestamp ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.last_timestamp\"");
 
 #   undef return_error

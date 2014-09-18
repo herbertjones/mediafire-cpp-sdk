@@ -9,7 +9,7 @@ namespace api = mf::api;
 
 bool api::IsInvalidSessionTokenError(std::error_code error)
 {
-    return error == errc::SessionTokenInvalid
-        || error == errc::SignatureInvalid;
+    return error == result_code::SessionTokenInvalid
+        || error == result_code::SignatureInvalid;
 }
 

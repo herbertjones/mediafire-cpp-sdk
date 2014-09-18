@@ -118,12 +118,12 @@ void Impl::ParseResponse( Response * response )
                 response->asynchronous = Asynchronous::Asynchronous;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in response.asynchronous");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in response.asynchronous");
     }
 
@@ -133,7 +133,7 @@ void Impl::ParseResponse( Response * response )
             "response.device_revision",
             &response->device_revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.device_revision\"");
 
 #   undef return_error

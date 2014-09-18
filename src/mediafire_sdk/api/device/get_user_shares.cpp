@@ -45,7 +45,7 @@ bool ShareFromPropertyBranch(
             "contact_key",
             &value->contact_key ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"contact_key\"");
 
     {
@@ -62,12 +62,12 @@ bool ShareFromPropertyBranch(
                 value->contact_indirect = ContactIndirect::Indirect;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in contact_indirect");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in contact_indirect");
     }
 
@@ -77,7 +77,7 @@ bool ShareFromPropertyBranch(
             "contact_type",
             &value->contact_type ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"contact_type\"");
 
     // create_content_parse_single required
@@ -86,7 +86,7 @@ bool ShareFromPropertyBranch(
             "display_name",
             &value->display_name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"display_name\"");
 
     // create_content_parse_single optional no default
@@ -107,7 +107,7 @@ bool ShareFromPropertyBranch(
             "resource_key",
             &value->resource_key ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"resource_key\"");
 
     // create_content_parse_single required
@@ -116,7 +116,7 @@ bool ShareFromPropertyBranch(
             "attributes",
             &value->attributes ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"attributes\"");
 
     {
@@ -135,12 +135,12 @@ bool ShareFromPropertyBranch(
                 value->share_permissions = Permissions::Manage;
             else
                 return_error(
-                    mf::api::errc::ContentInvalidData,
+                    mf::api::api_code::ContentInvalidData,
                     "invalid value in permissions");
         }
         else
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "no value in permissions");
     }
 

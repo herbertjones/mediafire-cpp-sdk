@@ -65,7 +65,7 @@ bool FileFromPropertyBranch(
             "attributes",
             &value->attributes ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"attributes\"");
 
     // create_content_parse_single required
@@ -74,7 +74,7 @@ bool FileFromPropertyBranch(
             "created",
             &value->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"created\"");
 
     // create_content_parse_single required
@@ -83,7 +83,7 @@ bool FileFromPropertyBranch(
             "date_shared",
             &value->shared_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"date_shared\"");
 
     // create_content_parse_single optional no default
@@ -104,7 +104,7 @@ bool FileFromPropertyBranch(
             "filename",
             &value->filename ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"filename\"");
 
     // create_content_parse_single required
@@ -113,7 +113,7 @@ bool FileFromPropertyBranch(
             "filetype",
             &value->filetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"filetype\"");
 
     // create_content_parse_single required
@@ -122,7 +122,7 @@ bool FileFromPropertyBranch(
             "md5",
             &value->hash ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"md5\"");
 
     // create_content_parse_single required
@@ -131,7 +131,7 @@ bool FileFromPropertyBranch(
             "mimetype",
             &value->mimetype ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"mimetype\"");
 
     // create_content_parse_single required
@@ -140,7 +140,7 @@ bool FileFromPropertyBranch(
             "options",
             &value->options ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"options\"");
 
     // create_content_parse_single optional no default
@@ -161,7 +161,7 @@ bool FileFromPropertyBranch(
             "quickkey",
             &value->quickkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"quickkey\"");
 
     // create_content_parse_single required
@@ -170,7 +170,7 @@ bool FileFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     {
@@ -194,7 +194,7 @@ bool FileFromPropertyBranch(
             "sharer",
             &value->sharer ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"sharer\"");
 
     // create_content_parse_single required
@@ -203,7 +203,7 @@ bool FileFromPropertyBranch(
             "size",
             &value->filesize ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"size\"");
 
     // get_data_type_struct_extractor conclusion
@@ -233,7 +233,7 @@ bool FolderFromPropertyBranch(
             "attributes",
             &value->attributes ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"attributes\"");
 
     // create_content_parse_single required
@@ -242,7 +242,7 @@ bool FolderFromPropertyBranch(
             "created",
             &value->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"created\"");
 
     // create_content_parse_single required
@@ -251,7 +251,7 @@ bool FolderFromPropertyBranch(
             "date_shared",
             &value->shared_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"date_shared\"");
 
     // create_content_parse_single optional no default
@@ -272,7 +272,7 @@ bool FolderFromPropertyBranch(
             "folderkey",
             &value->folderkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"folderkey\"");
 
     // create_content_parse_single required
@@ -281,7 +281,7 @@ bool FolderFromPropertyBranch(
             "name",
             &value->name ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"name\"");
 
     // create_content_parse_single required
@@ -290,7 +290,7 @@ bool FolderFromPropertyBranch(
             "options",
             &value->options ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"options\"");
 
     // create_content_parse_single optional no default
@@ -323,7 +323,7 @@ bool FolderFromPropertyBranch(
             "revision",
             &value->revision ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"revision\"");
 
     {
@@ -347,7 +347,7 @@ bool FolderFromPropertyBranch(
             "sharer",
             &value->sharer ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"sharer\"");
 
     // get_data_type_struct_extractor conclusion

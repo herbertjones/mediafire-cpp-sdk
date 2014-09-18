@@ -98,7 +98,7 @@ void Impl::ParseResponse( Response * response )
             "response.action_token",
             &response->action_token ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.action_token\"");
 
 #   undef return_error

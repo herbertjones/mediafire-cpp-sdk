@@ -56,7 +56,7 @@ bool ProductFromPropertyBranch(
             "product_id",
             &value->product_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"product_id\"");
 
     // create_content_parse_single required
@@ -65,7 +65,7 @@ bool ProductFromPropertyBranch(
             "description",
             &value->description ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"description\"");
 
     // create_content_parse_single required
@@ -74,7 +74,7 @@ bool ProductFromPropertyBranch(
             "short_description",
             &value->short_description ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"short_description\"");
 
     // create_content_parse_single required
@@ -83,7 +83,7 @@ bool ProductFromPropertyBranch(
             "initial_amount",
             &value->initial_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"initial_amount\"");
 
     // create_content_parse_single required
@@ -92,7 +92,7 @@ bool ProductFromPropertyBranch(
             "initial_units",
             &value->initial_units ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"initial_units\"");
 
     {
@@ -116,7 +116,7 @@ bool ProductFromPropertyBranch(
             "recurring_amount",
             &value->recurring_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"recurring_amount\"");
 
     // create_content_parse_single optional with default
@@ -203,7 +203,7 @@ bool ProductFromPropertyBranch(
             "payment_methods",
             &value->payment_methods ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"payment_methods\"");
 
     // create_content_parse_single optional with default
@@ -233,7 +233,7 @@ bool ProductFromPropertyBranch(
             "product_class",
             &value->product_class ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"product_class\"");
 
     // create_content_parse_single required
@@ -242,7 +242,7 @@ bool ProductFromPropertyBranch(
             "product_family",
             &value->product_family ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"product_family\"");
 
     // create_content_parse_single optional with default
@@ -318,7 +318,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.invoice_id",
             &response->invoice_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.invoice_id\"");
 
     // create_content_parse_single required
@@ -327,7 +327,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.invoice_num",
             &response->invoice_num ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.invoice_num\"");
 
     // create_content_parse_single required
@@ -336,7 +336,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.payment_method",
             &response->payment_method ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.payment_method\"");
 
     // create_content_parse_single required
@@ -345,7 +345,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.recurring_status",
             &response->recurring_status ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.recurring_status\"");
 
     // create_content_parse_single required
@@ -354,7 +354,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.recurring_profile_id",
             &response->recurring_profile_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.recurring_profile_id\"");
 
     // create_content_parse_single required
@@ -363,7 +363,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.date_created",
             &response->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.date_created\"");
 
     // create_content_parse_single optional no default
@@ -384,7 +384,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.product_id",
             &response->product_id ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.product_id\"");
 
     // create_content_parse_single required
@@ -393,7 +393,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.product_description",
             &response->product_description ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.product_description\"");
 
     // create_content_parse_single required
@@ -402,7 +402,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.country",
             &response->country ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.country\"");
 
     // create_content_parse_single required
@@ -411,7 +411,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.initial_amount",
             &response->initial_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.initial_amount\"");
 
     // create_content_parse_single required
@@ -420,7 +420,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.initial_tax",
             &response->initial_tax ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.initial_tax\"");
 
     // create_content_parse_single required
@@ -429,7 +429,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.initial_total",
             &response->initial_total ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.initial_total\"");
 
     // create_content_parse_single required
@@ -438,7 +438,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.recurring_amount",
             &response->recurring_amount ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.recurring_amount\"");
 
     // create_content_parse_single required
@@ -447,7 +447,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.recurring_tax",
             &response->recurring_tax ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.recurring_tax\"");
 
     // create_content_parse_single required
@@ -456,7 +456,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.recurring_total",
             &response->recurring_total ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.recurring_total\"");
 
     // create_content_parse_single optional with default
@@ -495,7 +495,7 @@ void Impl::ParseResponse( Response * response )
             "response.invoice.promo_code",
             &response->promo_code ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.promo_code\"");
 
     // create_content_struct_parse TSingle
@@ -514,7 +514,7 @@ void Impl::ParseResponse( Response * response )
             // JSON response still has element if expected.
             // This is really an error.
             return_error(
-                mf::api::errc::ContentInvalidData,
+                mf::api::api_code::ContentInvalidData,
                 "missing \"response.invoice.product\"");
         }
     }
@@ -523,7 +523,7 @@ void Impl::ParseResponse( Response * response )
         // JSON response still has element if no files were returned.
         // This is really an error.
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.invoice.product\"");
     }
 

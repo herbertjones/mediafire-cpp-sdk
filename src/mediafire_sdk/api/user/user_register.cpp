@@ -92,7 +92,7 @@ void Impl::ParseResponse( Response * response )
             "response.email",
             &response->email ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.email\"");
 
     // create_content_parse_single required
@@ -101,7 +101,7 @@ void Impl::ParseResponse( Response * response )
             "response.created",
             &response->created_datetime ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.created\"");
 
     // create_content_parse_single required
@@ -110,7 +110,7 @@ void Impl::ParseResponse( Response * response )
             "response.pkey",
             &response->pkey ) )
         return_error(
-            mf::api::errc::ContentInvalidData,
+            mf::api::api_code::ContentInvalidData,
             "missing \"response.pkey\"");
 
     // create_content_parse_single optional no default

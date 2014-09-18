@@ -121,7 +121,7 @@ void v0::Request::HandleContent(
                     &response.login_token ) )
         {
             response.error_code = make_error_code(
-                    mf::api::errc::ContentInvalidData );
+                    mf::api::api_code::ContentInvalidData );
             response.error_string = "missing session token";
         }
     }
