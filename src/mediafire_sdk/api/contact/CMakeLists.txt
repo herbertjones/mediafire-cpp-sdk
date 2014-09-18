@@ -1,0 +1,13 @@
+
+set(API_SOURCES
+    ${API_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/add.cpp
+    PARENT_SCOPE
+)
+
+set(API_HEADERS
+    ${API_HEADERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/add.hpp
+    PARENT_SCOPE
+)
+

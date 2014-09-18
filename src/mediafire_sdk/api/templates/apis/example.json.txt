@@ -6,12 +6,12 @@
             "cpp_name": "EnumCppType",
             "members": [
                 {
-                    "api_value": "0",
-                    "cpp_name": "Zero"
+                    "cpp_name": "Zero",
+                    "api_value": "0"
                 },
                 {
-                    "api_value": "1",
-                    "cpp_name": "One"
+                    "cpp_name": "One",
+                    "api_value": "1"
                 }
             ]
         }
@@ -21,9 +21,9 @@
             "cpp_name": "Product",
             "members": [
                 {
-                    "api_path": "base_storage",
-                    "cpp_name": "base_storage",
                     "cpp_type": "uint64_t",
+                    "cpp_name": "my_var",
+                    "api_path": "relative_something.maybe_something",
                     "default_value": "0"
                 }
             ]
@@ -38,9 +38,9 @@
     ],
     "return_params": [
         {
-            "api_path": "response.invoice.invoice_id",
+            "cpp_type": "uint32_t",
             "cpp_name": "invoice_id",
-            "cpp_type": "uint32_t"
+            "api_path": "response.invoice.invoice_id"
         }
     ]
 }
