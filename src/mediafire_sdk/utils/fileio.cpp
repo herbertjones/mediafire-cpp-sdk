@@ -34,9 +34,7 @@ FileIO::Pointer FileIO::Open(
 
 #if _WIN32
     std::wstring wide_path = nsUtils::Utf8ToWideString(path_str.c_str());
-    std::wstring wide_open_mode = nsUtils::Utf8ToWideString(open_mode.c_str());
- 
-    auto path = boost::filesystem::path(wide_open_mode);
+    auto path = boost::filesystem::path(wide_path);
 #else
     auto path = boost::filesystem::path(path_str);
 #endif
@@ -54,6 +52,7 @@ FileIO::Pointer FileIO::Open(
         error->clear();
 
 #if _WIN32
+    std::wstring wide_open_mode = nsUtils::Utf8ToWideString(open_mode.c_str());
     FILE* file_handle = _wfopen(
             path.wstring().c_str(),
             wide_open_mode.c_str()
