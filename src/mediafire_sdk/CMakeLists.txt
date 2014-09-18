@@ -10,7 +10,7 @@ add_definitions(-DTEST_USER_2_PASSWORD="${TEST_USER_2_PASSWORD}")
 # safe.
 add_definitions(-DBOOST_SPIRIT_THREADSAFE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 IF (APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF (APPLE)
