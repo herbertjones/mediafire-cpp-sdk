@@ -1,5 +1,5 @@
 /**
- * @file api_condition.cpp
+ * @file generic.cpp
  * @author Herbert Jones
  * @copyright Copyright 2014 Mediafire
  */
@@ -11,9 +11,7 @@
 
 #include "mediafire_sdk/utils/noexcept.hpp"
 
-namespace mf {
-namespace api {
-
+namespace {
 /**
  * @class ApiConditionImpl
  * @brief std::error_category implementation for api namespace
@@ -42,20 +40,6 @@ public:
     ) const NOEXCEPT;
 };
 
-std::error_condition make_error_condition(errc e)
-{
-    return std::error_condition(
-            static_cast<int>(e),
-            generic_api_category()
-            );
-}
-
-const std::error_category& generic_api_category()
-{
-    static ApiConditionImpl instance;
-    return instance;
-}
-
 const char* ApiConditionImpl::name() const NOEXCEPT
 {
     return "api";
@@ -63,6 +47,8 @@ const char* ApiConditionImpl::name() const NOEXCEPT
 
 std::string ApiConditionImpl::message(int ev) const
 {
+    using mf::api::errc;
+
     switch (static_cast<errc>(ev))
     {
         case errc::ContentInvalidFormat:
@@ -317,11 +303,33 @@ bool ApiConditionImpl::equivalent(
         int condition_code
     ) const NOEXCEPT
 {
+    using mf::api::errc;
+
     switch (static_cast<errc>(condition_code))
     {
         default:
             return false;
     }
+}
+
+
+}  // namespace
+
+namespace mf {
+namespace api {
+
+std::error_condition make_error_condition(errc e)
+{
+    return std::error_condition(
+            static_cast<int>(e),
+            generic_api_category()
+            );
+}
+
+const std::error_category& generic_api_category()
+{
+    static ApiConditionImpl instance;
+    return instance;
 }
 
 }  // namespace api

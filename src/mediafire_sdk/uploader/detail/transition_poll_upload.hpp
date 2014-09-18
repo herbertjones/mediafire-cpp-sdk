@@ -79,14 +79,15 @@ void HandlePollResponse(
     {
         fsm.ProcessEvent(event::Error{
             std::error_code(response.result, poll_result_category()),
-            "Filsize unavailable."
+            "Poll upload bad response"
             });
     }
     else if( response.fileerror != 0 )
     {
         fsm.ProcessEvent(event::Error{
-            std::error_code(response.fileerror, poll_result_category()),
-            "Filsize unavailable."
+            std::error_code(response.fileerror,
+                poll_upload_file_error_category()),
+            "Poll upload file error received"
             });
     }
     else if( response.status == 99 )

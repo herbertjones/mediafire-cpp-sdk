@@ -1,5 +1,5 @@
 /**
- * @file api_condition.hpp
+ * @file generic.hpp
  * @author Herbert Jones
  * @brief API error conditions
  * @copyright Copyright 2014 Mediafire
@@ -19,8 +19,6 @@ namespace api {
  */
 enum class errc
 {
-    // api_code here
-
     ContentInvalidFormat = 1, // 0 not allowed
     ContentInvalidData,
     BadRequest,
@@ -31,9 +29,6 @@ enum class errc
     UnknownApiError,
     SessionTokenUnavailableTimeout,
     ConnectionUnavailableTimeout,
-
-    // Api error code errors
-
     AccessDenied,
     AccountAlreadyLinked,
     ApiRequestLimitExceeded,

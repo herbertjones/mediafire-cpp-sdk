@@ -7,8 +7,8 @@
  */
 #pragma once
 
-#include "mediafire_sdk/uploader/error/poll_file_error.hpp"
-#include "mediafire_sdk/uploader/error/poll_result.hpp"
-#include "mediafire_sdk/uploader/error/uploader_category.hpp"
-#include "mediafire_sdk/uploader/error/upload_response.hpp"
+#include "mediafire_sdk/uploader/error/codes/poll_file_error.hpp"
+#include "mediafire_sdk/uploader/error/codes/poll_result.hpp"
+#include "mediafire_sdk/uploader/error/codes/upload_response.hpp"
+#include "mediafire_sdk/uploader/error/conditions/generic.hpp"
 

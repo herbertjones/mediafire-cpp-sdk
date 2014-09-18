@@ -1,27 +1,25 @@
 /**
- * @file poll_result.hpp
+ * @file upload_response.hpp
  * @author Herbert Jones
- * @brief Generic uploader category
+ * @brief Upload response error codes
  * @copyright Copyright 2014 Mediafire
  */
 #pragma once
 
-#include <string>
 #include <system_error>
-
-#include "mediafire_sdk/utils/noexcept.hpp"
 
 namespace mf {
 namespace uploader {
 
-/** uploader error code values */
-
 /**
  * @brief Create/get the instance of the error category.
  *
+ * Contains the error code returned from the api response in the JSON
+ * /response/error field.
+ *
  * @return The std::error_category beloging to our error codes.
  */
-const std::error_category& poll_error_category();
+const std::error_category& upload_response_category();
 
 }  // End namespace uploader
 }  // namespace mf

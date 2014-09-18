@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-# TODO
-#add_subdirectory(error)
-
 project (mf_uploader_sdk CXX)
 
 set(MF_UPLOADER_SOURCES
@@ -10,10 +7,10 @@ set(MF_UPLOADER_SOURCES
     detail/stepping.cpp
     detail/upload_manager_impl.cpp
 
-    error/poll_file_error.cpp
-    error/poll_result.cpp
-    error/upload_response.cpp
-    error/uploader_category.cpp
+    error/codes/poll_file_error.cpp
+    error/codes/poll_result.cpp
+    error/codes/upload_response.cpp
+    error/conditions/generic.cpp
 
     hasher.cpp
     upload_manager.cpp
@@ -33,10 +30,10 @@ set(MF_UPLOADER_HEADERS
     detail/upload_state_machine.hpp
     detail/upload_target.hpp
 
-    error/poll_file_error.cpp
-    error/poll_result.hpp
-    error/upload_response.hpp
-    error/uploader_category.hpp
+    error/codes/poll_file_error.hpp
+    error/codes/poll_result.hpp
+    error/codes/upload_response.hpp
+    error/conditions/generic.hpp
 
     error.hpp
     hasher.hpp
