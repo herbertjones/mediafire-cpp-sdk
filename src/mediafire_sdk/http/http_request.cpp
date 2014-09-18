@@ -321,7 +321,7 @@ void hl::HttpRequest::Cancel()
     // Could be called from separate thread as this can only be called while
     // already running.
     impl_->ProcessEvent(detail::ErrorEvent{
-            make_error_code( hl::errc::Cancelled ),
+            make_error_code( hl::http_error::Cancelled ),
             "Cancelled"
         });
 }

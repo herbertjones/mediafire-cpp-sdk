@@ -50,7 +50,7 @@ struct ExpectRegex
 };
 struct ExpectError
 {
-    std::error_condition error_condition;
+    std::error_code error_condition;
 };
 struct ExpectPost
 {

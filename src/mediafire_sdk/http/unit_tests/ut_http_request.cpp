@@ -253,7 +253,7 @@ bool TestTimeout()
 #undef SendSome
 
     // and wait till we get the timeout...
-    server->Push( ExpectError{mf::http::errc::IoTimeout} );
+    server->Push( ExpectError{mf::http::http_error::IoTimeout} );
 
     auto http_config = mf::http::HttpConfig::Create();
     http_config->SetWorkIoService(&io_service);
@@ -851,7 +851,7 @@ bool TestHttpRedirectPermission()
 
     }
 
-    server->Push( ExpectError{mf::http::errc::RedirectPermissionDenied} );
+    server->Push( ExpectError{mf::http::http_error::RedirectPermissionDenied} );
 
     // Connection
 
@@ -1178,8 +1178,7 @@ bool TestFailSelfSignedSsl()
 
     std::cout << "Error: " << server->Error().message() << std::endl;
 
-    return server->Error() ==
-        make_error_condition(mf::http::errc::SslHandshakeFailure);
+    return server->Error() == mf::http::http_error::SslHandshakeFailure;
 }
 
 bool TestChunkedSsl()

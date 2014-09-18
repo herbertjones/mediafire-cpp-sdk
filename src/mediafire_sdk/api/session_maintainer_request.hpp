@@ -189,7 +189,8 @@ public:
                 {
                     // No http request yet.  Must create the response.
                     typename ApiFunctor::ResponseType response;
-                    response.error_code = make_error_code( mf::http::errc::Cancelled );
+                    response.error_code = make_error_code(
+                        mf::http::http_error::Cancelled );
                     response.error_string = "Cancelled";
                     completion_callback_(response);
                 });

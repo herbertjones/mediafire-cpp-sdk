@@ -643,7 +643,7 @@ public:
             ss << " reason: " << err.what() << ")";
 
             ProcessEvent(ErrorEvent{
-                    make_error_code( hl::errc::InvalidUrl ),
+                    make_error_code( hl::http_error::InvalidUrl ),
                     ss.str()
                 });
             return;
@@ -675,7 +675,7 @@ public:
             std::stringstream ss;
             ss << "Unsupported scheme. Url: " << url_;
             ProcessEvent(ErrorEvent{
-                    make_error_code( hl::errc::InvalidUrl ),
+                    make_error_code( hl::http_error::InvalidUrl ),
                     ss.str()
                 });
         }
@@ -723,7 +723,7 @@ public:
         auto timeout = request_creation_time_ +
             std::chrono::seconds(timeout_seconds_);
 
-        if (evt.code == hl::errc::IoTimeout && sclock::now() < timeout)
+        if (evt.code == hl::http_error::IoTimeout && sclock::now() < timeout)
         {
             // Restart everything
             ProcessEvent(RestartEvent{});
@@ -1028,7 +1028,7 @@ public:
             ss << " Error: " << err.what();
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::VariablePostInterfaceFailure ),
+                        hl::http_error::VariablePostInterfaceFailure ),
                     ss.str()
                 });
         }
@@ -1046,7 +1046,7 @@ public:
                 ss << " Received: " << post_interface_read_bytes_;
                 ProcessEvent(ErrorEvent{
                         make_error_code(
-                            hl::errc::VariablePostInterfaceFailure ),
+                            hl::http_error::VariablePostInterfaceFailure ),
                         ss.str()
                     });
             }
@@ -1165,7 +1165,7 @@ public:
                 ss << " Missing \"Location\" header";
                 ProcessEvent(ErrorEvent{
                         make_error_code(
-                            hl::errc::InvalidRedirectUrl ),
+                            hl::http_error::InvalidRedirectUrl ),
                         ss.str()
                     });
             }
@@ -1218,7 +1218,7 @@ public:
                 ss << " Transfer-Encoding: " << it->second;
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::UnsupportedEncoding ),
+                        hl::http_error::UnsupportedEncoding ),
                     ss.str()
                 });
             return;
@@ -1233,7 +1233,7 @@ public:
                 ss << " Content-Encoding: " << it->second;
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::UnsupportedEncoding ),
+                        hl::http_error::UnsupportedEncoding ),
                     ss.str()
                 });
             return;
@@ -1257,7 +1257,7 @@ public:
                 ss << " Content-Length: " << it->second;
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::UnsupportedEncoding ),
+                        hl::http_error::UnsupportedEncoding ),
                     ss.str()
                 });
             return;
@@ -1371,7 +1371,7 @@ public:
 
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::InvalidRedirectUrl ),
+                        hl::http_error::InvalidRedirectUrl ),
                     ss.str()
                 });
             return;
@@ -1388,7 +1388,7 @@ public:
                     ss << " Source URL: " << url_;
                     ProcessEvent(ErrorEvent{
                             make_error_code(
-                                hl::errc::RedirectPermissionDenied ),
+                                hl::http_error::RedirectPermissionDenied ),
                             ss.str()
                         });
                 }  // No break
@@ -1410,7 +1410,7 @@ public:
                     ss << " Source URL: " << url_;
                     ProcessEvent(ErrorEvent{
                             make_error_code(
-                                hl::errc::RedirectPermissionDenied ),
+                                hl::http_error::RedirectPermissionDenied ),
                             ss.str()
                         });
                 } break;
@@ -1470,7 +1470,7 @@ public:
             std::ostringstream ss;
             ss << "I/O timeout: " << timeout_reason_;
             ProcessEvent(ErrorEvent{
-                    make_error_code( hl::errc::IoTimeout ),
+                    make_error_code( hl::http_error::IoTimeout ),
                     ss.str()
                 });
         }
@@ -1497,7 +1497,7 @@ public:
             ss << " Error: " << err.message();
             ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::UnableToResolve ),
+                        hl::http_error::UnableToResolve ),
                     ss.str()
                 });
         }
@@ -1524,7 +1524,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::SslHandshakeFailure ),
+                        hl::http_error::SslHandshakeFailure ),
                     ss.str()
                 });
         }
@@ -1551,7 +1551,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::UnableToConnect ),
+                        hl::http_error::UnableToConnect ),
                     ss.str()
                 });
         }
@@ -1633,7 +1633,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::UnableToConnectToProxy ),
+                        hl::http_error::UnableToConnectToProxy ),
                     ss.str()
                 });
         }
@@ -1677,7 +1677,7 @@ public:
                 ProcessEvent(
                     ErrorEvent{
                         make_error_code(
-                            hl::errc::ProxyProtocolFailure ),
+                            hl::http_error::ProxyProtocolFailure ),
                         ss.str()
                     });
                 return;
@@ -1696,7 +1696,7 @@ public:
                 ProcessEvent(
                     ErrorEvent{
                         make_error_code(
-                            hl::errc::ProxyProtocolFailure ),
+                            hl::http_error::ProxyProtocolFailure ),
                         ss.str()
                     });
             }
@@ -1720,7 +1720,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::ProxyProtocolFailure ),
+                        hl::http_error::ProxyProtocolFailure ),
                     ss.str()
                 });
         }
@@ -1756,7 +1756,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::WriteFailure ),
+                        hl::http_error::WriteFailure ),
                     ss.str()
                 });
         }
@@ -1797,7 +1797,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::WriteFailure ),
+                        hl::http_error::WriteFailure ),
                     ss.str()
                 });
         }
@@ -1850,7 +1850,7 @@ public:
                 ProcessEvent(
                     ErrorEvent{
                         make_error_code(
-                            hl::errc::UnparsableHeaders ),
+                            hl::http_error::UnparsableHeaders ),
                         ss.str()
                     });
                 return;
@@ -1880,7 +1880,7 @@ public:
                         ProcessEvent(
                             ErrorEvent{
                                 make_error_code(
-                                    hl::errc::UnparsableHeaders ),
+                                    hl::http_error::UnparsableHeaders ),
                                 ss.str()
                             });
                         return;
@@ -1934,7 +1934,7 @@ public:
                         ProcessEvent(
                             ErrorEvent{
                                 make_error_code(
-                                    hl::errc::UnparsableHeaders ),
+                                    hl::http_error::UnparsableHeaders ),
                                 ss.str()
                             });
                         return;
@@ -1952,7 +1952,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::ReadFailure ),
+                        hl::http_error::ReadFailure ),
                     ss.str()
                 });
         }
@@ -1999,7 +1999,7 @@ public:
                 ProcessEvent(
                     ErrorEvent{
                         make_error_code(
-                            hl::errc::ReadFailure ),
+                            hl::http_error::ReadFailure ),
                         ss.str()
                     });
                 return;
@@ -2012,7 +2012,7 @@ public:
                 ProcessEvent(
                     ErrorEvent{
                         make_error_code(
-                            hl::errc::ReadFailure ),
+                            hl::http_error::ReadFailure ),
                         ss.str()
                     });
                 return;
@@ -2040,7 +2040,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::ReadFailure ),
+                        hl::http_error::ReadFailure ),
                     ss.str()
                 });
         }
@@ -2131,7 +2131,7 @@ public:
                 ss << " Zlib error: " << err.zlib_error_code();
                 ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::CompressionFailure ),
+                        hl::http_error::CompressionFailure ),
                     ss.str()
                     });
                 return;
@@ -2143,7 +2143,7 @@ public:
                 ss << " Error: " << err.what();
                 ProcessEvent(ErrorEvent{
                     make_error_code(
-                        hl::errc::CompressionFailure ),
+                        hl::http_error::CompressionFailure ),
                     ss.str()
                     });
                 //assert(!"GZip compression error from chunks");
@@ -2347,7 +2347,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::ReadFailure ),
+                        hl::http_error::ReadFailure ),
                     ss.str()
                 });
         }
@@ -2439,7 +2439,7 @@ public:
                     ProcessEvent(
                         ErrorEvent{
                             make_error_code(
-                                hl::errc::ReadFailure ),
+                                hl::http_error::ReadFailure ),
                             ss.str()
                         });
                     return;
@@ -2470,7 +2470,7 @@ public:
                         ProcessEvent(
                             ErrorEvent{
                                 make_error_code(
-                                    hl::errc::ReadFailure ),
+                                    hl::http_error::ReadFailure ),
                                 ss.str()
                             });
                         //assert(!"GZip compression error from content");
@@ -2536,7 +2536,7 @@ public:
             ProcessEvent(
                 ErrorEvent{
                     make_error_code(
-                        hl::errc::ReadFailure ),
+                        hl::http_error::ReadFailure ),
                     ss.str()
                 });
         }

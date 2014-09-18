@@ -640,17 +640,19 @@ void api::SessionMaintainer::UpdateStateFromErrorCode(
         const std::error_code & ec
     )
 {
+    using hl::http_error;
+
     if (ec)
     {
-        if ( ec.category() == hl::error_category()
-            && (    ec == hl::errc::UnableToConnect
-                ||  ec == hl::errc::UnableToConnectToProxy
-                ||  ec == hl::errc::UnableToResolve
-                ||  ec == hl::errc::SslHandshakeFailure
-                ||  ec == hl::errc::WriteFailure
-                ||  ec == hl::errc::ReadFailure
-                ||  ec == hl::errc::ProxyProtocolFailure
-                ||  ec == hl::errc::IoTimeout
+        if ( ec.category() == hl::http_category()
+            && (    ec == http_error::UnableToConnect
+                ||  ec == http_error::UnableToConnectToProxy
+                ||  ec == http_error::UnableToResolve
+                ||  ec == http_error::SslHandshakeFailure
+                ||  ec == http_error::WriteFailure
+                ||  ec == http_error::ReadFailure
+                ||  ec == http_error::ProxyProtocolFailure
+                ||  ec == http_error::IoTimeout
             ))
         {
             connection_state::Unconnected new_state = {ec};

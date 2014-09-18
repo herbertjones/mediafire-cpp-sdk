@@ -8,41 +8,63 @@
 
 #include <system_error>
 
-#include "mediafire_sdk/http/error/codes.hpp"
-#include "mediafire_sdk/http/error/category_impl.hpp"
-
-namespace std
-{
-    template <>
-    struct is_error_condition_enum<mf::http::errc>
-        : public true_type {};
-}  // End namespace std
+// Http returns error codes
+// See http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-4.html
 
 namespace mf {
-namespace http
+namespace http {
+
+enum class http_error
 {
-    // Argument-dependent name lookup rules says to put make_error_condition in
-    // the same namespace as the data type, so the std templates choose
-    // mf::http::errc over std::errc.
+    InvalidUrl,
+    InvalidRedirectUrl,
+    RedirectPermissionDenied,
+    UnableToResolve,
+    UnableToConnect,
+    UnableToConnectToProxy,
+    ProxyProtocolFailure,
+    SslHandshakeFailure,
+    WriteFailure,
+    ReadFailure,
+    CompressionFailure,
+    UnparsableHeaders,
+    UnsupportedEncoding,
+    VariablePostInterfaceFailure,
+    Cancelled,
+    IoTimeout,
+};
 
-    /**
-     * @brief Create an error condition for std::error_code usage.
-     *
-     * @param[in] e Error code
-     *
-     * @return Error condition
-     */
-    std::error_condition make_error_condition(errc e);
+/**
+ * @brief Create/get the instance of the error category.
+ *
+ * @return The std::error_category beloging to our error codes.
+ */
+const std::error_category& http_category();
 
-    /**
-     * @brief Create an error code for std::error_code usage.
-     *
-     * @param[in] e Error code
-     *
-     * @return Error code
-     */
-    std::error_code make_error_code(errc e);
+/**
+ * @brief Create an error code for std::error_code usage.
+ *
+ * @param[in] e Error code
+ *
+ * @return Error code
+ */
+std::error_code make_error_code(http_error e);
+
+/**
+ * @brief Create an error condition for std::error_code usage.
+ *
+ * @param[in] e Error code
+ *
+ * @return Error condition
+ */
+std::error_condition make_error_condition(http_error e);
 
 }  // End namespace http
 }  // namespace mf
 
+namespace std {
+
+template <>
+struct is_error_code_enum<mf::http::http_error> : public true_type {};
+
+}  // namespace std
