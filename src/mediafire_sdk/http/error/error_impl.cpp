@@ -19,7 +19,9 @@ class CategoryImpl
 public:
   virtual const char* name() const NOEXCEPT;
   virtual std::string message(int ev) const;
+#ifdef MINGW_STINKS
   virtual std::error_condition default_error_condition(int ev) const NOEXCEPT;
+#endif
 };
 
 const char* CategoryImpl::name() const NOEXCEPT
@@ -74,6 +76,7 @@ std::string CategoryImpl::message(int ev) const
     }
 }
 
+#ifdef MINGW_STINKS
 std::error_condition CategoryImpl::default_error_condition(
         int ev
     ) const NOEXCEPT
@@ -118,6 +121,7 @@ std::error_condition CategoryImpl::default_error_condition(
             return std::error_condition(ev, *this);
     }
 }
+#endif
 
 }  // namespace
 
