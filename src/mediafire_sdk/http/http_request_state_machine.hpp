@@ -57,7 +57,8 @@ namespace detail { class HttpRequestMachine_; }
 
 // Pick a back-end
 /** Front-end to HttpRequest state machine. */
-using HttpRequestMachine = boost::msm::back::state_machine<detail::HttpRequestMachine_>;
+using HttpRequestMachine =
+    boost::msm::back::state_machine<detail::HttpRequestMachine_>;
 
 namespace detail {
 
@@ -327,13 +328,13 @@ int ParseContentEncoding(
 class HttpRequestBuffer : public mf::http::BufferInterface
 {
 public:
-    HttpRequestBuffer(std::unique_ptr<char[]> buffer, std::size_t size) :
+    HttpRequestBuffer(std::unique_ptr<uint8_t[]> buffer, uint64_t size) :
         buffer_(std::move(buffer)),
         size_(size)
     {}
     virtual ~HttpRequestBuffer() {}
 
-    virtual std::size_t Size() const
+    virtual uint64_t Size() const
     {
         return size_;
     }
@@ -343,13 +344,13 @@ public:
      *
      * @return pointer that can be read with data size contained in Size().
      */
-    virtual char const * Data() const
+    virtual const uint8_t * Data() const
     {
         return buffer_.get();
     }
 private:
-    std::unique_ptr<char[]> buffer_;
-    std::size_t size_;
+    std::unique_ptr<uint8_t[]> buffer_;
+    uint64_t size_;
 };
 
 class VectorBuffer : public mf::http::BufferInterface
@@ -358,7 +359,7 @@ public:
     VectorBuffer() {}
     virtual ~VectorBuffer() {}
 
-    virtual std::size_t Size() const
+    virtual uint64_t Size() const
     {
         return buffer.size();
     }
@@ -368,12 +369,12 @@ public:
      *
      * @return pointer that can be read with data size contained in Size().
      */
-    virtual char const * Data() const
+    virtual const uint8_t * Data() const
     {
         return buffer.data();
     }
 
-    std::vector<char> buffer;
+    std::vector<uint8_t> buffer;
 private:
 };
 
@@ -752,7 +753,8 @@ public:
                 );
 
         // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("ssl handshake", kSslHandshakeTimeout);
+        auto race_preventer = SetAsyncTimeout("ssl handshake",
+            kSslHandshakeTimeout);
 
         socket_wrapper_->SslSocket()->async_handshake(
             boost::asio::ssl::stream_base::client,
@@ -848,7 +850,8 @@ public:
         request_stream << request_stream_local.str();
 
         // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("proxy write request", kProxyWriteTimeout);
+        auto race_preventer = SetAsyncTimeout("proxy write request",
+            kProxyWriteTimeout);
 
         if ( is_ssl_ )
         {
@@ -931,7 +934,8 @@ public:
         request_stream << request_stream_local.str();
 
         // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("write request header", timeout_seconds_);
+        auto race_preventer = SetAsyncTimeout("write request header",
+            timeout_seconds_);
 
         if ( is_ssl_ )
         {
@@ -967,7 +971,8 @@ public:
         if ( post_data_ )
         {
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("write request post", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("write request post",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -1082,7 +1087,8 @@ public:
             transmission_delay_timer_enabled_ = false;
 
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("write request post", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("write request post",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -1118,11 +1124,13 @@ public:
     void ReadHeaderAction(Event const&)
     {
         // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("read response header", timeout_seconds_);
+        auto race_preventer = SetAsyncTimeout("read response header",
+            timeout_seconds_);
 
         if ( is_ssl_ )
         {
-            asio::async_read_until(*socket_wrapper_->SslSocket(), read_buffer_, "\r\n\r\n",
+            asio::async_read_until(*socket_wrapper_->SslSocket(), read_buffer_,
+                "\r\n\r\n",
                     boost::bind(
                         &HttpRequestMachine_::HandleHeaderRead,
                         shared_from_this(),
@@ -1133,7 +1141,8 @@ public:
         }
         else
         {
-            asio::async_read_until(*socket_wrapper_->Socket(), read_buffer_, "\r\n\r\n",
+            asio::async_read_until(*socket_wrapper_->Socket(), read_buffer_,
+                "\r\n\r\n",
                     boost::bind(
                         &HttpRequestMachine_::HandleHeaderRead,
                         shared_from_this(),
@@ -1257,7 +1266,8 @@ public:
         if ( te & TE_Chunked )
         {
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 1", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("read response content 1",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -1305,7 +1315,8 @@ public:
             }
 
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 2", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("read response content 2",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -1570,7 +1581,8 @@ public:
                 std::make_shared<asio::streambuf>();
 
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("proxy read response", kProxyReadTimeout);
+            auto race_preventer = SetAsyncTimeout("proxy read response",
+                kProxyReadTimeout);
 
             if ( is_ssl_ )
             {
@@ -2169,7 +2181,8 @@ public:
         if ( transmission_delay_timer_enabled_ )
         {
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 3", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("read response content 3",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -2257,8 +2270,9 @@ public:
             {
                 // Non gzip buffer passing.
                 std::istream post_data_stream(&read_buffer_);
-                std::unique_ptr<char[]> data( new char[chunk_size] );
-                post_data_stream.read( data.get(), chunk_size );
+                std::unique_ptr<uint8_t[]> data( new uint8_t[chunk_size] );
+                post_data_stream.read( reinterpret_cast<char*>(data.get()),
+                    chunk_size );
 
                 std::shared_ptr<hl::BufferInterface> return_buffer(
                         new HttpRequestBuffer(
@@ -2282,7 +2296,8 @@ public:
             read_buffer_.consume( 2 );  // +2 for \r\n after chunk.
 
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 4", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("read response content 4",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {
@@ -2383,8 +2398,9 @@ public:
             {
                 // Non gzip buffer passing.
                 std::istream post_data_stream(&read_buffer_);
-                std::unique_ptr<char[]> data( new char[bytes_to_process] );
-                post_data_stream.read( data.get(), bytes_to_process );
+                std::unique_ptr<uint8_t[]> data(new uint8_t[bytes_to_process]);
+                post_data_stream.read( reinterpret_cast<char*>(data.get()),
+                    bytes_to_process );
                 std::shared_ptr<hl::BufferInterface> return_buffer(
                         new HttpRequestBuffer(
                             std::move(data),
@@ -2539,7 +2555,8 @@ public:
             transmission_delay_timer_enabled_ = false;
 
             // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 5", timeout_seconds_);
+            auto race_preventer = SetAsyncTimeout("read response content 5",
+                timeout_seconds_);
 
             if ( is_ssl_ )
             {

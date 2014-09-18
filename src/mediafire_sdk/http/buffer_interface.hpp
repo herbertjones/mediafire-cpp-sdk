@@ -26,14 +26,14 @@ public:
      *
      * @return Size of data in buffer.
      */
-    virtual std::size_t Size() const = 0;
+    virtual uint64_t Size() const = 0;
 
     /**
      * @brief Get buffer
      *
      * @return pointer that can be read with data size contained in Size().
      */
-    virtual char const * Data() const = 0;
+    virtual const uint8_t * Data() const = 0;
 };
 
 }  // namespace http

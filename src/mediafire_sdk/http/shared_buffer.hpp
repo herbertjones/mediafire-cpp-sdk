@@ -14,6 +14,8 @@
 
 #include "boost/smart_ptr/shared_array.hpp"
 
+#include "buffer_interface.hpp"
+
 namespace mf {
 namespace http {
 
@@ -21,7 +23,7 @@ namespace http {
  * @class SharedBuffer
  * @brief Wrapper for efficiently pass raw bytes to and from HttpRequest.
  */
-class SharedBuffer
+class SharedBuffer : public BufferInterface
 {
 public:
     /** Shared pointer acts as handle. */

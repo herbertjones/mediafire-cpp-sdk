@@ -56,7 +56,8 @@ public:
             std::shared_ptr<mf::http::BufferInterface> buffer
         )
     {
-        std::cout.write( buffer->Data(), buffer->Size() );
+        std::cout.write( reinterpret_cast<const char*>(buffer->Data()),
+            buffer->Size() );
     }
 
     virtual void RequestResponseErrorEvent(

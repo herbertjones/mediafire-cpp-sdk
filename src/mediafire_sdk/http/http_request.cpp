@@ -198,7 +198,8 @@ mf::http::HttpRequest::Pointer mf::http::HttpRequest::Create(
                 std::shared_ptr<mf::http::BufferInterface> buffer
             ) override
         {
-            response_.content.append( buffer->Data(), buffer->Size() );
+            response_.content.append(
+                reinterpret_cast<const char*>(buffer->Data()), buffer->Size() );
         }
 
         /**

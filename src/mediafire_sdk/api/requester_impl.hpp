@@ -133,7 +133,8 @@ public:
             std::shared_ptr<mf::http::BufferInterface> buffer
         ) override
     {
-        content_.append( buffer->Data(), buffer->Size() );
+        content_.append( reinterpret_cast<const char*>(buffer->Data()),
+            buffer->Size() );
     }
 
     virtual void RequestResponseErrorEvent(
