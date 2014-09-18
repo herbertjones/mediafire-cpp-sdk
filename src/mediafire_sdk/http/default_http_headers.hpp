@@ -18,7 +18,6 @@ namespace http {
  */
 char const * const default_headers[][2] = {
     {"Accept", "*/*"},
-    {"TE", "trailers"},
     {"Accept-Encoding", "gzip"},
     {"User-Agent", "HttpRequester"},
     {"Connection", "close"},
