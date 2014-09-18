@@ -90,7 +90,6 @@ HttpConfig::Pointer HttpConfig::Clone() const
 HttpConfig::HttpConfig() :
     io_service_(nullptr),
     default_callback_io_service_(nullptr),
-    bandwidth_analyser_(nullptr),
     self_signed_certs_allowed_(SelfSigned::Denied),
     redirect_policy_(RedirectPolicy::Allow),
     default_headers_(DefaultHeaders()),
@@ -107,14 +106,7 @@ void HttpConfig::SetWorkIoService(boost::asio::io_service * ios)
     assert(ios != nullptr);
 
     if (owned_io_service_)
-    {
-        if (owned_bandwidth_analyser_)
-        {
-            owned_bandwidth_analyser_.reset();
-            bandwidth_analyser_ = nullptr;
-        }
         owned_io_service_.reset();
-    }
 
     io_service_ = ios;
 }
@@ -157,27 +149,13 @@ boost::asio::io_service * HttpConfig::GetDefaultCallbackIoService() const
         return GetWorkIoService();
 }
 
-void HttpConfig::SetBandwidthAnalyser(BandwidthAnalyser * bwa)
+void HttpConfig::SetBandwidthAnalyser(BandwidthAnalyserInterface::Pointer bwa)
 {
-    assert(bwa != nullptr);
-
-    if (owned_bandwidth_analyser_)
-    {
-        owned_bandwidth_analyser_.reset();
-    }
-
     bandwidth_analyser_ = bwa;
 }
 
-BandwidthAnalyser * HttpConfig::GetBandwidthAnalyser() const
+BandwidthAnalyserInterface::Pointer HttpConfig::GetBandwidthAnalyser() const
 {
-    if (!bandwidth_analyser_)
-    {
-        owned_bandwidth_analyser_ =
-            std::make_shared<BandwidthAnalyser>(GetWorkIoService());
-        bandwidth_analyser_ = owned_bandwidth_analyser_.get();
-    }
-
     return bandwidth_analyser_;
 }
 

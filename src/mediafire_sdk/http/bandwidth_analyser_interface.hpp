@@ -1,5 +1,5 @@
 /**
- * @file bandwidth_analyser.hpp
+ * @file bandwidth_analyser_interface.hpp
  * @author Herbert Jones
  * @brief Class to keep track of bandwidth.
  *
@@ -10,25 +10,21 @@
 #include "boost/asio.hpp"
 
 #include <chrono>
+#include <memory>
 
 namespace mf {
 namespace http {
 
 /**
- * @class BandwidthAnalyser
+ * @interface BandwidthAnalyserInterface
  * @brief Records bandwidth.
  */
-class BandwidthAnalyser
+class BandwidthAnalyserInterface
 {
 public:
-    /**
-     * @brief Create BandwidthAnalyser.
-     *
-     * @param[in] ios IO service used internally.
-     */
-    BandwidthAnalyser(
-            boost::asio::io_service * ios
-        );
+    using Pointer = std::shared_ptr<BandwidthAnalyserInterface>;
+
+    virtual ~BandwidthAnalyserInterface() = default;
 
     /**
      * @brief Record the number of incoming bytes.
@@ -37,11 +33,11 @@ public:
      * @param[in] start_time Start of range.
      * @param[in] end_time End of range.
      */
-    void RecordIncomingBytes(
+    virtual void RecordIncomingBytes(
             size_t bytes,
             std::chrono::time_point<std::chrono::steady_clock> start_time,
             std::chrono::time_point<std::chrono::steady_clock> end_time
-        );
+        ) = 0;
 
     /**
      * @brief Record the number of outgoing bytes.
@@ -50,26 +46,11 @@ public:
      * @param[in] start_time Start of range.
      * @param[in] end_time End of range.
      */
-    void RecordOutgoingBytes(
+    virtual void RecordOutgoingBytes(
             size_t bytes,
             std::chrono::time_point<std::chrono::steady_clock> start_time,
             std::chrono::time_point<std::chrono::steady_clock> end_time
-        );
-
-private:
-    boost::asio::io_service::strand event_strand_;
-
-    enum ChangeType {
-        kIncoming,
-        kOutgoing,
-    };
-
-    void ProcessChange(
-            ChangeType,
-            size_t bytes,
-            std::chrono::time_point<std::chrono::steady_clock> start_time,
-            std::chrono::time_point<std::chrono::steady_clock> end_time
-        );
+        ) = 0;
 };
 
 }  // namespace http

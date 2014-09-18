@@ -12,7 +12,7 @@
 
 #include "upload_events.hpp"
 
-#include "mediafire_sdk/http/bandwidth_analyser.hpp"
+#include "mediafire_sdk/http/bandwidth_analyser_interface.hpp"
 
 #include "boost/msm/back/state_machine.hpp"
 #include "boost/msm/front/state_machine_def.hpp"
@@ -720,9 +720,6 @@ protected:
     asio::steady_timer timer_;
 
     UploadStateMachineCallbackInterface * callback_interface_;
-
-    // Track bandwidth
-    hl::BandwidthAnalyser * bw_analyser_;
 
     // Path to local file
     boost::filesystem::path filepath_;

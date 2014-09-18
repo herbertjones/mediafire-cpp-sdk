@@ -17,7 +17,7 @@
 #include "boost/optional.hpp"
 #include "boost/filesystem/path.hpp"
 
-#include "mediafire_sdk/http/bandwidth_analyser.hpp"
+#include "mediafire_sdk/http/bandwidth_analyser_interface.hpp"
 #include "mediafire_sdk/http/http_config.hpp"
 #include "mediafire_sdk/http/request_response_interface.hpp"
 #include "mediafire_sdk/http/shared_buffer.hpp"

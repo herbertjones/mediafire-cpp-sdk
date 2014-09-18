@@ -5,13 +5,12 @@ project (mf_http_sdk CXX)
 add_subdirectory(error)
 
 set(HTTP_LIBRARY_SOURCES
-    bandwidth_analyser.cpp
     http_config.cpp
     http_request.cpp
     url.cpp
 )
 set(HTTP_LIBRARY_HEADERS
-    bandwidth_analyser.hpp
+    bandwidth_analyser_interface.hpp
     buffer_interface.hpp
     default_http_headers.hpp
     error.hpp

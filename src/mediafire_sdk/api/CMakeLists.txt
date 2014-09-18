@@ -4,6 +4,7 @@ add_subdirectory(error)
 
 # -- API by path ---------------
 add_subdirectory(billing)
+add_subdirectory(contact)
 add_subdirectory(device)
 add_subdirectory(file)
 add_subdirectory(folder)

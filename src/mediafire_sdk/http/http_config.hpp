@@ -10,7 +10,7 @@
 
 #include "boost/optional.hpp"
 
-#include "mediafire_sdk/http/bandwidth_analyser.hpp"
+#include "mediafire_sdk/http/bandwidth_analyser_interface.hpp"
 #include "mediafire_sdk/utils/forward_declarations/asio.hpp"
 
 namespace mf {
@@ -135,25 +135,25 @@ public:
     boost::asio::io_service * GetDefaultCallbackIoService() const;
 
     /**
-     * @brief Set the BandwidthAnalyser for http operations.
+     * @brief Set the BandwidthAnalyserInterface for http operations.
      *
      * @warning It is not safe to change this after operations have started.
      *
-     * @param[in] bandwidth_analyser The BandwidthAnalyser object pointer to
-     *            use.
+     * @param[in] bandwidth_analyser The BandwidthAnalyserInterface object
+     * pointer to use.
      */
-    void SetBandwidthAnalyser(BandwidthAnalyser * bandwidth_analyser);
+    void SetBandwidthAnalyser(BandwidthAnalyserInterface::Pointer bandwidth_analyser);
 
     /**
-     * @brief Get a pointer to the BandwidthAnalyser object used to track
-     * bandwidth.
+     * @brief Get a pointer to the BandwidthAnalyserInterface object used to
+     * track bandwidth.
      *
-     * If no BandwidthAnalyser object has been passed in via
+     * If no BandwidthAnalyserInterface object has been passed in via
      * SetBandwidthAnalyser, a default will be created.
      *
      * @return io_service where http requests will be made.
      */
-    BandwidthAnalyser * GetBandwidthAnalyser() const;
+    BandwidthAnalyserInterface::Pointer GetBandwidthAnalyser() const;
 
     /**
      * @brief Get a pointer to the SSL context.
@@ -303,8 +303,7 @@ private:
 
     boost::asio::io_service * default_callback_io_service_;
 
-    mutable BandwidthAnalyser * bandwidth_analyser_;
-    mutable std::shared_ptr<BandwidthAnalyser> owned_bandwidth_analyser_;
+    BandwidthAnalyserInterface::Pointer bandwidth_analyser_;
 
     mutable std::shared_ptr<boost::asio::ssl::context> ssl_ctx_;
 

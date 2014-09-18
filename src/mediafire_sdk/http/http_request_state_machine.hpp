@@ -1558,8 +1558,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordOutgoingBytes( bytes_transferred,
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
+                sclock::now() );
+        }
+
         if (!err)
         {
             std::shared_ptr<asio::streambuf> response =
@@ -1635,8 +1639,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordIncomingBytes( bytes_transferred,
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
+                sclock::now() );
+        }
+
         if (!err)
         {
             std::istream response_stream(headers_buf.get());
@@ -1718,8 +1726,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordOutgoingBytes( bytes_transferred,
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
+                sclock::now() );
+        }
+
         if (!err)
         {
             ProcessEvent(HeadersWrittenEvent{});
@@ -1750,8 +1762,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordOutgoingBytes( bytes_transferred,
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
+                sclock::now() );
+        }
+
         if (!err)
         {
             if (post_interface_)
@@ -1786,8 +1802,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordIncomingBytes( read_buffer_.size(),
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordIncomingBytes( read_buffer_.size(), start_time,
+                sclock::now() );
+        }
+
         if (!err)
         {
             HeadersReadEvent evt;
@@ -1941,8 +1961,13 @@ public:
 
         TimePoint now = sclock::now();
         ClearAsyncTimeout();  // Must stop timeout timer.
-        bw_analyser_->RecordIncomingBytes( bytes_transferred,
-                start_time, now );
+
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
+                now );
+        }
+
         if ( !err || err == asio::error::eof )
         {
             std::string chunk_size_as_hex;
@@ -2199,8 +2224,12 @@ public:
 
         ClearAsyncTimeout();  // Must stop timeout timer.
 
-        bw_analyser_->RecordIncomingBytes( bytes_transferred,
-                start_time, sclock::now() );
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
+                sclock::now() );
+        }
+
         auto content_chunk_read_duration = AsDuration(sclock::now() -
             start_time);
         bool eof = false;
@@ -2326,8 +2355,13 @@ public:
             bytes_previously_transferred + bytes_transferred;
 
         ClearAsyncTimeout();  // Must stop timeout timer.
-        bw_analyser_->RecordIncomingBytes( bytes_previously_transferred,
+
+        if (bw_analyser_)
+        {
+            bw_analyser_->RecordIncomingBytes( bytes_previously_transferred,
                 start_time, sclock::now() );
+        }
+
         bool eof = false;
 
         if ( err == asio::error::eof )
@@ -2734,7 +2768,7 @@ protected:
     asio::io_service::strand event_strand_;
 
     // Track bandwidth
-    hl::BandwidthAnalyser * bw_analyser_;
+    hl::BandwidthAnalyserInterface::Pointer bw_analyser_;
 
     const std::chrono::time_point<std::chrono::steady_clock>
         request_creation_time_;
