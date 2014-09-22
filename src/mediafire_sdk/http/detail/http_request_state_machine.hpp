@@ -2772,6 +2772,13 @@ public:
         assert(!"improper transition in http state machine");
     }
 
+    // Throw exception if machine being used incorrectly.
+    template <typename FSM>
+    void no_transition(ConfigEvent const& e, FSM&, int state)
+    {
+        throw std::logic_error("Unable to configure in progress HttpRequest.");
+    }
+
 protected:
 #if ! defined(NDEBUG)
     // Counter to keep track of number of HttpRequests
