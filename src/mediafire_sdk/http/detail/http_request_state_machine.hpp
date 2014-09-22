@@ -15,10 +15,10 @@
 #include <utility>
 #include <iostream>
 
-// back-end
 #include "boost/msm/back/state_machine.hpp"
-// front-end
 #include "boost/msm/front/state_machine_def.hpp"
+#include "boost/msm/front/euml/operator.hpp"
+#include "boost/msm/front/functor_row.hpp"
 
 #include "boost/algorithm/string/case_conv.hpp"
 #include "boost/algorithm/string/predicate.hpp"
@@ -40,7 +40,25 @@
 #endif
 
 #include "mediafire_sdk/http/detail/default_http_headers.hpp"
+#include "mediafire_sdk/http/detail/encoding.hpp"
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
+#include "mediafire_sdk/http/detail/race_preventer.hpp"
+#include "mediafire_sdk/http/detail/socket_wrapper.hpp"
+#include "mediafire_sdk/http/detail/timeouts.hpp"
+
+#include "mediafire_sdk/http/detail/transition_config.hpp"
+#include "mediafire_sdk/http/detail/transition_connect.hpp"
+#include "mediafire_sdk/http/detail/transition_initialize.hpp"
+#include "mediafire_sdk/http/detail/transition_parse_headers.hpp"
+#include "mediafire_sdk/http/detail/transition_proxy_connect.hpp"
+#include "mediafire_sdk/http/detail/transition_read_content.hpp"
+#include "mediafire_sdk/http/detail/transition_read_header.hpp"
+#include "mediafire_sdk/http/detail/transition_redirect.hpp"
+#include "mediafire_sdk/http/detail/transition_resolve_host.hpp"
+#include "mediafire_sdk/http/detail/transition_send_header.hpp"
+#include "mediafire_sdk/http/detail/transition_send_post.hpp"
+#include "mediafire_sdk/http/detail/transition_ssl_handshake.hpp"
+#include "mediafire_sdk/http/detail/transition_verify_error.hpp"
 
 #include "mediafire_sdk/http/post_data_pipe_interface.hpp"
 #include "mediafire_sdk/http/error.hpp"
@@ -62,11 +80,9 @@ class HttpRequestMachine_;
 /** Back-end to HttpRequest state machine.  Use this class. */
 using HttpRequestMachine =
     boost::msm::back::state_machine<detail::HttpRequestMachine_>;
+using StateMachinePointer = std::shared_ptr<HttpRequestMachine>;
+using StateMachineWeakPointer = std::weak_ptr<HttpRequestMachine>;
 
-
-using sclock = std::chrono::steady_clock;
-using Duration = std::chrono::milliseconds;
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 struct HttpRequestMachineConfig
 {
@@ -76,198 +92,18 @@ struct HttpRequestMachineConfig
     boost::asio::io_service * callback_io_service;
 };
 
-template<typename T>
-Duration AsDuration(const T & t)
-{
-    return std::chrono::duration_cast<Duration>(t);
-}
-
-class RacePreventer;
-
 namespace hl = mf::http;
 namespace msm = boost::msm;
 namespace mpl = boost::mpl;
 namespace asio = boost::asio;
 namespace mfr = boost::msm::front;
 
-const int kResolvingTimeout = 30;
-const int kSslHandshakeTimeout = 30;
-const int kConnectTimeout = 30;
-const int kProxyWriteTimeout = 30;
-const int kProxyReadTimeout = 30;
-
-/**
- * @class SocketWrapper
- * @brief Wrapper to prevent deleting sockets that have pending operations.
- *
- * Cancelling and deleting a socket while the socket has ongoing operations does
- * not cancel the ongoing operations immediately.  Asio may still be writing to
- * the SSL "socket" with new data, and deleting that stream while it is in use
- * does cause memory access violations.  This class prevents a socket from being
- * deleted until we are absolutely sure the socket is no longer being used, and
- * informs the callback function for the asio operation that the operation is no
- * longer valid.
- */
-class SocketWrapper
-{
-public:
-    explicit SocketWrapper(
-            asio::ssl::stream<asio::ip::tcp::socket> * socket
-        )
-    {
-        ssl_socket_.reset(socket);
-    }
-
-    explicit SocketWrapper(
-            asio::ip::tcp::socket * socket
-        )
-    {
-        socket_.reset(socket);
-    }
-
-    /**
-     * @brief DTOR
-     *
-     * We can destroy the socket now that all operations have ceased on it.
-     */
-    ~SocketWrapper()
-    {
-        if (ssl_socket_)
-        {
-            ssl_socket_.reset();
-        }
-        else if (socket_)
-        {
-            socket_.reset();
-        }
-    }
-
-    /**
-     * @brief Access the SSL socket.
-     *
-     * @return Pointer to the SSL socket
-     */
-    asio::ssl::stream<asio::ip::tcp::socket> * SslSocket()
-    {
-        return ssl_socket_.get();
-    }
-
-    /**
-     * @brief Access the non-SSL socket.
-     *
-     * @return Pointer to the non-SSL socket
-     */
-    asio::ip::tcp::socket * Socket()
-    {
-        return socket_.get();
-    }
-
-    /**
-     * @brief Cancel asynchronous operations on socket.
-     */
-    void Cancel()
-    {
-        if ( ssl_socket_ )
-        {
-            boost::system::error_code ec;
-            ssl_socket_->lowest_layer().cancel(ec);
-        }
-        else if (socket_)
-        {
-            boost::system::error_code ec;
-            socket_->cancel(ec);
-        }
-    }
-
-    asio::io_service & get_io_service()
-    {
-        if ( ssl_socket_ )
-            ssl_socket_->get_io_service();
-        else
-            socket_->get_io_service();
-    }
-
-    template<typename ConstBuffer, typename ReadHandler>
-    void async_read_some(ConstBuffer const_buffer, ReadHandler read_handler)
-    {
-        if ( ssl_socket_ )
-            ssl_socket_->async_read_some(const_buffer, read_handler);
-        else
-            socket_->async_read_some(const_buffer, read_handler);
-    }
-
-    template<typename ConstBuffer, typename WriteHandler>
-    void async_write_some(ConstBuffer const_buffer, WriteHandler write_handler)
-    {
-        if ( ssl_socket_ )
-            ssl_socket_->async_write_some(const_buffer, write_handler);
-        else
-            socket_->async_write_some(const_buffer, write_handler);
-    }
-
-// private: -- clang on OSX 10.8 doesn't like friend class
-    friend class RacePreventer;
-
-    std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket_;
-    std::shared_ptr<asio::ip::tcp::socket> socket_;
-};
-
-/**
- * @class RacePreventer
- * @brief Prevent race conditions due to deadline timer asio issues.
- */
-class RacePreventer
-{
-public:
-    RacePreventer(SocketWrapper * wrapper) :
-        value_(std::make_shared<bool>(false)),
-        ssl_socket_(wrapper->ssl_socket_),
-        socket_(wrapper->socket_)
-    {}
-
-    bool IsFirst()
-    {
-        auto orignal_value = *value_;
-        *value_ = true;
-        return ! orignal_value;
-    }
-
-private:
-    std::shared_ptr<bool> value_;
-
-    // SocketWrapper will release the socket on restart when a timeout occurs
-    // and the async operation is cancelled.  Due to the asynchronous nature,
-    // the socket read or write operation might still be on the io_service
-    // function queue.  The socket needs to exist until the cancelled operation
-    // calls its callback handler with operation_aborted.  We hold on to them
-    // here, and when the cancelled callback completes, the race preventer
-    // returns false on IsFirst, and then the socket will be destroyed when the
-    // last RacePreventer is destroyed.
-    std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket_;
-    std::shared_ptr<asio::ip::tcp::socket> socket_;
-};
-
-
+using msm::front::Row;
+using msm::front::none;
+using msm::front::euml::Not_;
+using msm::front::euml::And_;
 
 static const uint64_t kMaxUnknownReadLength = 1024 * 8;
-
-enum TransferEncoding
-{
-    TE_None          =  0,
-    TE_Unknown       = (1<<0),
-
-    TE_ContentLength = (1<<1),
-    TE_Chunked       = (1<<2),
-    TE_Gzip          = (1<<3),
-};
-
-enum ContentEncoding
-{
-    CE_None    =  0,
-    CE_Unknown = (1<<0),
-
-    CE_Gzip    = (1<<1),
-};
 
 float MultiplierFromPercent(float percent)
 {
@@ -288,124 +124,6 @@ float MultiplierFromPercent(float percent)
     return ( 100.0f - percent ) / percent;
 }
 
-int ParseTransferEncoding(
-        const std::map<std::string, std::string> & headers
-    )
-{
-    // See http://www.iana.org/assignments/http-parameters/http-parameters.xhtml
-
-    int ret = static_cast<int>(TE_None);
-
-    auto it = headers.find("content-length");
-    if ( it != headers.end() )
-        ret |= static_cast<int>(TE_ContentLength);
-
-    it = headers.find("transfer-encoding");
-    if ( it != headers.end() )
-    {
-        std::vector<std::string> tokens;
-        boost::split(tokens, it->second, boost::is_any_of(","));
-        std::for_each(std::begin(tokens), std::end(tokens),
-                [](std::string & v){
-                    boost::trim(v);
-                } );
-
-        for (const std::string & token : tokens)
-        {
-            if ( token == "chunked" )
-                ret |= static_cast<int>(TE_Chunked);
-            else if ( token == "gzip" )
-                ret |= static_cast<int>(TE_Gzip);
-            else
-                ret |= static_cast<int>(TE_Unknown);
-        }
-    }
-
-    return ret;
-}
-
-int ParseContentEncoding(
-        const std::map<std::string, std::string> & headers
-    )
-{
-    int ret = static_cast<int>(CE_None);
-
-    auto it = headers.find("content-encoding");
-
-    if ( it != headers.end() )
-    {
-        std::vector<std::string> tokens;
-        boost::split(tokens, it->second, boost::is_any_of(","));
-        std::for_each(std::begin(tokens), std::end(tokens),
-                [](std::string & v){
-                    boost::trim(v);
-                } );
-
-        for (const std::string & token : tokens)
-        {
-            if ( token == "gzip" )
-                ret |= static_cast<int>(CE_Gzip);
-            else
-                ret |= static_cast<int>(CE_Unknown);
-        }
-    }
-
-    return ret;
-}
-
-class HttpRequestBuffer : public mf::http::BufferInterface
-{
-public:
-    HttpRequestBuffer(std::unique_ptr<uint8_t[]> buffer, uint64_t size) :
-        buffer_(std::move(buffer)),
-        size_(size)
-    {}
-    virtual ~HttpRequestBuffer() {}
-
-    virtual uint64_t Size() const
-    {
-        return size_;
-    }
-
-    /**
-     * @brief Get buffer
-     *
-     * @return pointer that can be read with data size contained in Size().
-     */
-    virtual const uint8_t * Data() const
-    {
-        return buffer_.get();
-    }
-private:
-    std::unique_ptr<uint8_t[]> buffer_;
-    uint64_t size_;
-};
-
-class VectorBuffer : public mf::http::BufferInterface
-{
-public:
-    VectorBuffer() {}
-    virtual ~VectorBuffer() {}
-
-    virtual uint64_t Size() const
-    {
-        return buffer.size();
-    }
-
-    /**
-     * @brief Get buffer
-     *
-     * @return pointer that can be read with data size contained in Size().
-     */
-    virtual const uint8_t * Data() const
-    {
-        return buffer.data();
-    }
-
-    std::vector<uint8_t> buffer;
-private:
-};
-
 asio::ssl::verify_mode CertAllowToVerifyMode(hl::SelfSigned ss)
 {
     switch(ss)
@@ -417,6 +135,33 @@ asio::ssl::verify_mode CertAllowToVerifyMode(hl::SelfSigned ss)
             return asio::ssl::verify_none;
     }
 }
+
+// Guards
+struct IsSsl
+{
+    template <class Fsm,class Evt,class SourceState,class TargetState>
+    bool operator()(Evt const& evt, Fsm& fsm, SourceState& src,TargetState&)
+    {
+        return fsm.get_is_ssl();
+    }
+};
+struct SslProxy
+{
+    template <class Fsm,class Evt,class SourceState,class TargetState>
+    bool operator()(Evt const& evt, Fsm& fsm, SourceState& src,TargetState&)
+    {
+        return fsm.get_https_proxy();
+    }
+};
+struct HasPost
+{
+    template <class Fsm,class Evt,class SourceState,class TargetState>
+    bool operator()(Evt const&, Fsm& fsm, SourceState&,TargetState&)
+    {
+        return static_cast<bool>(fsm.get_post_data())
+            || static_cast<bool>(fsm.get_post_interface());
+    }
+};
 
 // front-end: define the FSM structure
 class HttpRequestMachine_ :
@@ -481,10 +226,28 @@ public:
 #endif
     }
 
+    HttpRequestMachine & AsFront()
+    {
+        return static_cast<msm::back::state_machine<HttpRequestMachine_>&>(
+            *this);
+    }
+
+    StateMachinePointer AsFrontShared()
+    {
+        auto self = shared_from_this();
+        return std::static_pointer_cast<HttpRequestMachine>(self);
+    }
+
+    StateMachineWeakPointer AsFrontWeak()
+    {
+        auto self = shared_from_this();
+        return StateMachineWeakPointer(
+            std::static_pointer_cast<HttpRequestMachine>(self));
+    }
     template<typename Event>
     void ProcessEvent(Event evt)
     {
-        Pointer self(shared_from_this());
+        auto self = shared_from_this();
 
         event_strand_.dispatch(
             [this, self, evt]()
@@ -581,800 +344,7 @@ public:
     // the initial state of the HttpRequestMachine SM. Must be defined
     typedef Unstarted initial_state;
 
-    class ConfigEventHandler
-        : public boost::static_visitor<>
-    {
-    public:
-        explicit ConfigEventHandler( HttpRequestMachine_ * m) :
-            machine_(m)
-        {}
-
-        void operator()(const ConfigEvent::ConfigRedirectPolicy & cfg) const
-        {
-            machine_->redirect_policy_ = cfg.redirect_policy;
-        }
-
-        void operator()(const ConfigEvent::ConfigRequestMethod & cfg) const
-        {
-            machine_->request_method_ = cfg.method;
-        }
-
-        void operator()(const ConfigEvent::ConfigHeader & cfg) const
-        {
-            machine_->SetHeader(cfg.name, cfg.value);
-        }
-
-        void operator()(const ConfigEvent::ConfigPostDataPipe & cfg) const
-        {
-            machine_->post_data_.reset();
-            machine_->post_interface_ = cfg.pdi;
-            machine_->SetHeader("Content-Length",
-                mf::utils::to_string(cfg.pdi->PostDataSize()));
-
-            machine_->request_method_ = "POST";
-        }
-
-        void operator()(const ConfigEvent::ConfigPostData & cfg) const
-        {
-            machine_->post_data_ = cfg.raw_data;
-            machine_->post_interface_.reset();
-            machine_->SetHeader("Content-Length",
-                mf::utils::to_string(cfg.raw_data->Size()));
-
-            machine_->request_method_ = "POST";
-        }
-
-        void operator()( const ConfigEvent::ConfigTimeout & cfg) const
-        {
-            machine_->timeout_seconds_ = cfg.timeout_seconds;
-        }
-
-    private:
-        HttpRequestMachine_ * machine_;
-    };
-    friend class ConfigEventHandler;
-
-    // transition actions
-    void ConfigEventAction(ConfigEvent const& evt)
-    {
-        boost::apply_visitor( ConfigEventHandler(this), evt.variant );
-    }
-    template<typename Event>
-    void InitializeAction(Event const&)
-    {
-        InitializeAction_();
-    }
-    void InitializeAction_()
-    {
-        // We may be here due to new connection or due to a redirect, so
-        // ensure we are initialized as if new.
-
-        // We should not be connected at this point.
-        Disconnect();
-
-        // There should be nothing in the buffers.
-        read_buffer_.consume( read_buffer_.size() );
-        gzipped_buffer_.consume( gzipped_buffer_.size() );
-
-        filter_buf_consumed_ = 0;
-
-        // Parse URL if redirect didn't pass one in.
-        try {
-            if ( ! parsed_url_ )
-                parsed_url_.reset(new hl::Url(url_));
-        }
-        catch(hl::InvalidUrl & err)
-        {
-            std::stringstream ss;
-            ss << "Bad url(url:";
-            ss << url_;
-            ss << " reason: " << err.what() << ")";
-
-            ProcessEvent(ErrorEvent{
-                    make_error_code( hl::http_error::InvalidUrl ),
-                    ss.str()
-                });
-            return;
-        }
-
-        if ( parsed_url_->scheme() == "http" )
-        {
-            is_ssl_ = false;
-
-            // Create non-SSL socket and wrapper.
-            socket_wrapper_ = std::make_shared<SocketWrapper>(
-                new asio::ip::tcp::socket(*work_io_service_) );
-
-            ProcessEvent(InitializedEvent());
-        }
-        else if ( parsed_url_->scheme() == "https" )
-        {
-            is_ssl_ = true;
-
-            // Create the SSL socket and wrapper
-            socket_wrapper_ = std::make_shared<SocketWrapper>(
-                new asio::ssl::stream<asio::ip::tcp::socket>(
-                    *work_io_service_, *ssl_ctx_ ) );
-
-            ProcessEvent(InitializedEvent());
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Unsupported scheme. Url: " << url_;
-            ProcessEvent(ErrorEvent{
-                    make_error_code( hl::http_error::InvalidUrl ),
-                    ss.str()
-                });
-        }
-    }
-    template<typename Event>
-    void ResolveHostAction(Event const& /* evt */)
-    {
-        std::string host = parsed_url_->host();
-        std::string port = parsed_url_->port();
-        if ( port.empty() )
-            port = parsed_url_->scheme();
-
-        // Set proxy.
-        if ( is_ssl_ && https_proxy_ )
-        {
-            host = https_proxy_->host;
-            port = boost::lexical_cast<std::string>(https_proxy_->port);
-        }
-        else if ( ! is_ssl_ && http_proxy_ )
-        {
-            host = http_proxy_->host;
-            port = boost::lexical_cast<std::string>(http_proxy_->port);
-        }
-
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("resolving", kResolvingTimeout);
-
-        asio::ip::tcp::resolver::query query(host, port);
-        resolver_.async_resolve(
-            query,
-            boost::bind(
-                &HttpRequestMachine_::HandleResolve, shared_from_this(),
-                race_preventer,
-                asio::placeholders::error,
-                asio::placeholders::iterator
-            ));
-    }
-    void VerifyErrorAction(ErrorEvent const& evt)
-    {
-        assert( event_strand_.running_in_this_thread() );
-
-        // Close connection
-        Disconnect();
-
-        auto timeout = request_creation_time_ +
-            std::chrono::seconds(timeout_seconds_);
-
-        if (evt.code == hl::http_error::IoTimeout && sclock::now() < timeout)
-        {
-            // Restart everything
-            ProcessEvent(RestartEvent{});
-        }
-        else
-        {
-            // Pass error on
-            ProcessEvent(evt);
-        }
-    }
-    void SSLHandshakeAction(ConnectedEvent const& /* evt */)
-    {
-        auto ssl_socket = socket_wrapper_->SslSocket();
-
-        // This disables the Nagle algorithm, as supposedly SSL already
-        // does something similar and Nagle hurts SSL performance by a lot,
-        // supposedly.
-        // http://www.extrahop.com/post/blog/performance-metrics/to-nagle-or-not-to-nagle-that-is-the-question/
-        ssl_socket->lowest_layer().set_option(asio::ip::tcp::no_delay(true));
-
-        // Don't allow self signed certs.
-        ssl_socket->set_verify_mode(ssl_verify_mode_);
-
-        // Properly walk the certificate chain.
-        ssl_socket->set_verify_callback(
-                asio::ssl::rfc2818_verification(parsed_url_->host())
-                );
-
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("ssl handshake",
-            kSslHandshakeTimeout);
-
-        ssl_socket->async_handshake(
-            boost::asio::ssl::stream_base::client,
-            boost::bind(
-                &HttpRequestMachine_::HandleHandshake,
-                shared_from_this(),
-                race_preventer,
-                boost::asio::placeholders::error));
-    }
-    void ConnectAction(ResolvedEvent const& evt)
-    {
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("connect", kConnectTimeout);
-
-        if ( is_ssl_ )
-        {
-            assert(socket_wrapper_->SslSocket());
-
-            // Attempt a connection to each endpoint in the list until we
-            // successfully establish a connection.
-            asio::async_connect(
-                socket_wrapper_->SslSocket()->lowest_layer(),
-                evt.endpoint_iterator,
-                boost::bind(
-                    &HttpRequestMachine_::HandleConnect,
-                    shared_from_this(),
-                    race_preventer,
-                    asio::placeholders::error));
-        }
-        else
-        {
-            assert(socket_wrapper_->Socket());
-
-            // Attempt a connection to each endpoint in the list until we
-            // successfully establish a connection.
-            asio::async_connect(
-                *socket_wrapper_->Socket(),
-                evt.endpoint_iterator,
-                boost::bind(
-                    &HttpRequestMachine_::HandleConnect,
-                    shared_from_this(),
-                    race_preventer,
-                    asio::placeholders::error));
-        }
-    }
-    template<typename Event>
-    void ProxyConnectAction(Event const&)
-    {
-        // We know we are using a proxy.
-
-        // Tell it where we want to connect to.
-        std::string connect_host;
-        connect_host = parsed_url_->host();
-        connect_host += ':';
-        connect_host += parsed_url_->port();
-
-        // Create headers to send.
-        std::ostringstream request_stream_local;
-        request_stream_local << "CONNECT " << connect_host << " HTTP/1.1\r\n";
-        request_stream_local << "User-Agent: HttpRequester\r\n";
-
-        // Send authorization if provided.
-        std::string username, password;
-        if (is_ssl_ && https_proxy_)
-        {
-            username = https_proxy_->username;
-            password = https_proxy_->password;
-        }
-        else if ( ! is_ssl_ && http_proxy_)
-        {
-            username = http_proxy_->username;
-            password = http_proxy_->password;
-        }
-
-        if ( ! username.empty())
-        {
-            std::string to_encode = username;
-            to_encode += ':';
-            to_encode += password;
-            std::string encoded = mf::utils::Base64Encode(
-                    to_encode.c_str(), to_encode.size() );
-
-            request_stream_local << "Proxy-Authorization: Basic " << encoded
-                << "\r\n";
-        }
-
-        request_stream_local << "\r\n";  // End header
-
-        std::shared_ptr<asio::streambuf> request(
-            std::make_shared<asio::streambuf>());
-
-        std::ostream request_stream(request.get());
-        request_stream << request_stream_local.str();
-
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("proxy write request",
-            kProxyWriteTimeout);
-
-        // Must use direct socket instead of SSL stream here as we do non-SSL
-        // communication with the proxy.
-        if ( is_ssl_ )
-        {
-            asio::async_write(
-                socket_wrapper_->SslSocket()->next_layer(),
-                *request,
-                boost::bind(
-                    &HttpRequestMachine_::HandleProxyConnectWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    request,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
-        else
-        {
-            asio::async_write(
-                *socket_wrapper_->Socket(),
-                *request,
-                boost::bind(
-                    &HttpRequestMachine_::HandleProxyConnectWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    request,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
-    }
-    template<typename Event>
-    void SendHeaderAction(Event const&)
-    {
-        // When a proxy is used, the full path must be sent.
-        std::string path = parsed_url_->full_path();
-        if (     ( is_ssl_ && https_proxy_ )
-            || ( ! is_ssl_ && http_proxy_ ) )
-        {
-            path = parsed_url_->url();
-        }
-
-        std::ostringstream request_stream_local;
-        request_stream_local << request_method_ << " "
-            << path << " HTTP/1.1\r\n";
-        request_stream_local << "Host: " << parsed_url_->host() << "\r\n";
-
-        if ( ! is_ssl_ && http_proxy_ && ! http_proxy_->username.empty() )
-        {
-            std::string to_encode = http_proxy_->username;
-            to_encode += ':';
-            to_encode += http_proxy_->password;
-            std::string encoded = mf::utils::Base64Encode(
-                    to_encode.c_str(), to_encode.size() );
-
-            request_stream_local << "Proxy-Authorization: Basic " << encoded
-                << "\r\n";
-        }
-
-        for ( const auto & pair : headers_ )
-        {
-            if ( is_ssl_ && boost::iequals(pair.first, "accept-encoding" ) )
-            {
-                // Compression over SSL is not allowed as it is a vulnerability.
-                // See BREACH.
-                continue;
-            }
-
-            request_stream_local
-                << pair.first << ": "  // name
-                << pair.second  // value
-                << "\r\n";  // HTTP header newline
-        }
-
-        request_stream_local << "\r\n";  // End header with blank line.
-
-        std::shared_ptr<asio::streambuf> request(
-            std::make_shared<asio::streambuf>());
-
-        std::ostream request_stream(request.get());
-        request_stream << request_stream_local.str();
-
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("write request header",
-            timeout_seconds_);
-
-        asio::async_write(
-            *socket_wrapper_,
-            *request,
-            boost::bind(
-                &HttpRequestMachine_::HandleHeaderWrite,
-                shared_from_this(),
-                race_preventer,
-                request,
-                sclock::now(),
-                asio::placeholders::bytes_transferred,
-                asio::placeholders::error));
-    }
-    void SendPostAction(HeadersWrittenEvent const&)
-    {
-        if ( post_data_ )
-        {
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("write request post",
-                timeout_seconds_);
-
-            asio::async_write(
-                *socket_wrapper_,
-                asio::buffer(post_data_->Data(), post_data_->Size()),
-                boost::bind(
-                    &HttpRequestMachine_::HandlePostWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    post_data_,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
-        else
-        {
-            post_interface_size_ = post_interface_->PostDataSize();
-
-            const auto now = std::chrono::steady_clock::now();
-            PostViaInterface( now, now );
-        }
-    }
-    void PostViaInterface(
-            TimePoint last_write_start,
-            TimePoint last_write_end
-        )
-    {
-        hl::SharedBuffer::Pointer post_data;
-
-        try {
-            post_data = post_interface_->RetreivePostDataChunk();
-        }
-        catch( const std::exception & err )
-        {
-            std::stringstream ss;
-            ss << "Failure to retrieve POST data from interface.";
-            ss << " Error: " << err.what();
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::VariablePostInterfaceFailure ),
-                    ss.str()
-                });
-        }
-
-        if ( ! post_data || post_data->Size() == 0 )
-        {
-            // Allow interface to free.
-            post_interface_.reset();
-
-            if ( post_interface_read_bytes_!= post_interface_size_ )
-            {
-                std::stringstream ss;
-                ss << "POST data unexpected size.";
-                ss << " Expected: " << post_interface_size_;
-                ss << " Received: " << post_interface_read_bytes_;
-                ProcessEvent(ErrorEvent{
-                        make_error_code(
-                            hl::http_error::VariablePostInterfaceFailure ),
-                        ss.str()
-                    });
-            }
-            else
-            {
-                ProcessEvent(PostSent{});
-            }
-        }
-        else
-        {
-            post_interface_read_bytes_ += post_data->Size();
-
-            // Delay behavior:
-            SetTransactionDelayTimer( last_write_start, last_write_end );
-            std::function<void()> strand_wrapped = std::bind(
-                    &HttpRequestMachine_::PostViaInterfaceDelayCallback,
-                    shared_from_this(),
-                    post_data
-                );
-            transmission_delay_timer_.async_wait(
-                event_strand_.wrap(
-                    boost::bind(
-                        &HttpRequestMachine_::SetTransactionDelayTimerWrapper,
-                        shared_from_this(),
-                        strand_wrapped,
-                        asio::placeholders::error
-                    )));
-        }
-    }
-    void PostViaInterfaceDelayCallback(
-            hl::SharedBuffer::Pointer post_data
-        )
-    {
-        // Ensure a cancellation doesn't mess up the state due to async
-        // timer.
-        if ( transmission_delay_timer_enabled_ )
-        {
-            transmission_delay_timer_enabled_ = false;
-
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("write request post",
-                timeout_seconds_);
-
-            asio::async_write(
-                *socket_wrapper_,
-                asio::buffer(post_data->Data(), post_data->Size()),
-                boost::bind(
-                    &HttpRequestMachine_::HandlePostWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    post_data,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
-    }
-    template<typename Event>
-    void ReadHeaderAction(Event const&)
-    {
-        // Must prime timeout for async actions.
-        auto race_preventer = SetAsyncTimeout("read response header",
-            timeout_seconds_);
-
-        asio::async_read_until(*socket_wrapper_, read_buffer_,
-            "\r\n\r\n",
-                boost::bind(
-                    &HttpRequestMachine_::HandleHeaderRead,
-                    shared_from_this(),
-                    race_preventer,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-    }
-    void ParseHeadersAction(HeadersReadEvent const& evt)
-    {
-        if (evt.status_code == 301 || evt.status_code == 302)
-        {
-            auto it = evt.headers.find("location");
-            if ( it == evt.headers.end() )
-            {
-                std::stringstream ss;
-                ss << "Bad " << evt.status_code << " redirect.";
-                ss << " Source URL: " << url_;
-                ss << " Missing \"Location\" header";
-                ProcessEvent(ErrorEvent{
-                        make_error_code(
-                            hl::http_error::InvalidRedirectUrl ),
-                        ss.str()
-                    });
-            }
-            else
-            {
-                RedirectEvent redirect(evt);
-                redirect.redirect_url = it->second;
-                ProcessEvent(redirect);
-            }
-        }
-        else
-        {
-            read_headers_ = evt;
-
-            ::mf::http::Headers headers;
-
-            headers.raw_headers = evt.raw_headers;
-            headers.status_code = evt.status_code;
-            headers.status_message = evt.status_message;
-            headers.headers = evt.headers;
-
-            std::shared_ptr<hl::RequestResponseInterface>
-                iface(callback_);
-            callback_io_service_->dispatch(
-                    [iface, headers](){
-                        iface->ResponseHeaderReceived(
-                            headers );
-                    }
-                );
-
-            ProcessEvent(HeadersParsedEvent{});
-        }
-    }
-    void ReadContentAction(HeadersParsedEvent const&)
-    {
-        // Encodings!
-        int te = ParseTransferEncoding(read_headers_.headers);
-        int ce = ParseContentEncoding(read_headers_.headers);
-
-        // gzip can be in transfer-encoding or content-encoding...
-        if ( te & TE_Gzip )
-            ce |= static_cast<int>(CE_Gzip);
-
-        if ( te & TE_Unknown )
-        {
-            std::stringstream ss;
-            ss << "Unsupported transfer-encoding.";
-            auto it = read_headers_.headers.find("transfer-encoding");
-            if ( it != read_headers_.headers.end() )
-                ss << " Transfer-Encoding: " << it->second;
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnsupportedEncoding ),
-                    ss.str()
-                });
-            return;
-        }
-
-        if ( ce & CE_Unknown )
-        {
-            std::stringstream ss;
-            ss << "Unsupported content-encoding.";
-            auto it = read_headers_.headers.find("content-encoding");
-            if ( it != read_headers_.headers.end() )
-                ss << " Content-Encoding: " << it->second;
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnsupportedEncoding ),
-                    ss.str()
-                });
-            return;
-        }
-
-        if ( ce & CE_Gzip )
-        {
-            filter_buf_.push(boost::iostreams::gzip_decompressor());
-        }
-
-        if ( te & TE_Chunked && te & TE_ContentLength )
-        {
-            std::stringstream ss;
-            ss << "Unable to handle chunked encoding and content length.";
-            ss << " Violates RFC 2616, Section 4.4";
-            auto it = read_headers_.headers.find("content-encoding");
-            if ( it != read_headers_.headers.end() )
-                ss << " Content-Encoding: " << it->second;
-            it = read_headers_.headers.find("content-length");
-            if ( it != read_headers_.headers.end() )
-                ss << " Content-Length: " << it->second;
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnsupportedEncoding ),
-                    ss.str()
-                });
-            return;
-        }
-
-        if ( te & TE_Chunked )
-        {
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 1",
-                timeout_seconds_);
-
-            asio::async_read_until(
-                *socket_wrapper_, read_buffer_, "\r\n",
-                boost::bind(
-                    &HttpRequestMachine_::HandleContentChunkSizeRead,
-                    shared_from_this(),
-                    race_preventer,
-                    0,
-                    te, ce,
-                    sclock::now(),
-                    Duration::zero(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error
-                    )
-                );
-        }
-        else
-        {
-            uint64_t max_read_size = kMaxUnknownReadLength;
-            if ( te & TE_ContentLength )
-            {
-                max_read_size = std::min(
-                    read_headers_.content_length,
-                    kMaxUnknownReadLength );
-            }
-
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 2",
-                timeout_seconds_);
-
-            asio::async_read(*socket_wrapper_, read_buffer_,
-                asio::transfer_exactly(max_read_size),
-                boost::bind(
-                    &HttpRequestMachine_::HandleContentRead,
-                    shared_from_this(),
-                    race_preventer,
-                    0,
-                    te, ce,
-                    sclock::now(),
-                    read_buffer_.size(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error
-                ));
-        }
-    }
-    void RedirectAction(RedirectEvent const& evt)
-    {
-        std::unique_ptr<hl::Url> redirect_url;
-        try {
-            redirect_url.reset(new hl::Url(evt.redirect_url));
-        }
-        catch(hl::InvalidUrl & /*err*/)
-        {
-            std::stringstream ss;
-            ss << "Redirect to " << evt.redirect_url
-                << " invalid url.";
-            ss << " Source URL: " << url_;
-
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::InvalidRedirectUrl ),
-                    ss.str()
-                });
-            return;
-        }
-
-        switch ( redirect_policy_ )
-        {
-            case hl::RedirectPolicy::DenyDowngrade:
-                if ( is_ssl_ && redirect_url->scheme() == "http" )
-                {
-                    std::stringstream ss;
-                    ss << "Redirect to non-SSL " << evt.redirect_url
-                        << " denied by current policy.";
-                    ss << " Source URL: " << url_;
-                    ProcessEvent(ErrorEvent{
-                            make_error_code(
-                                hl::http_error::RedirectPermissionDenied ),
-                            ss.str()
-                        });
-                }  // No break
-            case hl::RedirectPolicy::Allow:
-                {
-                    parsed_url_.swap(redirect_url);
-                    url_ = evt.redirect_url;
-
-                    // Close connection
-                    Disconnect();
-
-                    ProcessEvent(RedirectedEvent{});
-                } break;
-            case hl::RedirectPolicy::Deny:
-                {
-                    std::stringstream ss;
-                    ss << "Redirect to " << evt.redirect_url
-                        << " denied by current policy.";
-                    ss << " Source URL: " << url_;
-                    ProcessEvent(ErrorEvent{
-                            make_error_code(
-                                hl::http_error::RedirectPermissionDenied ),
-                            ss.str()
-                        });
-                } break;
-        }
-    }
-
-    // Guards
-
-    template<typename Event>
-    bool HasPost(Event const &)
-    {
-        return static_cast<bool>(post_data_)
-            || static_cast<bool>(post_interface_);
-    }
-    template<typename Event>
-    bool HasNoPost(Event const & evt)
-    {
-        return ! HasPost(evt);
-    }
-
-    template<typename Event>
-    bool IsSslAndProxy(Event const &)
-    {
-        return is_ssl_ && https_proxy_;
-    }
-    template<typename Event>
-    bool IsSslAndNotProxy(Event const &)
-    {
-        return is_ssl_ && ! https_proxy_;
-    }
-    template<typename Event>
-    bool IsSsl(Event const &)
-    {
-        return is_ssl_;
-    }
-    template<typename Event>
-    bool IsNotSsl(Event const &)
-    {
-        return ! is_ssl_;
-    }
-
     // Asio Handlers
-
     void HandleAsyncTimeout(
             RacePreventer race_preventer,
             uint32_t timeout_id,
@@ -1394,1062 +364,6 @@ public:
                     make_error_code( hl::http_error::IoTimeout ),
                     ss.str()
                 });
-        }
-    }
-    void HandleResolve(
-            RacePreventer race_preventer,
-            const boost::system::error_code& err,
-            asio::ip::tcp::resolver::iterator endpoint_iterator
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (!err)
-        {
-            ProcessEvent(ResolvedEvent{endpoint_iterator});
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while resolving url(" << url_ << ").";
-            ss << " Error: " << err.message();
-            ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnableToResolve ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleHandshake(
-            RacePreventer race_preventer,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (!err)
-        {
-            ProcessEvent(HandshakeEvent{});
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure in SSL handshake.";
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::SslHandshakeFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleConnect(
-            RacePreventer race_preventer,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (!err)
-        {
-            ProcessEvent(ConnectedEvent{});
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while connecting(" << url_ << ").";
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnableToConnect ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleProxyConnectWrite(
-            RacePreventer race_preventer,
-            std::shared_ptr<asio::streambuf> /* request_buf */,
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
-                sclock::now() );
-        }
-
-        if (!err)
-        {
-            std::shared_ptr<asio::streambuf> response =
-                std::make_shared<asio::streambuf>();
-
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("proxy read response",
-                kProxyReadTimeout);
-
-            // Must use direct socket instead of SSL stream here as we do
-            // non-SSL communication with the proxy.
-            if ( is_ssl_ )
-            {
-                asio::async_read_until(
-                    socket_wrapper_->SslSocket()->next_layer(),
-                    *response, "\r\n\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleProxyHeaderRead,
-                        shared_from_this(),
-                        race_preventer,
-                        response,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
-            else
-            {
-                asio::async_read_until(
-                    *socket_wrapper_->Socket(),
-                    *response,
-                    "\r\n\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleProxyHeaderRead,
-                        shared_from_this(),
-                        race_preventer,
-                        response,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure connecting to proxy.";
-            if ( is_ssl_ && https_proxy_ )
-            {
-                ss << " Proxy: " << https_proxy_->host;
-                ss << ":" << https_proxy_->port;
-            }
-            else if ( ! is_ssl_ && http_proxy_ )
-            {
-                ss << " Proxy: " << http_proxy_->host;
-                ss << ":" << http_proxy_->port;
-            }
-
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::UnableToConnectToProxy ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleProxyHeaderRead(
-            RacePreventer race_preventer,
-            std::shared_ptr<asio::streambuf> headers_buf,
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
-                sclock::now() );
-        }
-
-        if (!err)
-        {
-            std::istream response_stream(headers_buf.get());
-
-            std::string http_version;
-            response_stream >> http_version;
-
-            unsigned int status_code;
-            response_stream >> status_code;
-
-            std::string status_message;
-            std::getline(response_stream, status_message);
-
-            if (!response_stream || http_version.substr(0, 5) != "HTTP/")
-            {
-                std::stringstream ss;
-                ss << "Protocol error while parsing proxy headers.";
-                ProcessEvent(
-                    ErrorEvent{
-                        make_error_code(
-                            hl::http_error::ProxyProtocolFailure ),
-                        ss.str()
-                    });
-                return;
-            }
-
-            if ( status_code == 200 )
-            {
-                ProcessEvent(ConnectedEvent{});
-            }
-            else
-            {
-                std::stringstream ss;
-                ss << "Protocol error while parsing proxy headers.";
-                ss << " HTTP Status: " << status_code;
-                ss << " " << status_message;
-                ProcessEvent(
-                    ErrorEvent{
-                        make_error_code(
-                            hl::http_error::ProxyProtocolFailure ),
-                        ss.str()
-                    });
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure reading from proxy.";
-            if ( is_ssl_ && https_proxy_ )
-            {
-                ss << " Proxy: " << https_proxy_->host;
-                ss << ":" << https_proxy_->port;
-            }
-            else if ( ! is_ssl_ && http_proxy_ )
-            {
-                ss << " Proxy: " << http_proxy_->host;
-                ss << ":" << http_proxy_->port;
-            }
-
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::ProxyProtocolFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleHeaderWrite(
-            RacePreventer race_preventer,
-            std::shared_ptr<asio::streambuf> /* request_buf */,
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
-                sclock::now() );
-        }
-
-        if (!err)
-        {
-            ProcessEvent(HeadersWrittenEvent{});
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while writing headers url(" << url_ << ").";
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::WriteFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandlePostWrite(
-            RacePreventer race_preventer,
-            hl::SharedBuffer::Pointer /* post_data */,  // keepalive
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordOutgoingBytes( bytes_transferred, start_time,
-                sclock::now() );
-        }
-
-        if (!err)
-        {
-            if (post_interface_)
-            {
-                PostViaInterface( start_time, sclock::now() );
-            }
-            else
-                ProcessEvent(PostSent{});
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure writing POST. URL: " << url_;
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::WriteFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleHeaderRead(
-            RacePreventer race_preventer,
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordIncomingBytes( read_buffer_.size(), start_time,
-                sclock::now() );
-        }
-
-        if (!err)
-        {
-            HeadersReadEvent evt;
-            {
-                // Copy headers.
-
-                asio::streambuf::const_buffers_type bufs =
-                    read_buffer_.data();
-
-                evt.raw_headers = std::string(
-                        asio::buffers_begin(bufs),
-                        ( asio::buffers_begin(bufs)
-                            + bytes_transferred )
-                    );
-            }
-
-            std::istream response_stream(&read_buffer_);
-            response_stream >> evt.http_version;
-            response_stream >> evt.status_code;
-            std::getline(response_stream, evt.status_message);
-
-            if ( ! response_stream
-                    || evt.http_version.substr(0, 5) != "HTTP/")
-            {
-                std::stringstream ss;
-                ss << "Protocol error while parsing headers("
-                    << url_ << ").";
-                ProcessEvent(
-                    ErrorEvent{
-                        make_error_code(
-                            hl::http_error::UnparsableHeaders ),
-                        ss.str()
-                    });
-                return;
-            }
-
-            std::string line;
-            std::string last_header_name;
-            while (std::getline(response_stream, line) && line != "\r")
-            {
-                // Debug
-                // std::cout << line << std::endl;
-
-                boost::trim_right(line);
-
-                if ( line.empty() ) continue;
-
-                // HTTP headers can be split up inbetween lines.
-                // http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2.2
-                if ( line[0] == ' ' || line[0] == '\t' )
-                {
-                    if ( last_header_name.empty() )
-                    {
-                        std::stringstream ss;
-                        ss << "Failure while reading headers url("
-                            << url_ << ").";
-                        ss << " Badly formatted headers.";
-                        ProcessEvent(
-                            ErrorEvent{
-                                make_error_code(
-                                    hl::http_error::UnparsableHeaders ),
-                                ss.str()
-                            });
-                        return;
-                    }
-
-                    // This is a continuation of previous line.
-                    auto it = evt.headers.find(last_header_name);
-                    it->second += " ";
-                    boost::trim(line);
-                    it->second += line;
-
-                    continue;
-                }
-
-                boost::iterator_range<std::string::iterator> result =
-                    boost::find_first(line, ":");
-
-                if ( ! result.empty() )
-                {
-                    std::string header_name = std::string(
-                            line.begin(), result.begin());
-
-                    std::string header_value = std::string(
-                            result.end(), line.end());
-
-                    boost::trim(header_name);
-                    boost::to_lower(header_name);
-
-                    boost::trim(header_value);
-
-                    evt.headers.emplace(header_name, header_value);
-
-                    // Record the last header name in case the next line is
-                    // extended.
-                    last_header_name.swap(header_name);
-                }
-            }
-
-            {
-                auto it = evt.headers.find("content-length");
-                if ( it != evt.headers.end() )
-                {
-                    try {
-                        evt.content_length = boost::lexical_cast<uint64_t>(
-                                it->second);
-                    } catch(boost::bad_lexical_cast &) {
-                        std::stringstream ss;
-                        ss << "Failure while parsing headers url("
-                            << url_ << ").";
-                        ss << " Invalid Content-Length: " << it->second;
-                        ProcessEvent(
-                            ErrorEvent{
-                                make_error_code(
-                                    hl::http_error::UnparsableHeaders ),
-                                ss.str()
-                            });
-                        return;
-                    }
-                }
-            }
-
-            ProcessEvent(evt);  // Send HeadersReadEvent
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while reading headers url(" << url_ << ").";
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::ReadFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleContentChunkSizeRead(
-            RacePreventer race_preventer,
-            uint64_t output_bytes_consumed,  // What we have sent to user.
-            const int te,
-            const int ce,
-            const TimePoint start_time,
-            Duration content_chunk_read_duration,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        TimePoint now = sclock::now();
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
-                now );
-        }
-
-        if ( !err || err == asio::error::eof )
-        {
-            std::string chunk_size_as_hex;
-            std::istream response_stream(&read_buffer_);
-            std::getline(response_stream, chunk_size_as_hex);
-
-            uint64_t chunk_size = 0;
-            try
-            {
-                chunk_size = mf::utils::str_to_uint64(chunk_size_as_hex, 16);
-            }
-            catch(std::invalid_argument & err)
-            {
-                std::stringstream ss;
-                ss << "Failure while parsing chunk: " << err.what();
-                ss << " Chunk: " << chunk_size_as_hex;
-                ProcessEvent(
-                    ErrorEvent{
-                        make_error_code(
-                            hl::http_error::ReadFailure ),
-                        ss.str()
-                    });
-                return;
-            }
-            catch(std::out_of_range & err)
-            {
-                std::stringstream ss;
-                ss << "Failure while parsing chunk: " << err.what();
-                ss << " Chunk: " << chunk_size_as_hex;
-                ProcessEvent(
-                    ErrorEvent{
-                        make_error_code(
-                            hl::http_error::ReadFailure ),
-                        ss.str()
-                    });
-                return;
-            }
-
-            // Debug
-            // std::cout << "Got chunk size: " << chunk_size << std::endl;
-
-            if ( chunk_size == 0 )  // Last chunk is 0 bytes long.
-            {
-                HandleCompleteAllChunks(ce);
-            }
-            else
-            {
-                HandleNextChunk( output_bytes_consumed, te, ce, start_time,
-                    content_chunk_read_duration, chunk_size);
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while reading content.";
-            ss << " Url: " << url_;
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::ReadFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleNextChunk(
-            uint64_t output_bytes_consumed,  // What we have sent to user.
-            const int te,
-            const int ce,
-            const TimePoint start_time,
-            Duration content_chunk_read_duration,
-            uint64_t chunk_size
-        )
-    {
-        TimePoint now = sclock::now();
-
-        // Determine how much more to read, or if the buffer
-        // already contains enough data to continue.
-        uint64_t left_to_read = chunk_size+2;
-        if ( read_buffer_.size() > left_to_read )
-            left_to_read = 0;
-        else
-            left_to_read -= read_buffer_.size();
-
-        // Delay behavior:
-        auto total_duration = AsDuration(content_chunk_read_duration +
-            (now - start_time));
-        SetTransactionDelayTimer( now, total_duration );
-        std::function<void()> strand_wrapped = std::bind(
-            &HttpRequestMachine_::HandleContentChunkSizeReadDelay,
-            shared_from_this(),
-            left_to_read,
-            output_bytes_consumed,
-            chunk_size,
-            te,
-            ce
-        );
-        transmission_delay_timer_.async_wait(
-            event_strand_.wrap(
-                boost::bind(
-                    &HttpRequestMachine_::SetTransactionDelayTimerWrapper,
-                    shared_from_this(),
-                    strand_wrapped,
-                    asio::placeholders::error
-                )));
-    }
-    void HandleCompleteAllChunks(
-            const int ce
-        )
-    {
-        if ( ce & CE_Gzip )
-        {
-            std::shared_ptr<VectorBuffer> return_buffer(
-                new VectorBuffer() );
-
-            filter_buf_.push( gzipped_buffer_ );
-
-            try {
-                boost::iostreams::copy(
-                    filter_buf_,
-                    std::back_inserter(return_buffer->buffer));
-            }
-            catch( boost::iostreams::gzip_error & err )
-            {
-                std::stringstream ss;
-                ss << "Compression failure.";
-                ss << " Error: " << err.what();
-                switch (err.error())
-                {
-                    case boost::iostreams::gzip::zlib_error:
-                        ss << " GZip error: zlib_error";
-                        break;
-                    case boost::iostreams::gzip::bad_crc:
-                        ss << " GZip error: bad_crc";
-                        break;
-                    case boost::iostreams::gzip::bad_length:
-                        ss << " GZip error: bad_length";
-                        break;
-                    case boost::iostreams::gzip::bad_header:
-                        ss << " GZip error: bad_header";
-                        break;
-                    case boost::iostreams::gzip::bad_footer:
-                        ss << " GZip error: bad_footer";
-                        break;
-                    default:
-                        ss << " GZip error: " << err.error();
-                        break;
-                }
-                ss << " Zlib error: " << err.zlib_error_code();
-                ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::CompressionFailure ),
-                    ss.str()
-                    });
-                return;
-            }
-            catch( std::exception & err )
-            {
-                std::stringstream ss;
-                ss << "Compression failure.";
-                ss << " Error: " << err.what();
-                ProcessEvent(ErrorEvent{
-                    make_error_code(
-                        hl::http_error::CompressionFailure ),
-                    ss.str()
-                    });
-                //assert(!"GZip compression error from chunks");
-                return;
-            }
-
-            std::shared_ptr<hl::RequestResponseInterface> iface(
-                callback_);
-
-            uint64_t filter_buf_consumed = filter_buf_consumed_;
-            callback_io_service_->dispatch(
-                [iface, return_buffer, filter_buf_consumed]()
-                {
-                    iface->ResponseContentReceived(
-                        filter_buf_consumed, return_buffer );
-                }
-            );
-
-            // New byte counts
-            filter_buf_consumed_ += return_buffer->buffer.size();
-        }
-
-        ProcessEvent(ContentReadEvent{});
-    }
-    void HandleContentChunkSizeReadDelay(
-        uint64_t left_to_read,
-        uint64_t output_bytes_consumed,
-        uint64_t chunk_size,
-        const int te,
-        const int ce
-        )
-    {
-        // Ensure a cancellation doesn't mess up the state due to async
-        // timer.
-        if ( transmission_delay_timer_enabled_ )
-        {
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 3",
-                timeout_seconds_);
-
-            // transfer_exactly required as we want the whole chunk
-            asio::async_read(*socket_wrapper_, read_buffer_,
-                asio::transfer_exactly(left_to_read),
-                boost::bind(
-                    &HttpRequestMachine_::HandleContentChunkRead,  // NOLINT
-                    shared_from_this(),
-                    race_preventer,
-                    output_bytes_consumed,
-                    chunk_size,
-                    te, ce,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error
-                ));
-        }
-    }
-    void HandleContentChunkRead(
-            RacePreventer race_preventer,
-            uint64_t output_bytes_consumed,  // What we have sent to user.
-            uint64_t chunk_size,
-            const int te,
-            const int ce,
-            const TimePoint start_time,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordIncomingBytes( bytes_transferred, start_time,
-                sclock::now() );
-        }
-
-        auto content_chunk_read_duration = AsDuration(sclock::now() -
-            start_time);
-        bool eof = false;
-
-        if ( err == asio::error::eof )
-            eof = true;
-        else if ( is_ssl_ && err.message() == "short read" )
-        {
-            // SSL doesn't return EOF when it ends.
-            eof = true;
-        }
-
-        if ( !err || eof )
-        {
-            if ( ce & CE_Gzip )
-            {
-                boost::iostreams::copy(
-                        boost::iostreams::restrict(
-                            read_buffer_, 0, chunk_size ),
-                        gzipped_buffer_ );
-
-                output_bytes_consumed += chunk_size;
-            }
-            else
-            {
-                // Non gzip buffer passing.
-                std::istream post_data_stream(&read_buffer_);
-                std::unique_ptr<uint8_t[]> data( new uint8_t[chunk_size] );
-                post_data_stream.read( reinterpret_cast<char*>(data.get()),
-                    chunk_size );
-
-                std::shared_ptr<hl::BufferInterface> return_buffer(
-                        new HttpRequestBuffer(
-                            std::move(data),
-                            chunk_size )
-                        );
-                std::shared_ptr<hl::RequestResponseInterface> iface(
-                        callback_);
-                callback_io_service_->dispatch(
-                        [iface, return_buffer, output_bytes_consumed]()
-                        {
-                            iface->ResponseContentReceived(
-                                output_bytes_consumed, return_buffer );
-                        }
-                        );
-
-                // New byte counts
-                output_bytes_consumed += chunk_size;
-            }
-
-            read_buffer_.consume( 2 );  // +2 for \r\n after chunk.
-
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 4",
-                timeout_seconds_);
-
-            asio::async_read_until(
-                *socket_wrapper_,
-                read_buffer_,
-                "\r\n",
-                boost::bind(
-                    &HttpRequestMachine_::HandleContentChunkSizeRead,
-                    shared_from_this(),
-                    race_preventer,
-                    output_bytes_consumed,
-                    te, ce,
-                    sclock::now(),
-                    content_chunk_read_duration,
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error
-                    ));
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while reading chunked content.";
-            ss << " Url: " << url_;
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::ReadFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleContentRead(
-            RacePreventer race_preventer,
-            const std::size_t total_previously_read,
-            const int te,
-            const int ce,
-            const TimePoint start_time,
-            const std::size_t bytes_previously_transferred,
-            const std::size_t bytes_transferred,
-            const boost::system::error_code& err
-        )
-    {
-        // Skip if cancelled due to timeout.
-        if ( ! race_preventer.IsFirst() ) return;
-
-        const std::size_t bytes_to_process =
-            bytes_previously_transferred + bytes_transferred;
-
-        ClearAsyncTimeout();  // Must stop timeout timer.
-
-        if (bw_analyser_)
-        {
-            bw_analyser_->RecordIncomingBytes( bytes_previously_transferred,
-                start_time, sclock::now() );
-        }
-
-        bool eof = false;
-
-        if ( err == asio::error::eof )
-            eof = true;
-        else if ( is_ssl_ && err.message() == "short read" )
-        {
-            // SSL doesn't return EOF when it ends.
-            eof = true;
-        }
-
-        if ( !err || eof )
-        {
-            bool read_complete = false;
-
-            const std::size_t total_read =
-                total_previously_read + bytes_to_process;
-
-            if ( ! ( ce & CE_Gzip ) )
-            {
-                // Non gzip buffer passing.
-                std::istream post_data_stream(&read_buffer_);
-                std::unique_ptr<uint8_t[]> data(new uint8_t[bytes_to_process]);
-                post_data_stream.read( reinterpret_cast<char*>(data.get()),
-                    bytes_to_process );
-                std::shared_ptr<hl::BufferInterface> return_buffer(
-                        new HttpRequestBuffer(
-                            std::move(data),
-                            bytes_to_process )
-                        );
-
-                std::shared_ptr<hl::RequestResponseInterface> iface(
-                        callback_);
-
-                callback_io_service_->dispatch(
-                        [iface, return_buffer, total_previously_read]()
-                        {
-                            iface->ResponseContentReceived(
-                                total_previously_read, return_buffer );
-                        }
-                    );
-            }
-
-            // Also handle content-length.
-            if ( te & TE_ContentLength )
-            {
-                if ( read_headers_.content_length == total_read )
-                {
-                    read_complete = true;
-                }
-                else if ( read_headers_.content_length < total_read )
-                {
-                    std::stringstream ss;
-                    ss << "Failure while reading content.";
-                    ss << " Url: " << url_;
-                    ss << " Error: Exceeded content length.";
-                    // ss << " Total read: " << total_read;
-                    // ss << " Content length: "
-                    //    << read_headers_.content_length;
-
-                    ProcessEvent(
-                        ErrorEvent{
-                            make_error_code(
-                                hl::http_error::ReadFailure ),
-                            ss.str()
-                        });
-                    return;
-                }
-            }
-            else if ( eof )
-                read_complete = true;
-
-            if ( read_complete )
-            {
-                if ( ce & CE_Gzip )
-                {
-                    filter_buf_.push( read_buffer_ );
-
-                    std::shared_ptr<VectorBuffer> return_buffer(
-                            new VectorBuffer() );
-
-                    try {
-                        boost::iostreams::copy(
-                                filter_buf_,
-                                std::back_inserter(return_buffer->buffer));
-                    }
-                    catch( std::exception & err )
-                    {
-                        std::stringstream ss;
-                        ss << "Compression failure.";
-                        ss << " Error: " << err.what();
-                        ProcessEvent(
-                            ErrorEvent{
-                                make_error_code(
-                                    hl::http_error::ReadFailure ),
-                                ss.str()
-                            });
-                        //assert(!"GZip compression error from content");
-                        return;
-                    }
-
-                    std::shared_ptr<hl::RequestResponseInterface> iface(
-                            callback_);
-
-                    uint64_t filter_buf_consumed = filter_buf_consumed_;
-
-                    callback_io_service_->dispatch(
-                            [iface, return_buffer, filter_buf_consumed]()
-                            {
-                                iface->ResponseContentReceived(
-                                    filter_buf_consumed, return_buffer );
-                            }
-                        );
-
-                    // New byte counts
-                    filter_buf_consumed_ += return_buffer->buffer.size();
-                }
-
-                ProcessEvent(ContentReadEvent{});
-            }
-            else
-            {
-                uint64_t max_read_size = kMaxUnknownReadLength;
-                if ( te & TE_ContentLength )
-                {
-                    max_read_size = std::min(
-                            read_headers_.content_length - total_read,
-                            kMaxUnknownReadLength
-                        );
-                }
-
-                // Delay behavior:
-                SetTransactionDelayTimer( start_time, sclock::now() );
-                std::function<void()> strand_wrapped = std::bind(
-                    &HttpRequestMachine_::HandleContentReadDelayCallback,
-                    shared_from_this(),
-                    max_read_size,
-                    total_read,
-                    te,
-                    ce
-                );
-                transmission_delay_timer_.async_wait(
-                    event_strand_.wrap(
-                        boost::bind(
-                            &HttpRequestMachine_::SetTransactionDelayTimerWrapper,
-                            shared_from_this(),
-                            strand_wrapped,
-                            asio::placeholders::error
-                        )));
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Failure while reading content.";
-            ss << " Url: " << url_;
-            ss << " Error: " << err.message();
-            ProcessEvent(
-                ErrorEvent{
-                    make_error_code(
-                        hl::http_error::ReadFailure ),
-                    ss.str()
-                });
-        }
-    }
-    void HandleContentReadDelayCallback(
-            const uint64_t max_read_size,
-            const std::size_t total_read,
-            const int te,
-            const int ce
-        )
-    {
-        // Ensure a cancellation doesn't mess up the state due to async
-        // timer.
-        if ( transmission_delay_timer_enabled_ )
-        {
-            transmission_delay_timer_enabled_ = false;
-
-            // Must prime timeout for async actions.
-            auto race_preventer = SetAsyncTimeout("read response content 5",
-                timeout_seconds_);
-
-            asio::async_read(*socket_wrapper_, read_buffer_,
-                asio::transfer_exactly(max_read_size),
-                boost::bind(
-                    &HttpRequestMachine_::HandleContentRead,
-                    shared_from_this(),
-                    race_preventer,
-                    total_read,
-                    te, ce,
-                    sclock::now(),
-                    0,
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error
-                ));
         }
     }
 
@@ -2568,52 +482,53 @@ public:
 
     // Transition table for HttpRequestMachine
     struct transition_table : mpl::vector<
-        //    Start           Event                  Next            Action                         Guard                     // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < Unstarted     , ConfigEvent           , Unstarted     , &m::ConfigEventAction                               >,  // NOLINT
-      a_row < Unstarted     , StartEvent            , Initializing  , &m::InitializeAction                                >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < Initializing  , InitializedEvent      , Resolve       , &m::ResolveHostAction                               >,  // NOLINT
-      a_row < Initializing  , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < Resolve       , ResolvedEvent         , Connect       , &m::ConnectAction                                   >,  // NOLINT
-      a_row < Resolve       , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-        row < Connect       , ConnectedEvent        , SendHeader    , &m::SendHeaderAction         , &m::IsNotSsl         >,  // NOLINT
-        row < Connect       , ConnectedEvent        , ProxyConnect  , &m::ProxyConnectAction       , &m::IsSslAndProxy    >,  // NOLINT
-        row < Connect       , ConnectedEvent        , SSLHandshake  , &m::SSLHandshakeAction       , &m::IsSslAndNotProxy >,  // NOLINT
-      a_row < Connect       , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-        row < ProxyConnect  , ConnectedEvent        , SendHeader    , &m::SendHeaderAction         , &m::IsNotSsl         >,  // NOLINT
-        row < ProxyConnect  , ConnectedEvent        , SSLHandshake  , &m::SSLHandshakeAction       , &m::IsSsl            >,  // NOLINT
-      a_row < ProxyConnect  , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < SSLHandshake  , HandshakeEvent        , SendHeader    , &m::SendHeaderAction                                >,  // NOLINT
-      a_row < SSLHandshake  , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-        row < SendHeader    , HeadersWrittenEvent   , SendPost      , &m::SendPostAction           , &m::HasPost          >,  // NOLINT
-        row < SendHeader    , HeadersWrittenEvent   , ReadHeaders   , &m::ReadHeaderAction         , &m::HasNoPost        >,  // NOLINT
-      a_row < SendHeader    , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < SendPost      , PostSent              , ReadHeaders   , &m::ReadHeaderAction                                >,  // NOLINT
-      a_row < SendPost      , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < ReadHeaders   , HeadersReadEvent      , ParseHeaders  , &m::ParseHeadersAction                              >,  // NOLINT
-      a_row < ReadHeaders   , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < ParseHeaders  , HeadersParsedEvent    , ReadContent   , &m::ReadContentAction                               >,  // NOLINT
-      a_row < ParseHeaders  , RedirectEvent         , Redirect      , &m::RedirectAction                                  >,  // NOLINT
-      a_row < ParseHeaders  , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < Redirect      , RedirectedEvent       , Initializing  , &m::InitializeAction                                >,  // NOLINT
-      a_row < Redirect      , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-       _row < ReadContent   , ContentReadEvent      , Complete                                                            >,  // NOLINT
-      a_row < ReadContent   , ErrorEvent            , Error         , &m::VerifyErrorAction                               >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
-      a_row < Error         , RestartEvent          , Initializing  , &m::InitializeAction                                >,  // NOLINT
-       _row < Error         , ErrorEvent            , FinalError                                                          >   // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+----------------------+   // NOLINT
+        //    Start           Event                   Next            Action                         Guard                    // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Unstarted     , ConfigEvent           , Unstarted     , ConfigEventAction            , none                    >,  // NOLINT
+        Row < Unstarted     , StartEvent            , Initializing  , InitializeAction             , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Initializing  , InitializedEvent      , Resolve       , ResolveHostAction            , none                    >,  // NOLINT
+        Row < Initializing  , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Resolve       , ResolvedEvent         , Connect       , ConnectAction                , none                    >,  // NOLINT
+        Row < Resolve       , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Connect       , ConnectedEvent        , SendHeader    , SendHeaderAction             , Not_<IsSsl>             >,  // NOLINT
+        Row < Connect       , ConnectedEvent        , ProxyConnect  , ProxyConnectAction           , And_<IsSsl, SslProxy>   >,  // NOLINT
+        Row < Connect       , ConnectedEvent        , SSLHandshake  , SSLHandshakeAction           , And_<IsSsl,
+                                                                                                        Not_<SslProxy>>      >,  // NOLINT
+        Row < Connect       , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < ProxyConnect  , ConnectedEvent        , SendHeader    , SendHeaderAction             , Not_<IsSsl>             >,  // NOLINT
+        Row < ProxyConnect  , ConnectedEvent        , SSLHandshake  , SSLHandshakeAction           , IsSsl                   >,  // NOLINT
+        Row < ProxyConnect  , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < SSLHandshake  , HandshakeEvent        , SendHeader    , SendHeaderAction             , none                    >,  // NOLINT
+        Row < SSLHandshake  , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < SendHeader    , HeadersWrittenEvent   , SendPost      , SendPostAction               , HasPost                 >,  // NOLINT
+        Row < SendHeader    , HeadersWrittenEvent   , ReadHeaders   , ReadHeaderAction             , Not_<HasPost>           >,  // NOLINT
+        Row < SendHeader    , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < SendPost      , PostSent              , ReadHeaders   , ReadHeaderAction             , none                    >,  // NOLINT
+        Row < SendPost      , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < ReadHeaders   , HeadersReadEvent      , ParseHeaders  , ParseHeadersAction           , none                    >,  // NOLINT
+        Row < ReadHeaders   , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < ParseHeaders  , HeadersParsedEvent    , ReadContent   , ReadContentAction            , none                    >,  // NOLINT
+        Row < ParseHeaders  , RedirectEvent         , Redirect      , RedirectAction               , none                    >,  // NOLINT
+        Row < ParseHeaders  , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Redirect      , RedirectedEvent       , Initializing  , InitializeAction             , none                    >,  // NOLINT
+        Row < Redirect      , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < ReadContent   , ContentReadEvent      , Complete      , none                         , none                    >,  // NOLINT
+        Row < ReadContent   , ErrorEvent            , Error         , VerifyErrorAction            , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        Row < Error         , RestartEvent          , Initializing  , InitializeAction             , none                    >,  // NOLINT
+        Row < Error         , ErrorEvent            , FinalError    , none                         , none                    >   // NOLINT
+        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
     > {};
 
     // Replaces the default no-transition response. Use this if you don't
@@ -2633,6 +548,101 @@ public:
         throw std::logic_error("Unable to configure in progress HttpRequest.");
     }
 
+    // -- Accessors ------------------------------------------------------------
+
+    hl::RedirectPolicy get_redirect_policy() const {return redirect_policy_;}
+    void set_redirect_policy(hl::RedirectPolicy v) {redirect_policy_=v;}
+
+    std::string get_request_method() const {return request_method_;}
+    void set_request_method(std::string v) {request_method_=v;}
+
+    std::shared_ptr<hl::PostDataPipeInterface> get_post_interface() const {return post_interface_;}
+    void SetPostInterface(
+            std::shared_ptr<mf::http::PostDataPipeInterface> pipe_interface
+        )
+    {
+        post_data_.reset();
+        post_interface_ = pipe_interface;
+        SetHeader("Content-Length",
+            mf::utils::to_string(post_interface_->PostDataSize()));
+
+        request_method_ = "POST";
+    }
+
+    hl::SharedBuffer::Pointer get_post_data() const {return post_data_;}
+    void SetPostData(
+            hl::SharedBuffer::Pointer post_data
+        )
+    {
+        post_data_ = post_data;
+        post_interface_.reset();
+        SetHeader("Content-Length", mf::utils::to_string(post_data_->Size()));
+
+        request_method_ = "POST";
+    }
+
+    uint32_t get_timeout_seconds() const {return timeout_seconds_;}
+    void set_timeout_seconds(uint32_t v) {timeout_seconds_=v;}
+
+    const hl::Url * get_parsed_url() const {return parsed_url_.get();}
+    void set_parsed_url(std::unique_ptr<hl::Url> url)
+    {
+        parsed_url_ = std::move(url);
+    }
+
+    bool get_is_ssl() const {return is_ssl_;}
+    void set_is_ssl(bool v) {is_ssl_=v;}
+
+    const std::string & get_url() const {return url_;}
+    void set_url(std::string v) {url_=v;}
+
+    const boost::optional<hl::Proxy> & get_http_proxy() const {return http_proxy_;}
+    void set_http_proxy(boost::optional<hl::Proxy> v) {http_proxy_=v;}
+
+    const boost::optional<hl::Proxy> & get_https_proxy() const {return https_proxy_;}
+    void set_https_proxy(boost::optional<hl::Proxy> v) {https_proxy_=v;}
+
+    asio::io_service::strand * get_event_strand() {return &event_strand_;}
+
+    const TimePoint get_request_creation_time() const
+    {return request_creation_time_;}
+
+    std::shared_ptr<SocketWrapper> get_socket_wrapper() const {return socket_wrapper_;}
+    void set_socket_wrapper(std::shared_ptr<SocketWrapper> v) {socket_wrapper_=v;}
+
+    const hl::HttpRequest::HeaderContainer & get_headers() const {return headers_;}
+
+    hl::BandwidthAnalyserInterface::Pointer get_bw_analyser() const {return bw_analyser_;}
+
+    const asio::ssl::verify_mode get_ssl_verify_mode() const {return ssl_verify_mode_;}
+
+    size_t get_post_interface_size() const {return post_interface_size_;}
+    void set_post_interface_size(size_t v) {post_interface_size_=v;}
+
+    size_t get_post_interface_read_bytes() const {return post_interface_read_bytes_;}
+    void set_post_interface_read_bytes(size_t v) {post_interface_read_bytes_=v;}
+    void increment_post_interface_read_bytes(size_t v) {post_interface_read_bytes_+=v;}
+
+    boost::asio::steady_timer * get_transmission_delay_timer() {return &transmission_delay_timer_;}
+
+    bool get_transmission_delay_timer_enabled() const {return transmission_delay_timer_enabled_;}
+    void set_transmission_delay_timer_enabled(bool v) {transmission_delay_timer_enabled_=v;}
+
+    asio::streambuf * get_read_buffer() {return &read_buffer_;}
+    asio::streambuf * get_gzip_buffer() {return &gzipped_buffer_;}
+
+    asio::io_service * get_callback_io_service() {return callback_io_service_;}
+    std::shared_ptr<hl::RequestResponseInterface> get_callback() const {return callback_;}
+
+    HeadersReadEvent & get_read_headers() {return read_headers_;}
+    void set_read_headers(HeadersReadEvent v) {read_headers_=v;}
+
+    boost::iostreams::filtering_streambuf<boost::iostreams::input> &
+        get_filter_buf() {return filter_buf_;}
+
+    std::size_t get_filter_buf_consumed() const {return filter_buf_consumed_;}
+    void set_filter_buf_consumed(std::size_t v) {filter_buf_consumed_=v;}
+
 protected:
 #if ! defined(NDEBUG)
     // Counter to keep track of number of HttpRequests
@@ -2650,8 +660,7 @@ protected:
     // Track bandwidth
     hl::BandwidthAnalyserInterface::Pointer bw_analyser_;
 
-    const std::chrono::time_point<std::chrono::steady_clock>
-        request_creation_time_;
+    const TimePoint request_creation_time_;
 
     // Use these to delay transmission of data for QOS.
     boost::asio::steady_timer transmission_delay_timer_;
@@ -2706,6 +715,10 @@ protected:
     std::size_t filter_buf_consumed_;
 
     const float delay_multiplier_;
+
+    /** @todo hjones: Remove these */
+    friend struct InitializeAction;
+    friend struct ResolveHostAction;
 };
 
 

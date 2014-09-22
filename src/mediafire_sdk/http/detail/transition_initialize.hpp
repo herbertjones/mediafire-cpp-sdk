@@ -1,0 +1,112 @@
+/**
+ * @file transition_config.hpp
+ * @author Herbert Jones
+ * @brief Config state machine transitions
+ * @copyright Copyright 2014 Mediafire
+ *
+ * Detailed message...
+ */
+#pragma once
+
+#include "mediafire_sdk/http/error.hpp"
+#include "mediafire_sdk/http/detail/http_request_events.hpp"
+
+#include "mediafire_sdk/http/detail/socket_wrapper.hpp"
+
+namespace mf {
+namespace http {
+namespace detail {
+
+/** @todo hjones: Replace calls to private fsm members */
+struct InitializeAction
+{
+    template <typename FSM>
+    void DoInit(
+            FSM & fsm
+        )
+    {
+        using mf::http::http_error;
+
+        // We may be here due to new connection or due to a redirect, so
+        // ensure we are initialized as if new.
+
+        // We should not be connected at this point.
+        fsm.Disconnect();
+
+        // There should be nothing in the buffers.
+        fsm.read_buffer_.consume( fsm.read_buffer_.size() );
+        fsm.gzipped_buffer_.consume( fsm.gzipped_buffer_.size() );
+
+        fsm.filter_buf_consumed_ = 0;
+
+        // Parse URL if redirect didn't pass one in.
+        try {
+            if ( ! fsm.get_parsed_url() )
+            {
+                //fsm.parsed_url_.reset(new mf::http::Url(fsm.url_));
+                fsm.set_parsed_url(
+                    std::unique_ptr<mf::http::Url>(
+                        new mf::http::Url(fsm.get_url())));
+            }
+        }
+        catch(mf::http::InvalidUrl & err)
+        {
+            std::stringstream ss;
+            ss << "Bad url(url:";
+            ss << fsm.get_url();
+            ss << " reason: " << err.what() << ")";
+
+            fsm.ProcessEvent(ErrorEvent{
+                    make_error_code( http_error::InvalidUrl ),
+                    ss.str()
+                });
+            return;
+        }
+
+        if ( fsm.get_parsed_url()->scheme() == "http" )
+        {
+            fsm.is_ssl_ = false;
+
+            // Create non-SSL socket and wrapper.
+            fsm.socket_wrapper_ = std::make_shared<SocketWrapper>(
+                new asio::ip::tcp::socket(*fsm.work_io_service_) );
+
+            fsm.ProcessEvent(InitializedEvent());
+        }
+        else if ( fsm.get_parsed_url()->scheme() == "https" )
+        {
+            fsm.is_ssl_ = true;
+
+            // Create the SSL socket and wrapper
+            fsm.socket_wrapper_ = std::make_shared<SocketWrapper>(
+                new asio::ssl::stream<asio::ip::tcp::socket>(
+                    *fsm.work_io_service_, *fsm.ssl_ctx_ ) );
+
+            fsm.ProcessEvent(InitializedEvent());
+        }
+        else
+        {
+            std::stringstream ss;
+            ss << "Unsupported scheme. Url: " << fsm.get_url();
+            fsm.ProcessEvent(ErrorEvent{
+                    make_error_code( http_error::InvalidUrl ),
+                    ss.str()
+                });
+        }
+    }
+
+    template <typename Event, typename FSM,typename SourceState,typename TargetState>
+    void operator()(
+            Event const & evt,
+            FSM & fsm,
+            SourceState&,
+            TargetState&
+        )
+    {
+        DoInit(fsm);
+    }
+};
+
+}  // namespace detail
+}  // namespace http
+}  // namespace mf

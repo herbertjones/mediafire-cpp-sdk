@@ -11,9 +11,14 @@ set(HTTP_LIBRARY_SOURCES
 )
 set(HTTP_LIBRARY_HEADERS
     detail/default_http_headers.hpp
+    detail/default_pem.hpp
     detail/http_request_events.hpp
     detail/http_request_state_machine.hpp
-    detail/default_pem.hpp
+    detail/race_preventer.hpp
+    detail/socket_wrapper.hpp
+    detail/transition_config.hpp
+    detail/transition_initialize.hpp
+    detail/transition_resolve_host.hpp
 
     bandwidth_analyser_interface.hpp
     buffer_interface.hpp

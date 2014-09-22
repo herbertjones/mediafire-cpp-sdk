@@ -1,0 +1,972 @@
+/**
+ * @file transition_config.hpp
+ * @author Herbert Jones
+ * @brief Config state machine transitions
+ * @copyright Copyright 2014 Mediafire
+ *
+ * Detailed message...
+ */
+#pragma once
+
+#include <chrono>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+#include "boost/algorithm/string/predicate.hpp"
+#include "boost/algorithm/string/split.hpp"
+#include "boost/algorithm/string/trim.hpp"
+#include "boost/asio.hpp"
+#include "boost/iostreams/filter/gzip.hpp"
+#include "boost/iostreams/copy.hpp"
+#include "boost/iostreams/restrict.hpp"
+
+#include "mediafire_sdk/http/detail/encoding.hpp"
+#include "mediafire_sdk/http/detail/http_request_events.hpp"
+#include "mediafire_sdk/http/detail/race_preventer.hpp"
+#include "mediafire_sdk/http/detail/timeouts.hpp"
+#include "mediafire_sdk/http/detail/types.hpp"
+#include "mediafire_sdk/http/error.hpp"
+
+#include "mediafire_sdk/utils/string.hpp"
+
+namespace {
+static const uint64_t kMaxUnknownReadLength = 1024 * 8;
+
+int ParseTransferEncoding(
+        const std::map<std::string, std::string> & headers
+    )
+{
+    using namespace mf::http::detail;
+
+    // See http://www.iana.org/assignments/http-parameters/http-parameters.xhtml
+
+    int ret = static_cast<int>(TE_None);
+
+    auto it = headers.find("content-length");
+    if ( it != headers.end() )
+        ret |= static_cast<int>(TE_ContentLength);
+
+    it = headers.find("transfer-encoding");
+    if ( it != headers.end() )
+    {
+        std::vector<std::string> tokens;
+        boost::split(tokens, it->second, boost::is_any_of(","));
+        std::for_each(std::begin(tokens), std::end(tokens),
+                [](std::string & v){
+                    boost::trim(v);
+                } );
+
+        for (const std::string & token : tokens)
+        {
+            if ( token == "chunked" )
+                ret |= static_cast<int>(TE_Chunked);
+            else if ( token == "gzip" )
+                ret |= static_cast<int>(TE_Gzip);
+            else
+                ret |= static_cast<int>(TE_Unknown);
+        }
+    }
+
+    return ret;
+}
+
+int ParseContentEncoding(
+        const std::map<std::string, std::string> & headers
+    )
+{
+    using namespace mf::http::detail;
+
+    int ret = static_cast<int>(CE_None);
+
+    auto it = headers.find("content-encoding");
+
+    if ( it != headers.end() )
+    {
+        std::vector<std::string> tokens;
+        boost::split(tokens, it->second, boost::is_any_of(","));
+        std::for_each(std::begin(tokens), std::end(tokens),
+                [](std::string & v){
+                    boost::trim(v);
+                } );
+
+        for (const std::string & token : tokens)
+        {
+            if ( token == "gzip" )
+                ret |= static_cast<int>(CE_Gzip);
+            else
+                ret |= static_cast<int>(CE_Unknown);
+        }
+    }
+
+    return ret;
+}
+
+class HttpRequestBuffer : public mf::http::BufferInterface
+{
+public:
+    HttpRequestBuffer(std::unique_ptr<uint8_t[]> buffer, uint64_t size) :
+        buffer_(std::move(buffer)),
+        size_(size)
+    {}
+    virtual ~HttpRequestBuffer() {}
+
+    virtual uint64_t Size() const
+    {
+        return size_;
+    }
+
+    /**
+     * @brief Get buffer
+     *
+     * @return pointer that can be read with data size contained in Size().
+     */
+    virtual const uint8_t * Data() const
+    {
+        return buffer_.get();
+    }
+private:
+    std::unique_ptr<uint8_t[]> buffer_;
+    uint64_t size_;
+};
+
+class VectorBuffer : public mf::http::BufferInterface
+{
+public:
+    VectorBuffer() {}
+    virtual ~VectorBuffer() {}
+
+    virtual uint64_t Size() const
+    {
+        return buffer.size();
+    }
+
+    /**
+     * @brief Get buffer
+     *
+     * @return pointer that can be read with data size contained in Size().
+     */
+    virtual const uint8_t * Data() const
+    {
+        return buffer.data();
+    }
+
+    std::vector<uint8_t> buffer;
+private:
+};
+}  // namespace
+
+namespace mf {
+namespace http {
+namespace detail {
+
+// -- Forward declarations -----------------------------------------------------
+template <typename FSM>
+void HandleContentRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        const std::size_t total_previously_read,
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        const std::size_t bytes_previously_transferred,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    );
+template <typename FSM>
+void HandleContentReadDelayCallback(
+        FSM & fsm,
+        const uint64_t max_read_size,
+        const std::size_t total_read,
+        const int te,
+        const int ce
+    );
+template <typename FSM>
+void HandleContentChunkRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        uint64_t chunk_size,
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    );
+template <typename FSM>
+void HandleContentChunkSizeReadDelay(
+        FSM & fsm,
+        uint64_t left_to_read,
+        uint64_t output_bytes_consumed,
+        uint64_t chunk_size,
+        const int te,
+        const int ce
+    );
+template <typename FSM>
+void HandleNextChunk(
+        FSM & fsm,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        Duration content_chunk_read_duration,
+        uint64_t chunk_size
+    );
+template <typename FSM>
+void HandleCompleteAllChunks(
+        FSM & fsm,
+        const int ce
+    );
+template <typename FSM>
+void HandleContentChunkSizeRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        Duration content_chunk_read_duration,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    );
+// -- END Forward declarations -------------------------------------------------
+
+
+template <typename FSM>
+void HandleContentRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        const std::size_t total_previously_read,
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        const std::size_t bytes_previously_transferred,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    )
+{
+    using mf::http::http_error;
+
+    // Skip if cancelled due to timeout.
+    if ( ! race_preventer.IsFirst() ) return;
+
+    const std::size_t bytes_to_process =
+        bytes_previously_transferred + bytes_transferred;
+
+    fsm.ClearAsyncTimeout();  // Must stop timeout timer.
+
+    if (fsm.get_bw_analyser())
+    {
+        fsm.get_bw_analyser()->RecordIncomingBytes(
+            bytes_previously_transferred, start_time, sclock::now() );
+    }
+
+    bool eof = false;
+
+    if ( err == asio::error::eof )
+        eof = true;
+    else if ( fsm.get_is_ssl() && err.message() == "short read" )
+    {
+        // SSL doesn't return EOF when it ends.
+        eof = true;
+    }
+
+    if ( !err || eof )
+    {
+        bool read_complete = false;
+
+        const std::size_t total_read =
+            total_previously_read + bytes_to_process;
+
+        if ( ! ( ce & CE_Gzip ) )
+        {
+            // Non gzip buffer passing.
+            std::istream post_data_stream(fsm.get_read_buffer());
+            std::unique_ptr<uint8_t[]> data(new uint8_t[bytes_to_process]);
+            post_data_stream.read( reinterpret_cast<char*>(data.get()),
+                bytes_to_process );
+            std::shared_ptr<mf::http::BufferInterface> return_buffer(
+                    new HttpRequestBuffer(
+                        std::move(data),
+                        bytes_to_process )
+                    );
+
+            auto iface = fsm.get_callback();
+
+            fsm.get_callback_io_service()->dispatch(
+                    [iface, return_buffer, total_previously_read]()
+                    {
+                        iface->ResponseContentReceived(
+                            total_previously_read, return_buffer );
+                    }
+                );
+        }
+
+        // Also handle content-length.
+        if ( te & TE_ContentLength )
+        {
+            if ( fsm.get_read_headers().content_length == total_read )
+            {
+                read_complete = true;
+            }
+            else if ( fsm.get_read_headers().content_length < total_read )
+            {
+                std::stringstream ss;
+                ss << "Failure while reading content.";
+                ss << " Url: " << fsm.get_url();
+                ss << " Error: Exceeded content length.";
+                ss << " Total read: " << total_read;
+                ss << " Content length: "
+                   << fsm.get_read_headers().content_length;
+
+                fsm.ProcessEvent(
+                    ErrorEvent{
+                        make_error_code(
+                            http_error::ReadFailure ),
+                        ss.str()
+                    });
+                return;
+            }
+        }
+        else if ( eof )
+            read_complete = true;
+
+        if ( read_complete )
+        {
+            if ( ce & CE_Gzip )
+            {
+                auto & filter_buffer = fsm.get_filter_buf();
+
+                filter_buffer.push( *fsm.get_read_buffer() );
+
+                std::shared_ptr<VectorBuffer> return_buffer(
+                        new VectorBuffer() );
+
+                try {
+                    boost::iostreams::copy(
+                            filter_buffer,
+                            std::back_inserter(return_buffer->buffer));
+                }
+                catch( std::exception & err )
+                {
+                    std::stringstream ss;
+                    ss << "Compression failure.";
+                    ss << " Error: " << err.what();
+                    fsm.ProcessEvent(
+                        ErrorEvent{
+                            make_error_code(
+                                http_error::ReadFailure ),
+                            ss.str()
+                        });
+                    //assert(!"GZip compression error from content");
+                    return;
+                }
+
+                auto iface = fsm.get_callback();
+                uint64_t filter_buf_consumed = fsm.get_filter_buf_consumed();
+
+                // New byte counts
+                fsm.set_filter_buf_consumed(filter_buf_consumed +
+                    return_buffer->buffer.size());
+
+                fsm.get_callback_io_service()->dispatch(
+                        [iface, return_buffer, filter_buf_consumed]()
+                        {
+                            iface->ResponseContentReceived(
+                                filter_buf_consumed, return_buffer );
+                        }
+                    );
+            }
+
+            fsm.ProcessEvent(ContentReadEvent{});
+        }
+        else
+        {
+            uint64_t max_read_size = kMaxUnknownReadLength;
+            if ( te & TE_ContentLength )
+            {
+                max_read_size = std::min(
+                        fsm.get_read_headers().content_length - total_read,
+                        kMaxUnknownReadLength
+                    );
+            }
+
+            auto fsmp = fsm.AsFrontShared();
+
+            // Delay behavior:
+            fsm.SetTransactionDelayTimer( start_time, sclock::now() );
+
+            fsm.get_transmission_delay_timer()->async_wait(
+                fsm.get_event_strand()->wrap(
+                    [fsmp, max_read_size, total_read, te, ce](
+                            const boost::system::error_code& ec
+                        )
+                    {
+                        fsmp->SetTransactionDelayTimerWrapper(
+                            [fsmp, max_read_size, total_read, te, ce]()
+                            {
+                                HandleContentReadDelayCallback( *fsmp,
+                                    max_read_size, total_read, te, ce);
+                            },
+                            ec
+                            );
+                    }));
+        }
+    }
+    else
+    {
+        std::stringstream ss;
+        ss << "Failure while reading content.";
+        ss << " Url: " << fsm.get_url();
+        ss << " Error: " << err.message();
+        fsm.ProcessEvent(
+            ErrorEvent{
+                make_error_code(
+                    http_error::ReadFailure ),
+                ss.str()
+            });
+    }
+}
+
+template <typename FSM>
+void HandleContentReadDelayCallback(
+        FSM & fsm,
+        const uint64_t max_read_size,
+        const std::size_t total_read,
+        const int te,
+        const int ce
+    )
+{
+    // Ensure a cancellation doesn't mess up the state due to async
+    // timer.
+    if ( fsm.get_transmission_delay_timer_enabled() )
+    {
+        fsm.set_transmission_delay_timer_enabled(false);
+
+        // Must prime timeout for async actions.
+        auto race_preventer = fsm.SetAsyncTimeout("read response content 5",
+            fsm.get_timeout_seconds());
+        auto fsmp = fsm.AsFrontShared();
+        auto start_time = sclock::now();
+
+        asio::async_read(*fsm.get_socket_wrapper(), *fsm.get_read_buffer(),
+            asio::transfer_exactly(max_read_size),
+            [fsmp, race_preventer, total_read, start_time, te, ce](
+                    const boost::system::error_code& ec,
+                    std::size_t bytes_transferred
+                )
+            {
+                HandleContentRead(*fsmp, race_preventer, total_read, te, ce,
+                    start_time, 0, bytes_transferred, ec);
+            });
+    }
+}
+
+template <typename FSM>
+void HandleContentChunkRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        uint64_t chunk_size,
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    )
+{
+    using mf::http::http_error;
+
+    // Skip if cancelled due to timeout.
+    if ( ! race_preventer.IsFirst() ) return;
+
+    fsm.ClearAsyncTimeout();  // Must stop timeout timer.
+
+    if (auto bwa = fsm.get_bw_analyser())
+    {
+        bwa->RecordIncomingBytes( bytes_transferred, start_time,
+            sclock::now() );
+    }
+
+    auto content_chunk_read_duration = AsDuration(sclock::now() -
+        start_time);
+    bool eof = false;
+
+    if ( err == asio::error::eof )
+        eof = true;
+    else if ( fsm.get_is_ssl() && err.message() == "short read" )
+    {
+        // SSL doesn't return EOF when it ends.
+        eof = true;
+    }
+
+    if ( !err || eof )
+    {
+        if ( ce & CE_Gzip )
+        {
+            boost::iostreams::copy(
+                    boost::iostreams::restrict(
+                        *fsm.get_read_buffer(), 0, chunk_size ),
+                    *fsm.get_gzip_buffer() );
+
+            output_bytes_consumed += chunk_size;
+        }
+        else
+        {
+            // Non gzip buffer passing.
+            std::istream post_data_stream(fsm.get_read_buffer());
+            std::unique_ptr<uint8_t[]> data( new uint8_t[chunk_size] );
+            post_data_stream.read( reinterpret_cast<char*>(data.get()),
+                chunk_size );
+
+            std::shared_ptr<mf::http::BufferInterface> return_buffer(
+                    new HttpRequestBuffer(
+                        std::move(data),
+                        chunk_size )
+                    );
+            auto iface = fsm.get_callback();
+            fsm.get_callback_io_service()->dispatch(
+                    [iface, return_buffer, output_bytes_consumed]()
+                    {
+                        iface->ResponseContentReceived(
+                            output_bytes_consumed, return_buffer );
+                    }
+                    );
+
+            // New byte counts
+            output_bytes_consumed += chunk_size;
+        }
+
+        fsm.get_read_buffer()->consume( 2 );  // +2 for \r\n after chunk.
+
+        // Must prime timeout for async actions.
+        auto race_preventer = fsm.SetAsyncTimeout("read response content 4",
+            fsm.get_timeout_seconds());
+        auto fsmp = fsm.AsFrontShared();
+        auto start_time = sclock::now();
+
+        asio::async_read_until(
+            *fsm.get_socket_wrapper(),
+            *fsm.get_read_buffer(),
+            "\r\n",
+            [fsmp, race_preventer, start_time, output_bytes_consumed, te, ce,
+                content_chunk_read_duration](
+                    const boost::system::error_code& ec,
+                    std::size_t bytes_transferred
+                )
+            {
+                HandleContentChunkSizeRead(*fsmp, race_preventer,
+                    output_bytes_consumed, te, ce, start_time,
+                    content_chunk_read_duration, bytes_transferred, ec);
+            });
+    }
+    else
+    {
+        std::stringstream ss;
+        ss << "Failure while reading chunked content.";
+        ss << " Url: " << fsm.get_url();
+        ss << " Error: " << err.message();
+        fsm.ProcessEvent(
+            ErrorEvent{
+                make_error_code(
+                    http_error::ReadFailure ),
+                ss.str()
+            });
+    }
+}
+
+template <typename FSM>
+void HandleContentChunkSizeReadDelay(
+        FSM & fsm,
+        uint64_t left_to_read,
+        uint64_t output_bytes_consumed,
+        uint64_t chunk_size,
+        const int te,
+        const int ce
+    )
+{
+    // Ensure a cancellation doesn't mess up the state due to async
+    // timer.
+    if ( fsm.get_transmission_delay_timer_enabled() )
+    {
+        // Must prime timeout for async actions.
+        auto race_preventer = fsm.SetAsyncTimeout("read response content 3",
+            fsm.get_timeout_seconds());
+        auto fsmp = fsm.AsFrontShared();
+        auto start_time = sclock::now();
+
+        // transfer_exactly required as we want the whole chunk
+        asio::async_read(*fsm.get_socket_wrapper(), *fsm.get_read_buffer(),
+            asio::transfer_exactly(left_to_read),
+            [fsmp, race_preventer, output_bytes_consumed, chunk_size, te, ce,
+                start_time](
+                    const boost::system::error_code& ec,
+                    std::size_t bytes_transferred
+                )
+            {
+                HandleContentChunkRead(*fsmp, race_preventer,
+                    output_bytes_consumed, chunk_size, te, ce, start_time,
+                    bytes_transferred, ec);
+            });
+    }
+}
+
+template <typename FSM>
+void HandleNextChunk(
+        FSM & fsm,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        Duration content_chunk_read_duration,
+        uint64_t chunk_size
+    )
+{
+    TimePoint now = sclock::now();
+
+    // Determine how much more to read, or if the buffer
+    // already contains enough data to continue.
+    uint64_t left_to_read = chunk_size+2;
+    if ( fsm.get_read_buffer()->size() > left_to_read )
+        left_to_read = 0;
+    else
+        left_to_read -= fsm.get_read_buffer()->size();
+
+    // Delay behavior:
+    auto total_duration = AsDuration(content_chunk_read_duration +
+        (now - start_time));
+    fsm.SetTransactionDelayTimer( now, total_duration );
+
+    auto fsmp = fsm.AsFrontShared();
+
+    fsm.get_transmission_delay_timer()->async_wait(
+        fsm.get_event_strand()->wrap(
+            [fsmp, left_to_read, output_bytes_consumed, chunk_size, te, ce ](
+                    const boost::system::error_code& ec
+                )
+            {
+                fsmp->SetTransactionDelayTimerWrapper(
+                    [fsmp, left_to_read, output_bytes_consumed, chunk_size, te,
+                        ce]()
+                    {
+                        HandleContentChunkSizeReadDelay(*fsmp, left_to_read,
+                            output_bytes_consumed, chunk_size, te, ce);
+                    },
+                    ec);
+            }));
+}
+
+template <typename FSM>
+void HandleCompleteAllChunks(
+        FSM & fsm,
+        const int ce
+    )
+{
+    using mf::http::http_error;
+
+    if ( ce & CE_Gzip )
+    {
+        std::shared_ptr<VectorBuffer> return_buffer(
+            new VectorBuffer() );
+
+        auto & filter_buffer = fsm.get_filter_buf();
+
+        filter_buffer.push( *fsm.get_gzip_buffer() );
+
+        try {
+            boost::iostreams::copy(
+                filter_buffer,
+                std::back_inserter(return_buffer->buffer));
+        }
+        catch( boost::iostreams::gzip_error & err )
+        {
+            std::stringstream ss;
+            ss << "Compression failure.";
+            ss << " Error: " << err.what();
+            switch (err.error())
+            {
+                case boost::iostreams::gzip::zlib_error:
+                    ss << " GZip error: zlib_error";
+                    break;
+                case boost::iostreams::gzip::bad_crc:
+                    ss << " GZip error: bad_crc";
+                    break;
+                case boost::iostreams::gzip::bad_length:
+                    ss << " GZip error: bad_length";
+                    break;
+                case boost::iostreams::gzip::bad_header:
+                    ss << " GZip error: bad_header";
+                    break;
+                case boost::iostreams::gzip::bad_footer:
+                    ss << " GZip error: bad_footer";
+                    break;
+                default:
+                    ss << " GZip error: " << err.error();
+                    break;
+            }
+            ss << " Zlib error: " << err.zlib_error_code();
+            fsm.ProcessEvent(ErrorEvent{
+                make_error_code(
+                    http_error::CompressionFailure ),
+                ss.str()
+                });
+            return;
+        }
+        catch( std::exception & err )
+        {
+            std::stringstream ss;
+            ss << "Compression failure.";
+            ss << " Error: " << err.what();
+            fsm.ProcessEvent(ErrorEvent{
+                make_error_code(
+                    http_error::CompressionFailure ),
+                ss.str()
+                });
+            //assert(!"GZip compression error from chunks");
+            return;
+        }
+
+        auto iface = fsm.get_callback();
+
+        const uint64_t filter_buf_consumed = fsm.get_filter_buf_consumed();
+        fsm.get_callback_io_service()->dispatch(
+            [iface, return_buffer, filter_buf_consumed]()
+            {
+                iface->ResponseContentReceived(
+                    filter_buf_consumed, return_buffer );
+            }
+        );
+
+        // New byte counts
+        fsm.set_filter_buf_consumed(filter_buf_consumed +
+            return_buffer->buffer.size());
+    }
+
+    fsm.ProcessEvent(ContentReadEvent{});
+}
+
+template <typename FSM>
+void HandleContentChunkSizeRead(
+        FSM & fsm,
+        RacePreventer race_preventer,
+        uint64_t output_bytes_consumed,  // What we have sent to user.
+        const int te,
+        const int ce,
+        const TimePoint start_time,
+        Duration content_chunk_read_duration,
+        const std::size_t bytes_transferred,
+        const boost::system::error_code& err
+    )
+{
+    using mf::http::http_error;
+    using sclock = std::chrono::steady_clock;
+
+    // Skip if cancelled due to timeout.
+    if ( ! race_preventer.IsFirst() ) return;
+
+    TimePoint now = sclock::now();
+    fsm.ClearAsyncTimeout();  // Must stop timeout timer.
+
+    if (fsm.get_bw_analyser())
+    {
+        fsm.get_bw_analyser()->RecordIncomingBytes( bytes_transferred,
+            start_time, now );
+    }
+
+    if ( !err || err == asio::error::eof )
+    {
+        std::string chunk_size_as_hex;
+        std::istream response_stream(fsm.get_read_buffer());
+        std::getline(response_stream, chunk_size_as_hex);
+
+        uint64_t chunk_size = 0;
+        try
+        {
+            chunk_size = mf::utils::str_to_uint64(chunk_size_as_hex, 16);
+        }
+        catch(std::invalid_argument & err)
+        {
+            std::stringstream ss;
+            ss << "Failure while parsing chunk: " << err.what();
+            ss << " Chunk: " << chunk_size_as_hex;
+            fsm.ProcessEvent(
+                ErrorEvent{
+                    make_error_code(
+                        http_error::ReadFailure ),
+                    ss.str()
+                });
+            return;
+        }
+        catch(std::out_of_range & err)
+        {
+            std::stringstream ss;
+            ss << "Failure while parsing chunk: " << err.what();
+            ss << " Chunk: " << chunk_size_as_hex;
+            fsm.ProcessEvent(
+                ErrorEvent{
+                    make_error_code(
+                        http_error::ReadFailure ),
+                    ss.str()
+                });
+            return;
+        }
+
+        if ( chunk_size == 0 )  // Last chunk is 0 bytes long.
+        {
+            HandleCompleteAllChunks(fsm, ce);
+        }
+        else
+        {
+            HandleNextChunk( fsm, output_bytes_consumed, te, ce, start_time,
+                content_chunk_read_duration, chunk_size);
+        }
+    }
+    else
+    {
+        std::stringstream ss;
+        ss << "Failure while reading content.";
+        ss << " Url: " << fsm.get_url();
+        ss << " Error: " << err.message();
+        fsm.ProcessEvent(
+            ErrorEvent{
+                make_error_code(
+                    http_error::ReadFailure ),
+                ss.str()
+            });
+    }
+}
+
+struct ReadContentAction
+{
+    template <typename Event, typename FSM,typename SourceState,typename TargetState>
+    void operator()(
+            Event const & ,
+            FSM & fsm,
+            SourceState&,
+            TargetState&
+        )
+    {
+        using mf::http::http_error;
+
+        // Encodings!
+        const int te = ParseTransferEncoding(fsm.get_read_headers().headers);
+        int ce = ParseContentEncoding(fsm.get_read_headers().headers);
+
+        const auto & read_headers = fsm.get_read_headers();
+        const auto & headers = read_headers.headers;
+
+        // gzip can be in transfer-encoding or content-encoding...
+        if ( te & TE_Gzip )
+            ce |= static_cast<int>(CE_Gzip);
+
+        if ( te & TE_Unknown )
+        {
+            std::stringstream ss;
+            ss << "Unsupported transfer-encoding.";
+            auto it = read_headers.headers.find("transfer-encoding");
+            if ( it != headers.end() )
+                ss << " Transfer-Encoding: " << it->second;
+            fsm.ProcessEvent(ErrorEvent{
+                    make_error_code(
+                        http_error::UnsupportedEncoding ),
+                    ss.str()
+                });
+            return;
+        }
+
+        if ( ce & CE_Unknown )
+        {
+            std::stringstream ss;
+            ss << "Unsupported content-encoding.";
+            auto it = headers.find("content-encoding");
+            if ( it != headers.end() )
+                ss << " Content-Encoding: " << it->second;
+            fsm.ProcessEvent(ErrorEvent{
+                    make_error_code(
+                        http_error::UnsupportedEncoding ),
+                    ss.str()
+                });
+            return;
+        }
+
+        if ( ce & CE_Gzip )
+        {
+            fsm.get_filter_buf().push(boost::iostreams::gzip_decompressor());
+        }
+
+        if ( te & TE_Chunked && te & TE_ContentLength )
+        {
+            std::stringstream ss;
+            ss << "Unable to handle chunked encoding and content length.";
+            ss << " Violates RFC 2616, Section 4.4";
+            auto it = headers.find("content-encoding");
+            if ( it != headers.end() )
+                ss << " Content-Encoding: " << it->second;
+            it = headers.find("content-length");
+            if ( it != headers.end() )
+                ss << " Content-Length: " << it->second;
+            fsm.ProcessEvent(ErrorEvent{
+                    make_error_code(
+                        http_error::UnsupportedEncoding ),
+                    ss.str()
+                });
+            return;
+        }
+
+        if ( te & TE_Chunked )
+        {
+            // Must prime timeout for async actions.
+            auto race_preventer = fsm.SetAsyncTimeout("read response content 1",
+                fsm.get_timeout_seconds());
+            auto fsmp = fsm.AsFrontShared();
+            auto start_time = sclock::now();
+
+            boost::asio::async_read_until(
+                *fsm.get_socket_wrapper(), *fsm.get_read_buffer(), "\r\n",
+                [fsmp, race_preventer, start_time, te, ce](
+                        const boost::system::error_code& ec,
+                        std::size_t bytes_transferred
+                    )
+                {
+                    HandleContentChunkSizeRead(*fsmp, race_preventer, 0, te, ce,
+                        start_time, Duration::zero(), bytes_transferred, ec );
+                });
+        }
+        else
+        {
+            uint64_t max_read_size = kMaxUnknownReadLength;
+            if ( te & TE_ContentLength )
+            {
+                max_read_size = std::min(
+                    read_headers.content_length,
+                    kMaxUnknownReadLength );
+            }
+
+            // Must prime timeout for async actions.
+            auto race_preventer = fsm.SetAsyncTimeout("read response content 2",
+                fsm.get_timeout_seconds());
+            auto fsmp = fsm.AsFrontShared();
+            auto start_time = sclock::now();
+            const auto previously_transferred = fsmp->get_read_buffer()->size();
+
+            boost::asio::async_read(
+                *fsm.get_socket_wrapper(),
+                *fsm.get_read_buffer(),
+                boost::asio::transfer_exactly(max_read_size),
+                [fsmp, race_preventer, start_time, te, ce,
+                    previously_transferred](
+                        const boost::system::error_code& ec,
+                        std::size_t bytes_transferred
+                    )
+                {
+                    HandleContentRead(*fsmp, race_preventer, 0, te, ce,
+                        start_time, previously_transferred, bytes_transferred,
+                        ec);
+                });
+        }
+    }
+};
+
+}  // namespace detail
+}  // namespace http
+}  // namespace mf
