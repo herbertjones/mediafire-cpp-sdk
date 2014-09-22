@@ -13,8 +13,7 @@
 #include "boost/asio.hpp"
 #include "boost/variant/variant.hpp"
 
-#include "http_request.hpp"
-#include "shared_buffer.hpp"
+#include "../shared_buffer.hpp"
 
 namespace mf {
 namespace http {

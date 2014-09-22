@@ -8,9 +8,8 @@
 #include "boost/asio.hpp"
 #include "boost/asio/ssl.hpp"
 
-#include "mediafire_sdk/http/pem.hpp"
-
-#include "mediafire_sdk/http/default_http_headers.hpp"
+#include "mediafire_sdk/http/detail/default_http_headers.hpp"
+#include "mediafire_sdk/http/detail/default_pem.hpp"
 
 namespace asio = boost::asio;
 namespace ssl = boost::asio::ssl;

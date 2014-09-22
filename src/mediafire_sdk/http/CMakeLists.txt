@@ -10,16 +10,17 @@ set(HTTP_LIBRARY_SOURCES
     url.cpp
 )
 set(HTTP_LIBRARY_HEADERS
+    detail/default_http_headers.hpp
+    detail/http_request_events.hpp
+    detail/http_request_state_machine.hpp
+    detail/default_pem.hpp
+
     bandwidth_analyser_interface.hpp
     buffer_interface.hpp
-    default_http_headers.hpp
     error.hpp
     headers.hpp
     http_config.hpp
     http_request.hpp
-    http_request_events.hpp
-    http_request_state_machine.hpp
-    pem.hpp
     post_data_pipe_interface.hpp
     request_response_interface.hpp
     shared_buffer.hpp

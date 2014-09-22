@@ -6,41 +6,7 @@
  */
 #include "http_request.hpp"
 
-#include <algorithm>
-#include <iostream>
-#include <iterator>
-#include <map>
-#include <memory>
-#include <string>
-#include <system_error>
-#include <utility>
-#include <vector>
-
-// back-end
-#include "boost/msm/back/state_machine.hpp"
-// front-end
-#include "boost/msm/front/state_machine_def.hpp"
-
-#include "boost/algorithm/string/case_conv.hpp"
-#include "boost/algorithm/string/predicate.hpp"
-#include "boost/algorithm/string/split.hpp"
-#include "boost/algorithm/string/trim.hpp"
-#include "boost/asio.hpp"
-#include "boost/asio/ssl.hpp"
-#include "boost/bind.hpp"
-#include "boost/date_time/posix_time/posix_time_types.hpp"
-#include "boost/iostreams/copy.hpp"
-#include "boost/iostreams/filter/gzip.hpp"
-#include "boost/iostreams/filtering_streambuf.hpp"
-#include "boost/iostreams/restrict.hpp"
-#include "boost/lexical_cast.hpp"
-
-#include "mediafire_sdk/http/default_http_headers.hpp"
-#include "mediafire_sdk/http/error.hpp"
-#include "mediafire_sdk/http/http_request_state_machine.hpp"
-#include "mediafire_sdk/http/pem.hpp"
-#include "mediafire_sdk/http/post_data_pipe_interface.hpp"
-#include "mediafire_sdk/utils/base64.hpp"
+#include "mediafire_sdk/http/detail/http_request_state_machine.hpp"
 
 namespace hl = mf::http;
 namespace asio = boost::asio;
@@ -61,7 +27,7 @@ public:
         ) :
         callback_(callback),
         state_machine_(
-            std::make_shared<HttpRequestMachine>(
+            std::make_shared<detail::HttpRequestMachine>(
                 detail::HttpRequestMachineConfig{
                     http_config,
                     url,
@@ -81,7 +47,7 @@ public:
 private:
     std::shared_ptr<RequestResponseInterface> callback_;
 
-    std::shared_ptr<hl::HttpRequestMachine> state_machine_;
+    std::shared_ptr<detail::HttpRequestMachine> state_machine_;
 };
 
 hl::HttpRequest::HttpRequest(
@@ -300,16 +266,6 @@ void hl::HttpRequest::SetRequestMethod(
                 detail::ConfigEvent::ConfigRequestMethod{method}
         });
 }
-
-//void hl::HttpRequest::SetRedirectPolicy(
-//        RedirectPolicy policy
-//    )
-//{
-//    impl_->ProcessEvent(
-//            detail::ConfigEvent{
-//                detail::ConfigEvent::ConfigRedirectPolicy{policy}
-//        });
-//}
 
 void hl::HttpRequest::Start()
 {

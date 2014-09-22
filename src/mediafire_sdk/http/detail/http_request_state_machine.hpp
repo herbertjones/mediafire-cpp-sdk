@@ -39,11 +39,13 @@
 #   include "boost/atomic.hpp"
 #endif
 
-#include "mediafire_sdk/http/default_http_headers.hpp"
+#include "mediafire_sdk/http/detail/default_http_headers.hpp"
+#include "mediafire_sdk/http/detail/http_request_events.hpp"
+
 #include "mediafire_sdk/http/post_data_pipe_interface.hpp"
 #include "mediafire_sdk/http/error.hpp"
-#include "mediafire_sdk/http/http_request_events.hpp"
 #include "mediafire_sdk/http/shared_buffer.hpp"
+
 #include "mediafire_sdk/utils/base64.hpp"
 #include "mediafire_sdk/utils/string.hpp"
 
@@ -51,16 +53,16 @@
 
 namespace mf {
 namespace http {
+namespace detail {
+
 
 // Forward declarations
-namespace detail { class HttpRequestMachine_; }
+class HttpRequestMachine_;
 
-// Pick a back-end
-/** Front-end to HttpRequest state machine. */
+/** Back-end to HttpRequest state machine.  Use this class. */
 using HttpRequestMachine =
     boost::msm::back::state_machine<detail::HttpRequestMachine_>;
 
-namespace detail {
 
 using sclock = std::chrono::steady_clock;
 using Duration = std::chrono::milliseconds;

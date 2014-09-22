@@ -8,20 +8,16 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "boost/optional.hpp"
 #include "boost/filesystem/path.hpp"
 
-#include "mediafire_sdk/http/bandwidth_analyser_interface.hpp"
 #include "mediafire_sdk/http/http_config.hpp"
 #include "mediafire_sdk/http/request_response_interface.hpp"
 #include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/url.hpp"
 
 #include "mediafire_sdk/utils/forward_declarations/asio.hpp"
 
