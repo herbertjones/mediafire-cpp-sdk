@@ -179,6 +179,32 @@ public:
         }
     }
 
+    asio::io_service & get_io_service()
+    {
+        if ( ssl_socket_ )
+            ssl_socket_->get_io_service();
+        else
+            socket_->get_io_service();
+    }
+
+    template<typename ConstBuffer, typename ReadHandler>
+    void async_read_some(ConstBuffer const_buffer, ReadHandler read_handler)
+    {
+        if ( ssl_socket_ )
+            ssl_socket_->async_read_some(const_buffer, read_handler);
+        else
+            socket_->async_read_some(const_buffer, read_handler);
+    }
+
+    template<typename ConstBuffer, typename WriteHandler>
+    void async_write_some(ConstBuffer const_buffer, WriteHandler write_handler)
+    {
+        if ( ssl_socket_ )
+            ssl_socket_->async_write_some(const_buffer, write_handler);
+        else
+            socket_->async_write_some(const_buffer, write_handler);
+    }
+
 // private: -- clang on OSX 10.8 doesn't like friend class
     friend class RacePreventer;
 
@@ -738,19 +764,19 @@ public:
     }
     void SSLHandshakeAction(ConnectedEvent const& /* evt */)
     {
+        auto ssl_socket = socket_wrapper_->SslSocket();
+
         // This disables the Nagle algorithm, as supposedly SSL already
         // does something similar and Nagle hurts SSL performance by a lot,
         // supposedly.
         // http://www.extrahop.com/post/blog/performance-metrics/to-nagle-or-not-to-nagle-that-is-the-question/
-        socket_wrapper_->SslSocket()->lowest_layer().set_option(
-                asio::ip::tcp::no_delay(true)
-            );
+        ssl_socket->lowest_layer().set_option(asio::ip::tcp::no_delay(true));
 
         // Don't allow self signed certs.
-        socket_wrapper_->SslSocket()->set_verify_mode(ssl_verify_mode_);
+        ssl_socket->set_verify_mode(ssl_verify_mode_);
 
         // Properly walk the certificate chain.
-        socket_wrapper_->SslSocket()->set_verify_callback(
+        ssl_socket->set_verify_callback(
                 asio::ssl::rfc2818_verification(parsed_url_->host())
                 );
 
@@ -758,7 +784,7 @@ public:
         auto race_preventer = SetAsyncTimeout("ssl handshake",
             kSslHandshakeTimeout);
 
-        socket_wrapper_->SslSocket()->async_handshake(
+        ssl_socket->async_handshake(
             boost::asio::ssl::stream_base::client,
             boost::bind(
                 &HttpRequestMachine_::HandleHandshake,
@@ -855,6 +881,8 @@ public:
         auto race_preventer = SetAsyncTimeout("proxy write request",
             kProxyWriteTimeout);
 
+        // Must use direct socket instead of SSL stream here as we do non-SSL
+        // communication with the proxy.
         if ( is_ssl_ )
         {
             asio::async_write(
@@ -939,34 +967,17 @@ public:
         auto race_preventer = SetAsyncTimeout("write request header",
             timeout_seconds_);
 
-        if ( is_ssl_ )
-        {
-            asio::async_write(
-                *socket_wrapper_->SslSocket(),
-                *request,
-                boost::bind(
-                    &HttpRequestMachine_::HandleHeaderWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    request,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
-        else
-        {
-            asio::async_write(
-                *socket_wrapper_->Socket(),
-                *request,
-                boost::bind(
-                    &HttpRequestMachine_::HandleHeaderWrite,
-                    shared_from_this(),
-                    race_preventer,
-                    request,
-                    sclock::now(),
-                    asio::placeholders::bytes_transferred,
-                    asio::placeholders::error));
-        }
+        asio::async_write(
+            *socket_wrapper_,
+            *request,
+            boost::bind(
+                &HttpRequestMachine_::HandleHeaderWrite,
+                shared_from_this(),
+                race_preventer,
+                request,
+                sclock::now(),
+                asio::placeholders::bytes_transferred,
+                asio::placeholders::error));
     }
     void SendPostAction(HeadersWrittenEvent const&)
     {
@@ -976,34 +987,17 @@ public:
             auto race_preventer = SetAsyncTimeout("write request post",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                asio::async_write(
-                    *socket_wrapper_->SslSocket(),
-                    asio::buffer(post_data_->Data(), post_data_->Size()),
-                    boost::bind(
-                        &HttpRequestMachine_::HandlePostWrite,
-                        shared_from_this(),
-                        race_preventer,
-                        post_data_,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
-            else
-            {
-                asio::async_write(
-                    *socket_wrapper_->Socket(),
-                    asio::buffer(post_data_->Data(), post_data_->Size()),
-                    boost::bind(
-                        &HttpRequestMachine_::HandlePostWrite,
-                        shared_from_this(),
-                        race_preventer,
-                        post_data_,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
+            asio::async_write(
+                *socket_wrapper_,
+                asio::buffer(post_data_->Data(), post_data_->Size()),
+                boost::bind(
+                    &HttpRequestMachine_::HandlePostWrite,
+                    shared_from_this(),
+                    race_preventer,
+                    post_data_,
+                    sclock::now(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error));
         }
         else
         {
@@ -1092,34 +1086,17 @@ public:
             auto race_preventer = SetAsyncTimeout("write request post",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                asio::async_write(
-                    *socket_wrapper_->SslSocket(),
-                    asio::buffer(post_data->Data(), post_data->Size()),
-                    boost::bind(
-                        &HttpRequestMachine_::HandlePostWrite,
-                        shared_from_this(),
-                        race_preventer,
-                        post_data,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
-            else
-            {
-                asio::async_write(
-                    *socket_wrapper_->Socket(),
-                    asio::buffer(post_data->Data(), post_data->Size()),
-                    boost::bind(
-                        &HttpRequestMachine_::HandlePostWrite,
-                        shared_from_this(),
-                        race_preventer,
-                        post_data,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-            }
+            asio::async_write(
+                *socket_wrapper_,
+                asio::buffer(post_data->Data(), post_data->Size()),
+                boost::bind(
+                    &HttpRequestMachine_::HandlePostWrite,
+                    shared_from_this(),
+                    race_preventer,
+                    post_data,
+                    sclock::now(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error));
         }
     }
     template<typename Event>
@@ -1129,30 +1106,15 @@ public:
         auto race_preventer = SetAsyncTimeout("read response header",
             timeout_seconds_);
 
-        if ( is_ssl_ )
-        {
-            asio::async_read_until(*socket_wrapper_->SslSocket(), read_buffer_,
-                "\r\n\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleHeaderRead,
-                        shared_from_this(),
-                        race_preventer,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-        }
-        else
-        {
-            asio::async_read_until(*socket_wrapper_->Socket(), read_buffer_,
-                "\r\n\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleHeaderRead,
-                        shared_from_this(),
-                        race_preventer,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error));
-        }
+        asio::async_read_until(*socket_wrapper_, read_buffer_,
+            "\r\n\r\n",
+                boost::bind(
+                    &HttpRequestMachine_::HandleHeaderRead,
+                    shared_from_this(),
+                    race_preventer,
+                    sclock::now(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error));
     }
     void ParseHeadersAction(HeadersReadEvent const& evt)
     {
@@ -1271,40 +1233,20 @@ public:
             auto race_preventer = SetAsyncTimeout("read response content 1",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                asio::async_read_until(
-                    *socket_wrapper_->SslSocket(), read_buffer_, "\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkSizeRead,
-                        shared_from_this(),
-                        race_preventer,
-                        0,
-                        te, ce,
-                        sclock::now(),
-                        Duration::zero(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                        )
-                    );
-            }
-            else
-            {
-                asio::async_read_until(
-                    *socket_wrapper_->Socket(), read_buffer_, "\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkSizeRead,
-                        shared_from_this(),
-                        race_preventer,
-                        0,
-                        te, ce,
-                        sclock::now(),
-                        Duration::zero(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                        )
-                    );
-            }
+            asio::async_read_until(
+                *socket_wrapper_, read_buffer_, "\r\n",
+                boost::bind(
+                    &HttpRequestMachine_::HandleContentChunkSizeRead,
+                    shared_from_this(),
+                    race_preventer,
+                    0,
+                    te, ce,
+                    sclock::now(),
+                    Duration::zero(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error
+                    )
+                );
         }
         else
         {
@@ -1320,42 +1262,19 @@ public:
             auto race_preventer = SetAsyncTimeout("read response content 2",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                /* hjones note: asio::transfer_exactly might not be needed here
-                 * as SSL may take care of the proper read size for us */
-                asio::async_read(*socket_wrapper_->SslSocket(), read_buffer_,
-                    asio::transfer_exactly(max_read_size),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentRead,
-                        shared_from_this(),
-                        race_preventer,
-                        0,
-                        te, ce,
-                        sclock::now(),
-                        read_buffer_.size(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                    )
-                );
-            }
-            else
-            {
-                asio::async_read(*socket_wrapper_->Socket(), read_buffer_,
-                    asio::transfer_exactly(max_read_size),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentRead,
-                        shared_from_this(),
-                        race_preventer,
-                        0,
-                        te, ce,
-                        sclock::now(),
-                        read_buffer_.size(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                        )
-                    );
-            }
+            asio::async_read(*socket_wrapper_, read_buffer_,
+                asio::transfer_exactly(max_read_size),
+                boost::bind(
+                    &HttpRequestMachine_::HandleContentRead,
+                    shared_from_this(),
+                    race_preventer,
+                    0,
+                    te, ce,
+                    sclock::now(),
+                    read_buffer_.size(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error
+                ));
         }
     }
     void RedirectAction(RedirectEvent const& evt)
@@ -1586,6 +1505,8 @@ public:
             auto race_preventer = SetAsyncTimeout("proxy read response",
                 kProxyReadTimeout);
 
+            // Must use direct socket instead of SSL stream here as we do
+            // non-SSL communication with the proxy.
             if ( is_ssl_ )
             {
                 asio::async_read_until(
@@ -2186,41 +2107,20 @@ public:
             auto race_preventer = SetAsyncTimeout("read response content 3",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                // transfer_exactly required as we want the whole chunk
-                asio::async_read(*socket_wrapper_->SslSocket(), read_buffer_,
-                    asio::transfer_exactly(left_to_read),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkRead,  // NOLINT
-                        shared_from_this(),
-                        race_preventer,
-                        output_bytes_consumed,
-                        chunk_size,
-                        te, ce,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                    )
-                );
-            }
-            else
-            {
-                asio::async_read(*socket_wrapper_->Socket(), read_buffer_,
-                    asio::transfer_exactly(left_to_read),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkRead,  // NOLINT
-                        shared_from_this(),
-                        race_preventer,
-                        output_bytes_consumed,
-                        chunk_size,
-                        te, ce,
-                        sclock::now(),
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                    )
-                );
-            }
+            // transfer_exactly required as we want the whole chunk
+            asio::async_read(*socket_wrapper_, read_buffer_,
+                asio::transfer_exactly(left_to_read),
+                boost::bind(
+                    &HttpRequestMachine_::HandleContentChunkRead,  // NOLINT
+                    shared_from_this(),
+                    race_preventer,
+                    output_bytes_consumed,
+                    chunk_size,
+                    te, ce,
+                    sclock::now(),
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error
+                ));
         }
     }
     void HandleContentChunkRead(
@@ -2301,44 +2201,21 @@ public:
             auto race_preventer = SetAsyncTimeout("read response content 4",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                asio::async_read_until(
-                    *socket_wrapper_->SslSocket(),
-                    read_buffer_,
-                    "\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkSizeRead,
-                        shared_from_this(),
-                        race_preventer,
-                        output_bytes_consumed,
-                        te, ce,
-                        sclock::now(),
-                        content_chunk_read_duration,
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                        )
-                    );
-            }
-            else
-            {
-                asio::async_read_until(
-                    *socket_wrapper_->Socket(),
-                    read_buffer_,
-                    "\r\n",
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentChunkSizeRead,
-                        shared_from_this(),
-                        race_preventer,
-                        output_bytes_consumed,
-                        te, ce,
-                        sclock::now(),
-                        content_chunk_read_duration,
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                        )
-                    );
-            }
+            asio::async_read_until(
+                *socket_wrapper_,
+                read_buffer_,
+                "\r\n",
+                boost::bind(
+                    &HttpRequestMachine_::HandleContentChunkSizeRead,
+                    shared_from_this(),
+                    race_preventer,
+                    output_bytes_consumed,
+                    te, ce,
+                    sclock::now(),
+                    content_chunk_read_duration,
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error
+                    ));
         }
         else
         {
@@ -2560,42 +2437,19 @@ public:
             auto race_preventer = SetAsyncTimeout("read response content 5",
                 timeout_seconds_);
 
-            if ( is_ssl_ )
-            {
-                /* hjones note: asio::transfer_exactly might not be needed here
-                 * as SSL may take care of the proper read size for us */
-                asio::async_read(*socket_wrapper_->SslSocket(), read_buffer_,
-                    asio::transfer_exactly(max_read_size),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentRead,
-                        shared_from_this(),
-                        race_preventer,
-                        total_read,
-                        te, ce,
-                        sclock::now(),
-                        0,
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                    )
-                );
-            }
-            else
-            {
-                asio::async_read(*socket_wrapper_->Socket(), read_buffer_,
-                    asio::transfer_exactly(max_read_size),
-                    boost::bind(
-                        &HttpRequestMachine_::HandleContentRead,
-                        shared_from_this(),
-                        race_preventer,
-                        total_read,
-                        te, ce,
-                        sclock::now(),
-                        0,
-                        asio::placeholders::bytes_transferred,
-                        asio::placeholders::error
-                    )
-                );
-            }
+            asio::async_read(*socket_wrapper_, read_buffer_,
+                asio::transfer_exactly(max_read_size),
+                boost::bind(
+                    &HttpRequestMachine_::HandleContentRead,
+                    shared_from_this(),
+                    race_preventer,
+                    total_read,
+                    te, ce,
+                    sclock::now(),
+                    0,
+                    asio::placeholders::bytes_transferred,
+                    asio::placeholders::error
+                ));
         }
     }
 
