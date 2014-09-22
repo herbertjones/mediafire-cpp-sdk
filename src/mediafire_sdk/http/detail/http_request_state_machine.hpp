@@ -72,7 +72,7 @@ struct HttpRequestMachineConfig
 {
     HttpConfig::ConstPointer http_config;
     const std::string & url;
-    std::shared_ptr<RequestResponseInterface> callbk;
+    std::shared_ptr<RequestResponseInterface> response_handler;
     boost::asio::io_service * callback_io_service;
 };
 
@@ -412,7 +412,7 @@ public:
         timer_(*work_io_service_),
         timeout_seconds_(60),
         timeout_id_(0),
-        callback_(config.callbk),
+        callback_(config.response_handler),
         callback_io_service_(config.callback_io_service),
         resolver_(*work_io_service_),
         redirect_policy_(http_config_->GetRedirectPolicy()),
