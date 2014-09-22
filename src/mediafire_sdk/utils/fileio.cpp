@@ -14,6 +14,8 @@
 #include "./error.hpp"
 #include "./string.hpp"
 
+using mf::utils::file_io_error;
+
 namespace mf {
 namespace utils {
 
@@ -114,16 +116,16 @@ uint64_t FileIO::Read(
     {
         if ( feof(file_handle_) )
         {
-            *error = make_error_code(mf::utils::errc::EndOfFile);
+            *error = make_error_code(file_io_error::EndOfFile);
         }
         else if ( ferror(file_handle_) )
         {
-            *error = make_error_code(mf::utils::errc::StreamError);
+            *error = make_error_code(file_io_error::StreamError);
         }
         else
         {
             assert( ! "Unknown error in FileIO::Read" );
-            *error = make_error_code(mf::utils::errc::UnknownError);
+            *error = make_error_code(file_io_error::UnknownError);
         }
     }
 
@@ -169,11 +171,15 @@ std::string FileIO::ReadString(
     }
     catch (const std::bad_alloc& a)
     {
-        read_error = make_error_code(std::errc::not_enough_memory);
+        // std::bad_alloc can be thrown by std::string::resize if insufficient
+        // memory
+        read_error = make_error_code(file_io_error::NotEnoughMemory);
     }
     catch (const std::length_error&)
     {
-        read_error = make_error_code(std::errc::result_out_of_range);
+        // std::length_error can be thrown by std::string::resize if arguments
+        // is larger than string max size
+        read_error = make_error_code(file_io_error::BufferTooLarge);
     }
 
     // Shrink buffer to actual bytes read
@@ -215,21 +221,21 @@ std::string FileIO::ReadLine(
         {   // Read error
             if ( feof(file_handle_) )
             {
-                *error = make_error_code(mf::utils::errc::EndOfFile);
+                *error = make_error_code(file_io_error::EndOfFile);
             }
             else if ( ferror(file_handle_) )
             {
-                *error = make_error_code(mf::utils::errc::StreamError);
+                *error = make_error_code(file_io_error::StreamError);
             }
             else
             {
                 assert( ! "Unknown error in FileIO::Read" );
-                *error = make_error_code(mf::utils::errc::UnknownError);
+                *error = make_error_code(file_io_error::UnknownError);
             }
         }
         else if ( bytes_consumed >= skDefaultReadSize )
         {   // Reached our limit
-            *error = make_error_code(mf::utils::errc::LineTooLong);
+            *error = make_error_code(file_io_error::LineTooLong);
         }
         else
         {   // No error
@@ -256,12 +262,12 @@ uint64_t FileIO::Write(
     {
         if ( ferror(file_handle_) )
         {
-            *error = make_error_code(mf::utils::errc::StreamError);
+            *error = make_error_code(file_io_error::StreamError);
         }
         else
         {
             assert( ! "Unknown error in FileIO::Write" );
-            *error = make_error_code(mf::utils::errc::UnknownError);
+            *error = make_error_code(file_io_error::UnknownError);
         }
     }
 
@@ -312,12 +318,12 @@ void FileIO::Seek(
     {
         if ( ferror(file_handle_) )
         {
-            *error = make_error_code(mf::utils::errc::StreamError);
+            *error = make_error_code(file_io_error::StreamError);
         }
         else
         {
             assert( ! "Unknown error in FileIO::Seek" );
-            *error = make_error_code(mf::utils::errc::UnknownError);
+            *error = make_error_code(file_io_error::UnknownError);
         }
     }
 }

@@ -10,9 +10,7 @@ else(WIN32)
 endif(WIN32)
 
 set(UTILS_SOURCES
-    error/category_impl.hpp
-    error/codes.hpp
-    error/error_impl.hpp
+    error/codes/fileio.cpp
 
     base64.cpp
     fileio.cpp
@@ -27,8 +25,7 @@ set(UTILS_SOURCES
     ${OS_DIR}/thread_id_impl.cpp
 )
 set(UTILS_HEADERS
-    error/category_impl.cpp
-    error/error_impl.cpp
+    error/codes/fileio.hpp
 
     base64.hpp
     fileio.hpp

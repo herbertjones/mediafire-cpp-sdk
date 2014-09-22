@@ -7,5 +7,5 @@
  */
 #pragma once
 
-#include "mediafire_sdk/utils/error/error_impl.hpp"
+#include "mediafire_sdk/utils/error/codes/fileio.hpp"
 
