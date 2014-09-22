@@ -44,6 +44,8 @@ std::string CategoryImpl::message(int ev) const
             return "not enough memory";
         case file_io_error::BufferTooLarge:
             return "buffer too large";
+        case file_io_error::FileModified:
+            return "file modified";
         default:
         {
             std::ostringstream ss;
@@ -72,6 +74,8 @@ std::error_condition CategoryImpl::default_error_condition(
         case file_io_error::NotEnoughMemory:
             return std::errc::not_enough_memory;
         //case file_io_error::BufferTooLarge:
+        //    return std::errc::
+        //case file_io_error::FileModified:
         //    return std::errc::
         default:
             return std::error_condition(ev, *this);

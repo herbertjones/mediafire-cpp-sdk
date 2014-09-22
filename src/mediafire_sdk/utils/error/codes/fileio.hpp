@@ -19,6 +19,7 @@ enum class file_io_error
     LineTooLong,
     NotEnoughMemory,
     BufferTooLarge,
+    FileModified,
 };
 
 /**

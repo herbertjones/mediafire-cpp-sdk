@@ -29,6 +29,8 @@ bool VerifyFileUnchanged(
         FSM & fsm
     )
 {
+    using mf::utils::file_io_error;
+
     const auto filepath = state->filepath;
     const auto original_filesize = state->filesize;
     const auto original_mtime = state->mtime;
@@ -54,7 +56,7 @@ bool VerifyFileUnchanged(
     {
         fsm.process_event( hash_event::Error{
             state,
-            make_error_code(mf::utils::errc::FileModified),
+            make_error_code(file_io_error::FileModified),
             "Mtime changed from expected value."
             } );
         return false;
@@ -77,7 +79,7 @@ bool VerifyFileUnchanged(
     {
         fsm.process_event( hash_event::Error{
             state,
-            make_error_code(mf::utils::errc::FileModified),
+            make_error_code(file_io_error::FileModified),
             "Filesize changed from expected value."
             } );
         return false;
@@ -129,6 +131,8 @@ struct ReadFile
             TargetState&
         )
     {
+        using mf::utils::file_io_error;
+
         auto & state = src_evt.state;
         auto & hasher = state->primary_hasher;
 
@@ -143,7 +147,7 @@ struct ReadFile
 
             const auto bytes_read = file_io->Read(buffer, buf_size, &ec);
 
-            if (ec == mf::utils::errc::EndOfFile)
+            if (ec == file_io_error::EndOfFile)
             {
                 ParseRead(
                     state,
