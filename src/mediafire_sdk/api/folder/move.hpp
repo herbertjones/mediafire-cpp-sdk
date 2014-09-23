@@ -41,6 +41,9 @@ enum class Asynchronous
 class Response : public ResponseBase
 {
 public:
+    Response() :
+        asynchronous(Asynchronous::Synchronous)
+    {}
     /** API response field "response.asynchronous" */
     Asynchronous asynchronous;
 

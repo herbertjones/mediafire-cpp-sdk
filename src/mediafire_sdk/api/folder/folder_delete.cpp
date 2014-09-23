@@ -79,6 +79,7 @@ void Impl::ParseResponse( Response * response )
         SetError(response, error_type, error_message);                         \
         return;                                                                \
     }
+    response->asynchronous = Asynchronous::Synchronous;
 
     {
         std::string optval;
@@ -92,15 +93,7 @@ void Impl::ParseResponse( Response * response )
                 response->asynchronous = Asynchronous::Synchronous;
             else if ( optval == "yes" )
                 response->asynchronous = Asynchronous::Asynchronous;
-            else
-                return_error(
-                    mf::api::api_code::ContentInvalidData,
-                    "invalid value in response.asynchronous");
         }
-        else
-            return_error(
-                mf::api::api_code::ContentInvalidData,
-                "no value in response.asynchronous");
     }
 
     // create_content_parse_single required

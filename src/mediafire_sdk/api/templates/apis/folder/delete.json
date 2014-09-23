@@ -27,7 +27,8 @@
         {
             "cpp_type": "Asynchronous",
             "cpp_name": "asynchronous",
-            "api_path": "response.asynchronous"
+            "api_path": "response.asynchronous",
+            "default_value": "Synchronous"
         },
         {
             "cpp_type": "uint32_t",
