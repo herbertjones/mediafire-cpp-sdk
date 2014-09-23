@@ -1,14 +1,14 @@
 /**
- * @file transition_config.hpp
+ * @file state_initialize.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
- *
- * Detailed message...
  */
 #pragma once
 
 #include "boost/asio/ssl.hpp"
+
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/url.hpp"
@@ -20,8 +20,9 @@ namespace mf {
 namespace http {
 namespace detail {
 
-/** @todo hjones: Replace calls to private fsm members */
-struct InitializeAction
+namespace msm = boost::msm;
+
+struct Initializing : public msm::front::state<>
 {
     template <typename FSM>
     void DoInit(
@@ -92,13 +93,8 @@ struct InitializeAction
         }
     }
 
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+    template <typename Event, typename FSM>
+    void on_entry(Event const&, FSM & fsm)
     {
         DoInit(fsm);
     }

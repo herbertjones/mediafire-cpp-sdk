@@ -1,10 +1,8 @@
 /**
- * @file transition_config.hpp
+ * @file transition_read_header.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
- *
- * Detailed message...
  */
 #pragma once
 

@@ -8,17 +8,30 @@ set(HTTP_LIBRARY_SOURCES
     http_config.cpp
     http_request.cpp
     url.cpp
-)
+    )
 set(HTTP_LIBRARY_HEADERS
     detail/default_http_headers.hpp
     detail/default_pem.hpp
+    detail/encoding.hpp
     detail/http_request_events.hpp
     detail/http_request_state_machine.hpp
     detail/race_preventer.hpp
     detail/socket_wrapper.hpp
+    detail/state_error.hpp
+    detail/state_initialize.hpp
+    detail/timeouts.hpp
     detail/transition_config.hpp
-    detail/transition_initialize.hpp
+    detail/transition_connect.hpp
+    detail/transition_parse_headers.hpp
+    detail/transition_proxy_connect.hpp
+    detail/transition_read_content.hpp
+    detail/transition_read_header.hpp
+    detail/transition_redirect.hpp
     detail/transition_resolve_host.hpp
+    detail/transition_send_header.hpp
+    detail/transition_send_post.hpp
+    detail/transition_ssl_handshake.hpp
+    detail/types.hpp
 
     bandwidth_analyser_interface.hpp
     buffer_interface.hpp

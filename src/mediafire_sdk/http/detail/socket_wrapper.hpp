@@ -3,8 +3,6 @@
  * @author Herbert Jones
  * @brief Brief message...
  * @copyright Copyright 2014 Mediafire
- *
- * Detailed message...
  */
 #pragma once
 

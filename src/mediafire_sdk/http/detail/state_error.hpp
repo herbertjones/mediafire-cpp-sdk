@@ -1,14 +1,14 @@
 /**
- * @file transition_config.hpp
+ * @file state_error.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
- *
- * Detailed message...
  */
 #pragma once
 
 #include <chrono>
+
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
@@ -18,15 +18,12 @@ namespace mf {
 namespace http {
 namespace detail {
 
-struct VerifyErrorAction
+namespace msm = boost::msm;
+
+struct Error : public msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+    template <typename FSM>
+    void on_entry(ErrorEvent const & evt, FSM & fsm)
     {
         assert( fsm.get_event_strand()->running_in_this_thread() );
 
