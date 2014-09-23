@@ -47,44 +47,45 @@ public:
             return;
         }
 
-        switch ( fsm.get_redirect_policy() )
+        using mf::http::RedirectPolicy;
+
+        auto policy = fsm.get_redirect_policy();
+
+        if (policy == RedirectPolicy::Deny )
         {
-            case mf::http::RedirectPolicy::DenyDowngrade:
-                if ( fsm.get_is_ssl() && redirect_url->scheme() == "http" )
-                {
-                    std::stringstream ss;
-                    ss << "Redirect to non-SSL " << evt.redirect_url
-                        << " denied by current policy.";
-                    ss << " Source URL: " << fsm.get_url();
-                    fsm.ProcessEvent(ErrorEvent{
-                            make_error_code(
-                                http_error::RedirectPermissionDenied ),
-                            ss.str()
-                        });
-                }  // No break
-            case mf::http::RedirectPolicy::Allow:
-                {
-                    fsm.set_parsed_url(std::move(redirect_url));
+            std::stringstream ss;
+            ss << "Redirect to " << evt.redirect_url
+                << " denied by current policy.";
+            ss << " Source URL: " << fsm.get_url();
+            fsm.ProcessEvent(ErrorEvent{
+                make_error_code(
+                    http_error::RedirectPermissionDenied ),
+                ss.str()
+                });
+        }
+        else if (policy == RedirectPolicy::DenyDowngrade && fsm.get_is_ssl()
+            && redirect_url->scheme() == "http" )
+        {
+            std::stringstream ss;
+            ss << "Redirect to non-SSL " << evt.redirect_url
+                << " denied by current policy.";
+            ss << " Source URL: " << fsm.get_url();
+            fsm.ProcessEvent(ErrorEvent{
+                make_error_code(
+                    http_error::RedirectPermissionDenied ),
+                ss.str()
+                });
+        }
+        else  // Allow
+        {
+            fsm.set_parsed_url(std::move(redirect_url));
 
-                    fsm.set_url(evt.redirect_url);
+            fsm.set_url(evt.redirect_url);
 
-                    // Close connection
-                    fsm.Disconnect();
+            // Close connection
+            fsm.Disconnect();
 
-                    fsm.ProcessEvent(RedirectedEvent{});
-                } break;
-            case mf::http::RedirectPolicy::Deny:
-                {
-                    std::stringstream ss;
-                    ss << "Redirect to " << evt.redirect_url
-                        << " denied by current policy.";
-                    ss << " Source URL: " << fsm.get_url();
-                    fsm.ProcessEvent(ErrorEvent{
-                            make_error_code(
-                                http_error::RedirectPermissionDenied ),
-                            ss.str()
-                        });
-                } break;
+            fsm.ProcessEvent(RedirectedEvent{});
         }
     }
 
