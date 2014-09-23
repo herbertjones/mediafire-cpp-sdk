@@ -250,7 +250,18 @@ public:
         std::string connect_host;
         connect_host = url->host();
         connect_host += ':';
-        connect_host += url->port();
+
+        if (url->port().empty())
+        {
+            if (url->scheme() == "https")
+                connect_host += "443";
+            else
+                connect_host += "80";
+        }
+        else
+        {
+            connect_host += url->port();
+        }
 
         // Create headers to send.
         std::ostringstream request_stream_local;
