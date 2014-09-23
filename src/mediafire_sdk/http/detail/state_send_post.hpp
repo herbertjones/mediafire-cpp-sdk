@@ -1,5 +1,5 @@
 /**
- * @file transition_send_post.hpp
+ * @file state_send_post.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "boost/asio.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
@@ -27,9 +28,12 @@ public:
     SendPostData(
             const uint64_t post_interface_size
         ) :
+        cancelled(false),
         post_interface_size(post_interface_size),
         bytes_read_from_interface(0)
     {}
+
+    bool cancelled;
 
     const uint64_t post_interface_size;
     uint64_t bytes_read_from_interface;
@@ -45,6 +49,10 @@ void PostViaInterfaceDelayCallback(
         mf::http::SharedBuffer::Pointer post_data
     )
 {
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Ensure a cancellation doesn't mess up the state due to async
     // timer.
     if ( fsm.get_transmission_delay_timer_enabled() )
@@ -81,6 +89,10 @@ void PostViaInterface(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     mf::http::SharedBuffer::Pointer post_data;
 
@@ -162,6 +174,10 @@ void HandlePostWrite(
 {
     using mf::http::http_error;
 
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
 
@@ -207,6 +223,15 @@ struct SendPostAction
             TargetState&
         )
     {
+    }
+};
+
+class SendPost : public boost::msm::front::state<>
+{
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const &, FSM & fsm)
+    {
         auto post_data = fsm.get_post_data();
         if ( post_data )
         {
@@ -216,6 +241,7 @@ struct SendPostAction
             auto fsmp = fsm.AsFrontShared();
             auto start_time = sclock::now();
             auto state_data = std::make_shared<SendPostData>(0);
+            state_data_ = state_data;
 
             boost::asio::async_write(
                 *fsm.get_socket_wrapper(),
@@ -235,11 +261,25 @@ struct SendPostAction
             auto post_interface_ = fsm.get_post_interface();
             auto state_data = std::make_shared<SendPostData>(
                 post_interface_->PostDataSize());
+            state_data_ = state_data;
             const auto now = std::chrono::steady_clock::now();
             PostViaInterface( fsm, state_data, now, now );
         }
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        assert(state_data_);
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    SendPostDataPointer state_data_;
 };
+
+
 
 }  // namespace detail
 }  // namespace http

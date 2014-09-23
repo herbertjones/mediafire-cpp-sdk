@@ -45,19 +45,20 @@
 #include "mediafire_sdk/http/detail/socket_wrapper.hpp"
 #include "mediafire_sdk/http/detail/timeouts.hpp"
 
+#include "mediafire_sdk/http/detail/state_connect.hpp"
 #include "mediafire_sdk/http/detail/state_error.hpp"
 #include "mediafire_sdk/http/detail/state_initialize.hpp"
+#include "mediafire_sdk/http/detail/state_parse_headers.hpp"
+#include "mediafire_sdk/http/detail/state_proxy_connect.hpp"
+#include "mediafire_sdk/http/detail/state_read_content.hpp"
+#include "mediafire_sdk/http/detail/state_read_headers.hpp"
+#include "mediafire_sdk/http/detail/state_redirect.hpp"
+#include "mediafire_sdk/http/detail/state_resolve.hpp"
+#include "mediafire_sdk/http/detail/state_send_header.hpp"
+#include "mediafire_sdk/http/detail/state_send_post.hpp"
+#include "mediafire_sdk/http/detail/state_ssl_handshake.hpp"
+
 #include "mediafire_sdk/http/detail/transition_config.hpp"
-#include "mediafire_sdk/http/detail/transition_connect.hpp"
-#include "mediafire_sdk/http/detail/transition_parse_headers.hpp"
-#include "mediafire_sdk/http/detail/transition_proxy_connect.hpp"
-#include "mediafire_sdk/http/detail/transition_read_content.hpp"
-#include "mediafire_sdk/http/detail/transition_read_header.hpp"
-#include "mediafire_sdk/http/detail/transition_redirect.hpp"
-#include "mediafire_sdk/http/detail/transition_resolve_host.hpp"
-#include "mediafire_sdk/http/detail/transition_send_header.hpp"
-#include "mediafire_sdk/http/detail/transition_send_post.hpp"
-#include "mediafire_sdk/http/detail/transition_ssl_handshake.hpp"
 
 #include "mediafire_sdk/http/post_data_pipe_interface.hpp"
 #include "mediafire_sdk/http/error.hpp"
@@ -276,16 +277,6 @@ public:
         }
 #endif
     };
-    struct Resolve : public msm::front::state<> {};
-    struct SSLHandshake : public msm::front::state<> {};
-    struct Connect : public msm::front::state<> {};
-    struct SendHeader : public msm::front::state<> {};
-    struct ProxyConnect : public msm::front::state<> {};
-    struct SendPost : public msm::front::state<> {};
-    struct ReadHeaders : public msm::front::state<> {};
-    struct ParseHeaders : public msm::front::state<> {};
-    struct ReadContent : public msm::front::state<> {};
-    struct Redirect : public msm::front::state<> {};
 
     // Terminate states -----
     struct FinalError : public msm::front::terminate_state<>
@@ -476,53 +467,53 @@ public:
 
     // Transition table for HttpRequestMachine
     struct transition_table : mpl::vector<
-        //    Start           Event                   Next            Action                         Guard                    // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Unstarted     , ConfigEvent           , Unstarted     , ConfigEventAction            , none                    >,  // NOLINT
-        Row < Unstarted     , StartEvent            , Initializing  , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Initializing  , InitializedEvent      , Resolve       , ResolveHostAction            , none                    >,  // NOLINT
-        Row < Initializing  , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Resolve       , ResolvedEvent         , Connect       , ConnectAction                , none                    >,  // NOLINT
-        Row < Resolve       , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Connect       , ConnectedEvent        , SendHeader    , SendHeaderAction             , Not_<IsSsl>             >,  // NOLINT
-        Row < Connect       , ConnectedEvent        , ProxyConnect  , ProxyConnectAction           , And_<IsSsl, SslProxy>   >,  // NOLINT
-        Row < Connect       , ConnectedEvent        , SSLHandshake  , SSLHandshakeAction           , And_<IsSsl,
-                                                                                                        Not_<SslProxy>>      >,  // NOLINT
-        Row < Connect       , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < ProxyConnect  , ConnectedEvent        , SendHeader    , SendHeaderAction             , Not_<IsSsl>             >,  // NOLINT
-        Row < ProxyConnect  , ConnectedEvent        , SSLHandshake  , SSLHandshakeAction           , IsSsl                   >,  // NOLINT
-        Row < ProxyConnect  , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < SSLHandshake  , HandshakeEvent        , SendHeader    , SendHeaderAction             , none                    >,  // NOLINT
-        Row < SSLHandshake  , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < SendHeader    , HeadersWrittenEvent   , SendPost      , SendPostAction               , HasPost                 >,  // NOLINT
-        Row < SendHeader    , HeadersWrittenEvent   , ReadHeaders   , ReadHeaderAction             , Not_<HasPost>           >,  // NOLINT
-        Row < SendHeader    , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < SendPost      , PostSent              , ReadHeaders   , ReadHeaderAction             , none                    >,  // NOLINT
-        Row < SendPost      , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < ReadHeaders   , HeadersReadEvent      , ParseHeaders  , ParseHeadersAction           , none                    >,  // NOLINT
-        Row < ReadHeaders   , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < ParseHeaders  , HeadersParsedEvent    , ReadContent   , ReadContentAction            , none                    >,  // NOLINT
-        Row < ParseHeaders  , RedirectEvent         , Redirect      , RedirectAction               , none                    >,  // NOLINT
-        Row < ParseHeaders  , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Redirect      , RedirectedEvent       , Initializing  , none                         , none                    >,  // NOLINT
-        Row < Redirect      , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < ReadContent   , ContentReadEvent      , Complete      , none                         , none                    >,  // NOLINT
-        Row < ReadContent   , ErrorEvent            , Error         , none                         , none                    >,  // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
-        Row < Error         , RestartEvent          , Initializing  , none                         , none                    >,  // NOLINT
-        Row < Error         , ErrorEvent            , FinalError    , none                         , none                    >   // NOLINT
-        //  +---------------+-----------------------+---------------+------------------------------+-------------------------+   // NOLINT
+        //    Start           Event                   Next            Action                Guard                       // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Unstarted     , ConfigEvent           , Unstarted     , ConfigEventAction   , none                    >,  // NOLINT
+        Row < Unstarted     , StartEvent            , Initializing  , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Initializing  , InitializedEvent      , Resolve       , none                , none                    >,  // NOLINT
+        Row < Initializing  , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Resolve       , ResolvedEvent         , Connect       , none                , none                    >,  // NOLINT
+        Row < Resolve       , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Connect       , ConnectedEvent        , SendHeader    , none                , Not_<IsSsl>             >,  // NOLINT
+        Row < Connect       , ConnectedEvent        , ProxyConnect  , none                , And_<IsSsl, SslProxy>   >,  // NOLINT
+        Row < Connect       , ConnectedEvent        , SSLHandshake  , none                , And_<IsSsl,                 // NOLINT
+                                                                                               Not_<SslProxy>>      >,  // NOLINT
+        Row < Connect       , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < ProxyConnect  , ConnectedEvent        , SendHeader    , none                , Not_<IsSsl>             >,  // NOLINT
+        Row < ProxyConnect  , ConnectedEvent        , SSLHandshake  , none                , IsSsl                   >,  // NOLINT
+        Row < ProxyConnect  , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < SSLHandshake  , HandshakeEvent        , SendHeader    , none                , none                    >,  // NOLINT
+        Row < SSLHandshake  , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < SendHeader    , HeadersWrittenEvent   , SendPost      , none                , HasPost                 >,  // NOLINT
+        Row < SendHeader    , HeadersWrittenEvent   , ReadHeaders   , none                , Not_<HasPost>           >,  // NOLINT
+        Row < SendHeader    , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < SendPost      , PostSent              , ReadHeaders   , none                , none                    >,  // NOLINT
+        Row < SendPost      , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < ReadHeaders   , HeadersReadEvent      , ParseHeaders  , none                , none                    >,  // NOLINT
+        Row < ReadHeaders   , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < ParseHeaders  , HeadersParsedEvent    , ReadContent   , none                , none                    >,  // NOLINT
+        Row < ParseHeaders  , RedirectEvent         , Redirect      , none                , none                    >,  // NOLINT
+        Row < ParseHeaders  , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Redirect      , RedirectedEvent       , Initializing  , none                , none                    >,  // NOLINT
+        Row < Redirect      , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < ReadContent   , ContentReadEvent      , Complete      , none                , none                    >,  // NOLINT
+        Row < ReadContent   , ErrorEvent            , Error         , none                , none                    >,  // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
+        Row < Error         , RestartEvent          , Initializing  , none                , none                    >,  // NOLINT
+        Row < Error         , ErrorEvent            , FinalError    , none                , none                    >   // NOLINT
+        //  +---------------+-----------------------+---------------+---------------------+-------------------------+   // NOLINT
     > {};
 
     // Replaces the default no-transition response. Use this if you don't

@@ -1,5 +1,5 @@
 /**
- * @file transition_resolve_host.hpp
+ * @file state_resolve.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -10,6 +10,7 @@
 
 #include "boost/asio.hpp"
 #include "boost/lexical_cast.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
@@ -27,9 +28,11 @@ public:
     ResolveData(
             boost::asio::io_service * io_service
         ) :
+        cancelled(false),
         resolver(*io_service)
     {}
 
+    bool cancelled;
     asio::ip::tcp::resolver resolver;
 };
 using ResolveDataPointer = std::shared_ptr<ResolveData>;
@@ -37,13 +40,17 @@ using ResolveDataPointer = std::shared_ptr<ResolveData>;
 template <typename FSM>
 void HandleResolve(
         FSM & fsm,
-        ResolveDataPointer /*state_data*/,
+        ResolveDataPointer state_data,
         RacePreventer race_preventer,
         const boost::system::error_code& err,
         asio::ip::tcp::resolver::iterator endpoint_iterator
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -67,18 +74,14 @@ void HandleResolve(
     }
 }
 
-struct ResolveHostAction
+class Resolve : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const &,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const&, FSM & fsm)
     {
-        auto state_data = std::make_shared<ResolveData>(
-            fsm.get_work_io_service());
+        auto state_data = std::make_shared<ResolveData>(fsm.get_work_io_service());
+        state_data_ = state_data;
 
         const Url * url = fsm.get_parsed_url();
 
@@ -116,6 +119,16 @@ struct ResolveHostAction
                 HandleResolve( *fsmp, state_data, race_preventer, ec, iterator);
             });
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    ResolveDataPointer state_data_;
 };
 
 }  // namespace detail

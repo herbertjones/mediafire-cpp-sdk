@@ -1,5 +1,5 @@
 /**
- * @file transition_read_header.hpp
+ * @file state_read_headers.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -9,6 +9,7 @@
 #include <chrono>
 
 #include "boost/algorithm/string/trim.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
@@ -19,9 +20,21 @@ namespace mf {
 namespace http {
 namespace detail {
 
+class ReadHeadersData
+{
+public:
+    ReadHeadersData() :
+        cancelled(false)
+    {}
+
+    bool cancelled;
+};
+using ReadHeadersDataPointer = std::shared_ptr<ReadHeadersData>;
+
 template <typename FSM>
 void HandleHeaderRead(
         FSM & fsm,
+        ReadHeadersDataPointer state_data,
         SharedStreamBuf read_buffer,
         RacePreventer race_preventer,
         const TimePoint start_time,
@@ -30,6 +43,10 @@ void HandleHeaderRead(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -180,16 +197,15 @@ void HandleHeaderRead(
     }
 }
 
-struct ReadHeaderAction
+class ReadHeaders : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const &, FSM & fsm)
     {
+        auto state_data = std::make_shared<ReadHeadersData>();
+        state_data_ = state_data;
+
         // Must prime timeout for async actions.
         auto race_preventer = fsm.SetAsyncTimeout("read response header",
             fsm.get_timeout_seconds());
@@ -200,16 +216,28 @@ struct ReadHeaderAction
 
         asio::async_read_until( *fsm.get_socket_wrapper(),
             *read_buffer, "\r\n\r\n",
-            [fsmp, read_buffer, race_preventer, start_time](
+            [fsmp, state_data, read_buffer, race_preventer, start_time](
                     const boost::system::error_code& ec,
                     std::size_t bytes_transferred
                 )
             {
-                HandleHeaderRead(*fsmp, read_buffer, race_preventer, start_time,
-                    bytes_transferred, ec);
+                HandleHeaderRead(*fsmp, state_data, read_buffer, race_preventer,
+                    start_time, bytes_transferred, ec);
             });
+
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    ReadHeadersDataPointer state_data_;
 };
+
 
 }  // namespace detail
 }  // namespace http

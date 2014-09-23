@@ -17,20 +17,20 @@ set(HTTP_LIBRARY_HEADERS
     detail/http_request_state_machine.hpp
     detail/race_preventer.hpp
     detail/socket_wrapper.hpp
+    detail/state_connect.hpp
     detail/state_error.hpp
     detail/state_initialize.hpp
+    detail/state_parse_headers.hpp
+    detail/state_proxy_connect.hpp
+    detail/state_read_content.hpp
+    detail/state_read_headers.hpp
+    detail/state_redirect.hpp
+    detail/state_resolve.hpp
+    detail/state_send_header.hpp
+    detail/state_send_post.hpp
+    detail/state_ssl_handshake.hpp
     detail/timeouts.hpp
     detail/transition_config.hpp
-    detail/transition_connect.hpp
-    detail/transition_parse_headers.hpp
-    detail/transition_proxy_connect.hpp
-    detail/transition_read_content.hpp
-    detail/transition_read_header.hpp
-    detail/transition_redirect.hpp
-    detail/transition_resolve_host.hpp
-    detail/transition_send_header.hpp
-    detail/transition_send_post.hpp
-    detail/transition_ssl_handshake.hpp
     detail/types.hpp
 
     bandwidth_analyser_interface.hpp
@@ -50,12 +50,12 @@ add_definitions(
     -DBOOST_MPL_LIMIT_VECTOR_SIZE=40 # Set max MSM transitions
     -DBOOST_MPL_LIMIT_MAP_SIZE=40 # Set max MSM transitions
     -DFUSION_MAX_VECTOR_SIZE=20 # Set max MSM states
-)
+    )
 
 add_library(mf_http_sdk STATIC
     ${HTTP_LIBRARY_HEADERS}
     ${HTTP_LIBRARY_SOURCES}
-)
+    )
 
 TARGET_LINK_LIBRARIES(mf_http_sdk
     ${WINSOCK_LIBRARY}
@@ -66,7 +66,7 @@ TARGET_LINK_LIBRARIES(mf_http_sdk
     ${OPENSSL_LIBRARIES}
     ${PTHREAD_LIBRARY}
     ${ZLIB_LIBRARIES}
-)
+    )
 
 add_subdirectory(standalone)
 add_subdirectory(unit_tests)

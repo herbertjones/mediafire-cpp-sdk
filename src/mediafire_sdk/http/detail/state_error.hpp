@@ -18,9 +18,7 @@ namespace mf {
 namespace http {
 namespace detail {
 
-namespace msm = boost::msm;
-
-struct Error : public msm::front::state<>
+struct Error : public boost::msm::front::state<>
 {
     template <typename FSM>
     void on_entry(ErrorEvent const & evt, FSM & fsm)

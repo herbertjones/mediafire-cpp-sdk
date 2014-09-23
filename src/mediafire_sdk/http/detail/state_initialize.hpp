@@ -20,9 +20,7 @@ namespace mf {
 namespace http {
 namespace detail {
 
-namespace msm = boost::msm;
-
-struct Initializing : public msm::front::state<>
+struct Initializing : public boost::msm::front::state<>
 {
     template <typename FSM>
     void DoInit(

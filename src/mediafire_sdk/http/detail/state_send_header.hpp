@@ -1,5 +1,5 @@
 /**
- * @file transition_send_header.hpp
+ * @file state_send_header.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -13,6 +13,7 @@
 #include "boost/algorithm/string/case_conv.hpp"
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/asio.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/url.hpp"
@@ -24,11 +25,21 @@ namespace mf {
 namespace http {
 namespace detail {
 
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+class SendHeaderData
+{
+public:
+    SendHeaderData() :
+        cancelled(false)
+    {}
+
+    bool cancelled;
+};
+using SendHeaderDataPointer = std::shared_ptr<SendHeaderData>;
 
 template <typename FSM>
 void HandleHeaderWrite(
-        std::shared_ptr<FSM> fsmp,
+        FSM & fsm,
+        SendHeaderDataPointer state_data,
         RacePreventer race_preventer,
         const TimePoint start_time,
         const std::size_t bytes_transferred,
@@ -37,27 +48,31 @@ void HandleHeaderWrite(
 {
     using mf::http::http_error;
 
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
 
-    fsmp->ClearAsyncTimeout();  // Must stop timeout timer.
+    fsm.ClearAsyncTimeout();  // Must stop timeout timer.
 
-    if (fsmp->get_bw_analyser())
+    if (fsm.get_bw_analyser())
     {
-        fsmp->get_bw_analyser()->RecordOutgoingBytes( bytes_transferred, start_time,
+        fsm.get_bw_analyser()->RecordOutgoingBytes( bytes_transferred, start_time,
             sclock::now() );
     }
 
     if (!err)
     {
-        fsmp->ProcessEvent(HeadersWrittenEvent{});
+        fsm.ProcessEvent(HeadersWrittenEvent{});
     }
     else
     {
         std::stringstream ss;
-        ss << "Failure while writing headers url(" << fsmp->get_url() << ").";
+        ss << "Failure while writing headers url(" << fsm.get_url() << ").";
         ss << " Error: " << err.message();
-        fsmp->ProcessEvent(
+        fsm.ProcessEvent(
             ErrorEvent{
                 make_error_code(
                     http_error::WriteFailure ),
@@ -66,16 +81,15 @@ void HandleHeaderWrite(
     }
 }
 
-struct SendHeaderAction
+class SendHeader : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & /*evt*/,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const & evt, FSM & fsm)
     {
+        auto state_data = std::make_shared<SendHeaderData>();
+        state_data_ = state_data;
+
         const Url * url = fsm.get_parsed_url();
 
         assert(url);
@@ -140,16 +154,26 @@ struct SendHeaderAction
         boost::asio::async_write(
             *fsm.get_socket_wrapper(),
             *request,
-            [fsmp, race_preventer, request, start_time](
+            [fsmp, state_data, race_preventer, request, start_time](
                    const boost::system::error_code& ec,
                    std::size_t bytes_transferred
                 )
             {
                 // request passed to prevent it from getting freed
-                HandleHeaderWrite(fsmp, race_preventer, start_time,
+                HandleHeaderWrite(*fsmp, state_data, race_preventer, start_time,
                     bytes_transferred, ec);
             });
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    SendHeaderDataPointer state_data_;
 };
 
 }  // namespace detail

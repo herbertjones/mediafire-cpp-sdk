@@ -1,5 +1,5 @@
 /**
- * @file transition_read_content.hpp
+ * @file state_read_content.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -15,9 +15,10 @@
 #include "boost/algorithm/string/split.hpp"
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/asio.hpp"
-#include "boost/iostreams/filter/gzip.hpp"
 #include "boost/iostreams/copy.hpp"
+#include "boost/iostreams/filter/gzip.hpp"
 #include "boost/iostreams/restrict.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/encoding.hpp"
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
@@ -165,11 +166,15 @@ namespace detail {
 struct ReadContentData
 {
     ReadContentData() :
+        cancelled(false),
         content_length(0),
         transfer_encoding(0),
         content_encoding(0),
         filter_buf_consumed(0)
     {}
+
+    bool cancelled;
+
     uint64_t content_length;
 
     int transfer_encoding;
@@ -263,6 +268,9 @@ void HandleContentRead(
     )
 {
     using mf::http::http_error;
+
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -452,6 +460,10 @@ void HandleContentReadDelayCallback(
         const std::size_t total_read
     )
 {
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Ensure a cancellation doesn't mess up the state due to async
     // timer.
     if ( fsm.get_transmission_delay_timer_enabled() )
@@ -490,6 +502,10 @@ void HandleContentChunkRead(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -599,6 +615,10 @@ void HandleContentChunkSizeReadDelay(
         uint64_t chunk_size
     )
 {
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Ensure a cancellation doesn't mess up the state due to async
     // timer.
     if ( fsm.get_transmission_delay_timer_enabled() )
@@ -635,6 +655,10 @@ void HandleNextChunk(
         uint64_t chunk_size
     )
 {
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     TimePoint now = sclock::now();
 
     // Determine how much more to read, or if the buffer
@@ -676,6 +700,10 @@ void HandleCompleteAllChunks(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     if ( state_data->content_encoding & CE_Gzip )
     {
@@ -772,6 +800,10 @@ void HandleContentChunkSizeRead(
     using mf::http::http_error;
     using sclock = std::chrono::steady_clock;
 
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
+
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
 
@@ -847,17 +879,16 @@ void HandleContentChunkSizeRead(
     }
 }
 
-struct ReadContentAction
+class ReadContent : public boost::msm::front::state<>
 {
-    template <typename FSM, typename SourceState, typename TargetState>
-    void operator()(
-            HeadersParsedEvent const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename FSM>
+    void on_entry(HeadersParsedEvent const & evt, FSM & fsm)
     {
         using mf::http::http_error;
+
+        auto state_data = std::make_shared<ReadContentData>();
+        state_data_ = state_data;
 
         const auto & headers = evt.headers;
 
@@ -923,7 +954,6 @@ struct ReadContentAction
         }
 
         // Populate state specific data
-        auto state_data = std::make_shared<ReadContentData>();
         state_data->content_length = evt.content_length;
         state_data->transfer_encoding = transfer_encoding;
         state_data->content_encoding = content_encoding;
@@ -989,6 +1019,17 @@ struct ReadContentAction
                 });
         }
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        assert(state_data_);
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    ReadContentDataPointer state_data_;
 };
 
 }  // namespace detail

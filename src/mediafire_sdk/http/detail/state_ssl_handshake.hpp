@@ -1,5 +1,5 @@
 /**
- * @file transition_ssl_handshake.hpp
+ * @file state_ssl_handshake.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -10,6 +10,7 @@
 
 #include "boost/asio.hpp"
 #include "boost/asio/ssl.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
@@ -21,14 +22,30 @@ namespace mf {
 namespace http {
 namespace detail {
 
+class SslConnectData
+{
+public:
+    SslConnectData() :
+        cancelled(false)
+    {}
+
+    bool cancelled;
+};
+using SslConnectDataPointer = std::shared_ptr<SslConnectData>;
+
 template <typename FSM>
 void HandleHandshake(
         FSM  & fsm,
+        SslConnectDataPointer state_data,
         RacePreventer race_preventer,
         const boost::system::error_code& err
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -53,16 +70,15 @@ void HandleHandshake(
     }
 }
 
-struct SSLHandshakeAction
+class SSLHandshake : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & /*evt*/,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const &, FSM & fsm)
     {
+        auto state_data = std::make_shared<SslConnectData>();
+        state_data_ = state_data;
+
         auto ssl_socket = fsm.get_socket_wrapper()->SslSocket();
         const Url * url = fsm.get_parsed_url();
 
@@ -87,11 +103,24 @@ struct SSLHandshakeAction
 
         ssl_socket->async_handshake(
             boost::asio::ssl::stream_base::client,
-            [fsmp, race_preventer](const boost::system::error_code& ec)
+            [fsmp, state_data, race_preventer](
+                    const boost::system::error_code& ec
+                )
             {
-                HandleHandshake(*fsmp, race_preventer, ec);
+                HandleHandshake(*fsmp, state_data, race_preventer, ec);
             });
+
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    SslConnectDataPointer state_data_;
 };
 
 }  // namespace detail

@@ -1,5 +1,5 @@
 /**
- * @file transition_redirect.hpp
+ * @file state_redirect.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/error.hpp"
@@ -17,15 +19,11 @@ namespace mf {
 namespace http {
 namespace detail {
 
-struct RedirectAction
+class Redirect : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const & evt, FSM & fsm)
     {
         using mf::http::http_error;
         using mf::http::Url;
@@ -89,6 +87,13 @@ struct RedirectAction
                 } break;
         }
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+    }
+
+private:
 };
 
 }  // namespace detail

@@ -1,5 +1,5 @@
 /**
- * @file transition_proxy_connect.hpp
+ * @file state_proxy_connect.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "boost/asio.hpp"
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
@@ -24,11 +25,22 @@ namespace mf {
 namespace http {
 namespace detail {
 
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+class ProxyConnectData
+{
+public:
+    ProxyConnectData() :
+        cancelled(false)
+    {}
+
+    bool cancelled;
+};
+using ProxyConnectDataPointer = std::shared_ptr<ProxyConnectData>;
+
 
 template <typename FSM>
 void HandleProxyHeaderRead(
         FSM  & fsm,
+        ProxyConnectDataPointer state_data,
         RacePreventer race_preventer,
         std::shared_ptr<asio::streambuf> headers_buf,
         const TimePoint start_time,
@@ -37,6 +49,10 @@ void HandleProxyHeaderRead(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
@@ -123,6 +139,7 @@ void HandleProxyHeaderRead(
 template <typename FSM>
 void HandleProxyConnectWrite(
         FSM & fsm,
+        ProxyConnectDataPointer state_data,
         RacePreventer race_preventer,
         const TimePoint start_time,
         const std::size_t bytes_transferred,
@@ -130,6 +147,10 @@ void HandleProxyConnectWrite(
     )
 {
     using mf::http::http_error;
+
+    // Stop processing if actions cancelled.
+    if (state_data->cancelled == true)
+        return;
 
     const bool is_ssl = fsm.get_is_ssl();
 
@@ -162,13 +183,13 @@ void HandleProxyConnectWrite(
             asio::async_read_until(
                 fsm.get_socket_wrapper()->SslSocket()->next_layer(),
                 *response, "\r\n\r\n",
-                [fsmp, race_preventer, response, start_time](
+                [fsmp, state_data, race_preventer, response, start_time](
                         const boost::system::error_code& ec,
                         std::size_t bytes_transferred
                     )
                 {
-                    HandleProxyHeaderRead(*fsmp, race_preventer, response,
-                        start_time, bytes_transferred, ec);
+                    HandleProxyHeaderRead(*fsmp, state_data, race_preventer,
+                        response, start_time, bytes_transferred, ec);
                 });
         }
         else
@@ -177,13 +198,13 @@ void HandleProxyConnectWrite(
                 *fsm.get_socket_wrapper()->Socket(),
                 *response,
                 "\r\n\r\n",
-                [fsmp, race_preventer, response, start_time](
+                [fsmp, state_data, race_preventer, response, start_time](
                         const boost::system::error_code& ec,
                         std::size_t bytes_transferred
                     )
                 {
-                    HandleProxyHeaderRead(*fsmp, race_preventer, response,
-                        start_time, bytes_transferred, ec);
+                    HandleProxyHeaderRead(*fsmp, state_data, race_preventer,
+                        response, start_time, bytes_transferred, ec);
                 });
         }
     }
@@ -211,16 +232,16 @@ void HandleProxyConnectWrite(
             });
     }
 }
-struct ProxyConnectAction
+
+class ProxyConnect : public boost::msm::front::state<>
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            Event const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const &, FSM & fsm)
     {
+        auto state_data = std::make_shared<ProxyConnectData>();
+        state_data_ = state_data;
+
         // We know we are using a proxy.
 
         const Url * url = fsm.get_parsed_url();
@@ -284,14 +305,14 @@ struct ProxyConnectAction
             boost::asio::async_write(
                 fsm.get_socket_wrapper()->SslSocket()->next_layer(),
                 *request,
-                [fsmp, race_preventer, request, start_time](
+                [fsmp, state_data, race_preventer, request, start_time](
                        const boost::system::error_code& ec,
                        std::size_t bytes_transferred
                     )
                 {
                     // request passed to prevent it from getting freed
-                    HandleProxyConnectWrite(*fsmp, race_preventer, start_time,
-                        bytes_transferred, ec);
+                    HandleProxyConnectWrite(*fsmp, state_data, race_preventer,
+                        start_time, bytes_transferred, ec);
                 });
         }
         else
@@ -299,17 +320,28 @@ struct ProxyConnectAction
             boost::asio::async_write(
                 *fsm.get_socket_wrapper()->Socket(),
                 *request,
-                [fsmp, race_preventer, request, start_time](
+                [fsmp, state_data, race_preventer, request, start_time](
                        const boost::system::error_code& ec,
                        std::size_t bytes_transferred
                     )
                 {
                     // request passed to prevent it from getting freed
-                    HandleProxyConnectWrite(*fsmp, race_preventer, start_time,
-                        bytes_transferred, ec);
+                    HandleProxyConnectWrite(*fsmp, state_data, race_preventer,
+                        start_time, bytes_transferred, ec);
                 });
         }
+
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+        state_data_->cancelled = true;
+        state_data_.reset();
+    }
+
+private:
+    ProxyConnectDataPointer state_data_;
 };
 
 }  // namespace detail

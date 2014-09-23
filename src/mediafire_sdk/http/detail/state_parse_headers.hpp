@@ -1,5 +1,5 @@
 /**
- * @file ptransition_parse_headers.hpp
+ * @file pstate_parse_headers.hpp
  * @author Herbert Jones
  * @brief Config state machine transitions
  * @copyright Copyright 2014 Mediafire
@@ -7,6 +7,8 @@
 #pragma once
 
 #include <sstream>
+
+#include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/error.hpp"
@@ -16,15 +18,11 @@ namespace mf {
 namespace http {
 namespace detail {
 
-struct ParseHeadersAction
+class ParseHeaders : public boost::msm::front::state<>
 {
-    template <typename FSM,typename SourceState,typename TargetState>
-    void operator()(
-            HeadersReadEvent const & evt,
-            FSM & fsm,
-            SourceState&,
-            TargetState&
-        )
+public:
+    template <typename Event, typename FSM>
+    void on_entry(Event const & evt, FSM & fsm)
     {
         using mf::http::http_error;
 
@@ -74,7 +72,15 @@ struct ParseHeadersAction
                 });
         }
     }
+
+    template <typename Event, typename FSM>
+    void on_exit(Event const&, FSM &)
+    {
+    }
+
+private:
 };
+
 
 }  // namespace detail
 }  // namespace http
