@@ -15,6 +15,7 @@
 #include "boost/algorithm/string/split.hpp"
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/asio.hpp"
+#include "boost/asio/ssl.hpp"
 #include "boost/iostreams/copy.hpp"
 #include "boost/iostreams/filter/gzip.hpp"
 #include "boost/iostreams/restrict.hpp"
@@ -31,6 +32,12 @@
 
 namespace {
 static const uint64_t kMaxUnknownReadLength = 1024 * 8;
+
+bool IsSslShortRead(const boost::system::error_code & ec)
+{
+    return (ec.category() == boost::asio::error::get_ssl_category()
+        && ec.value() == SSL_R_SHORT_READ);
+}
 
 int ParseTransferEncoding(
         const std::map<std::string, std::string> & headers
@@ -289,8 +296,10 @@ void HandleContentRead(
     bool eof = false;
 
     if ( err == asio::error::eof )
+    {
         eof = true;
-    else if ( fsm.get_is_ssl() && err.message() == "short read" )
+    }
+    else if ( fsm.get_is_ssl() && IsSslShortRead(err) )
     {
         // SSL doesn't return EOF when it ends.
         eof = true;
@@ -523,8 +532,10 @@ void HandleContentChunkRead(
     bool eof = false;
 
     if ( err == asio::error::eof )
+    {
         eof = true;
-    else if ( fsm.get_is_ssl() && err.message() == "short read" )
+    }
+    else if ( fsm.get_is_ssl() && IsSslShortRead(err) )
     {
         // SSL doesn't return EOF when it ends.
         eof = true;
