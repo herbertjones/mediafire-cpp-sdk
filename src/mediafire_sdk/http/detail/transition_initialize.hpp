@@ -8,7 +8,10 @@
  */
 #pragma once
 
+#include "boost/asio/ssl.hpp"
+
 #include "mediafire_sdk/http/error.hpp"
+#include "mediafire_sdk/http/url.hpp"
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 
 #include "mediafire_sdk/http/detail/socket_wrapper.hpp"
@@ -32,12 +35,6 @@ struct InitializeAction
 
         // We should not be connected at this point.
         fsm.Disconnect();
-
-        // There should be nothing in the buffers.
-        fsm.read_buffer_.consume( fsm.read_buffer_.size() );
-        fsm.gzipped_buffer_.consume( fsm.gzipped_buffer_.size() );
-
-        fsm.filter_buf_consumed_ = 0;
 
         // Parse URL if redirect didn't pass one in.
         try {
@@ -65,22 +62,22 @@ struct InitializeAction
 
         if ( fsm.get_parsed_url()->scheme() == "http" )
         {
-            fsm.is_ssl_ = false;
+            fsm.set_is_ssl(false);
 
             // Create non-SSL socket and wrapper.
-            fsm.socket_wrapper_ = std::make_shared<SocketWrapper>(
-                new asio::ip::tcp::socket(*fsm.work_io_service_) );
+            fsm.set_socket_wrapper( std::make_shared<SocketWrapper>(
+                new asio::ip::tcp::socket(*fsm.get_work_io_service()) ));
 
             fsm.ProcessEvent(InitializedEvent());
         }
         else if ( fsm.get_parsed_url()->scheme() == "https" )
         {
-            fsm.is_ssl_ = true;
+            fsm.set_is_ssl(true);
 
             // Create the SSL socket and wrapper
-            fsm.socket_wrapper_ = std::make_shared<SocketWrapper>(
+            fsm.set_socket_wrapper( std::make_shared<SocketWrapper>(
                 new asio::ssl::stream<asio::ip::tcp::socket>(
-                    *fsm.work_io_service_, *fsm.ssl_ctx_ ) );
+                    *fsm.get_work_io_service(), *fsm.get_ssl_ctx() ) ));
 
             fsm.ProcessEvent(InitializedEvent());
         }

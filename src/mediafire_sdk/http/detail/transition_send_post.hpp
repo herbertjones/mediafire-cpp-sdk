@@ -9,6 +9,7 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 #include <sstream>
 
 #include "boost/asio.hpp"
@@ -22,11 +23,27 @@ namespace mf {
 namespace http {
 namespace detail {
 
+class SendPostData
+{
+public:
+    SendPostData(
+            const uint64_t post_interface_size
+        ) :
+        post_interface_size(post_interface_size),
+        bytes_read_from_interface(0)
+    {}
+
+    const uint64_t post_interface_size;
+    uint64_t bytes_read_from_interface;
+};
+using SendPostDataPointer = std::shared_ptr<SendPostData>;
+
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 template <typename FSM>
 void PostViaInterfaceDelayCallback(
         FSM & fsm,
+        SendPostDataPointer state_data,
         mf::http::SharedBuffer::Pointer post_data
     )
 {
@@ -45,13 +62,13 @@ void PostViaInterfaceDelayCallback(
         asio::async_write(
             *fsm.get_socket_wrapper(),
             asio::buffer(post_data->Data(), post_data->Size()),
-            [fsmp, race_preventer, start_time](
+            [fsmp, race_preventer, start_time, state_data](
                    const boost::system::error_code& ec,
                    std::size_t bytes_transferred
                 )
             {
                 // post_data passed in to prevent it from being freed
-                HandlePostWrite(*fsmp, race_preventer, start_time,
+                HandlePostWrite(*fsmp, state_data, race_preventer, start_time,
                     bytes_transferred, ec);
             });
     }
@@ -60,6 +77,7 @@ void PostViaInterfaceDelayCallback(
 template <typename FSM>
 void PostViaInterface(
         FSM & fsm,
+        SendPostDataPointer state_data,
         TimePoint last_write_start,
         TimePoint last_write_end
     )
@@ -69,6 +87,7 @@ void PostViaInterface(
     mf::http::SharedBuffer::Pointer post_data;
 
     auto post_interface_ = fsm.get_post_interface();
+    assert(post_interface_);
 
     try {
         post_data = post_interface_->RetreivePostDataChunk();
@@ -90,12 +109,13 @@ void PostViaInterface(
         // Allow interface to free.
         post_interface_.reset();
 
-        if ( fsm.get_post_interface_read_bytes() != fsm.get_post_interface_size() )
+        if ( state_data->bytes_read_from_interface !=
+            state_data->post_interface_size )
         {
             std::stringstream ss;
             ss << "POST data unexpected size.";
-            ss << " Expected: " << fsm.get_post_interface_size();
-            ss << " Received: " << fsm.get_post_interface_read_bytes();
+            ss << " Expected: " << state_data->post_interface_size;
+            ss << " Received: " << state_data->bytes_read_from_interface;
             fsm.ProcessEvent(ErrorEvent{
                     make_error_code(
                         http_error::VariablePostInterfaceFailure ),
@@ -109,16 +129,16 @@ void PostViaInterface(
     }
     else
     {
-        fsm.increment_post_interface_read_bytes(post_data->Size());
+        state_data->bytes_read_from_interface += post_data->Size();
 
         auto fsmp = fsm.AsFrontShared();
 
         // Delay behavior:
         fsm.SetTransactionDelayTimer( last_write_start, last_write_end );
         std::function<void()> strand_wrapped(
-            [fsmp, post_data]()
+            [fsmp, state_data, post_data]()
             {
-                PostViaInterfaceDelayCallback(*fsmp, post_data);
+                PostViaInterfaceDelayCallback(*fsmp, state_data, post_data);
             });
 
         fsm.get_transmission_delay_timer()->async_wait(
@@ -135,6 +155,7 @@ void PostViaInterface(
 template <typename FSM>
 void HandlePostWrite(
         FSM & fsm,
+        SendPostDataPointer state_data,
         RacePreventer race_preventer,
         const TimePoint start_time,
         const std::size_t bytes_transferred,
@@ -148,17 +169,16 @@ void HandlePostWrite(
 
     fsm.ClearAsyncTimeout();  // Must stop timeout timer.
 
-    if (fsm.get_bw_analyser())
+    if (auto bwa = fsm.get_bw_analyser())
     {
-        fsm.get_bw_analyser()->RecordOutgoingBytes( bytes_transferred, start_time,
-            sclock::now() );
+        bwa->RecordOutgoingBytes(bytes_transferred, start_time, sclock::now());
     }
 
     if (!err)
     {
         if (fsm.get_post_interface())
         {
-            PostViaInterface( fsm, start_time, sclock::now() );
+            PostViaInterface( fsm, state_data, start_time, sclock::now());
         }
         else
         {
@@ -197,27 +217,28 @@ struct SendPostAction
                 fsm.get_timeout_seconds());
             auto fsmp = fsm.AsFrontShared();
             auto start_time = sclock::now();
+            auto state_data = std::make_shared<SendPostData>(0);
 
             boost::asio::async_write(
                 *fsm.get_socket_wrapper(),
                 boost::asio::buffer(post_data->Data(), post_data->Size()),
-                [fsmp, race_preventer, start_time](
+                [fsmp, state_data, race_preventer, start_time](
                        const boost::system::error_code& ec,
                        std::size_t bytes_transferred
                     )
                 {
                     // post_data passed in to prevent it from being freed
-                    HandlePostWrite(*fsmp, race_preventer, start_time,
-                        bytes_transferred, ec);
+                    HandlePostWrite(*fsmp, state_data, race_preventer,
+                        start_time, bytes_transferred, ec);
                 });
         }
         else
         {
             auto post_interface_ = fsm.get_post_interface();
-            fsm.set_post_interface_size(post_interface_->PostDataSize());
-
+            auto state_data = std::make_shared<SendPostData>(
+                post_interface_->PostDataSize());
             const auto now = std::chrono::steady_clock::now();
-            PostViaInterface( fsm, now, now );
+            PostViaInterface( fsm, state_data, now, now );
         }
     }
 };

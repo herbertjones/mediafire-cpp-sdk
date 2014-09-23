@@ -8,18 +8,38 @@
  */
 #pragma once
 
+#include <memory>
+
+#include "boost/asio.hpp"
+#include "boost/lexical_cast.hpp"
+
+#include "mediafire_sdk/http/detail/http_request_events.hpp"
+#include "mediafire_sdk/http/detail/race_preventer.hpp"
+#include "mediafire_sdk/http/detail/timeouts.hpp"
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/url.hpp"
-#include "mediafire_sdk/http/detail/timeouts.hpp"
-#include "mediafire_sdk/http/detail/race_preventer.hpp"
 
 namespace mf {
 namespace http {
 namespace detail {
 
+class ResolveData
+{
+public:
+    ResolveData(
+            boost::asio::io_service * io_service
+        ) :
+        resolver(*io_service)
+    {}
+
+    asio::ip::tcp::resolver resolver;
+};
+using ResolveDataPointer = std::shared_ptr<ResolveData>;
+
 template <typename FSM>
 void HandleResolve(
-        std::shared_ptr<FSM> fsmp,
+        FSM & fsm,
+        ResolveDataPointer /*state_data*/,
         RacePreventer race_preventer,
         const boost::system::error_code& err,
         asio::ip::tcp::resolver::iterator endpoint_iterator
@@ -30,18 +50,18 @@ void HandleResolve(
     // Skip if cancelled due to timeout.
     if ( ! race_preventer.IsFirst() ) return;
 
-    fsmp->ClearAsyncTimeout();  // Must stop timeout timer.
+    fsm.ClearAsyncTimeout();  // Must stop timeout timer.
 
     if (!err)
     {
-        fsmp->ProcessEvent(ResolvedEvent{endpoint_iterator});
+        fsm.ProcessEvent(ResolvedEvent{endpoint_iterator});
     }
     else
     {
         std::stringstream ss;
-        ss << "Failure while resolving url(" << fsmp->get_url() << ").";
+        ss << "Failure while resolving url(" << fsm.get_url() << ").";
         ss << " Error: " << err.message();
-        fsmp->ProcessEvent(ErrorEvent{
+        fsm.ProcessEvent(ErrorEvent{
                 make_error_code(
                     http_error::UnableToResolve ),
                 ss.str()
@@ -53,12 +73,15 @@ struct ResolveHostAction
 {
     template <typename Event, typename FSM,typename SourceState,typename TargetState>
     void operator()(
-            Event const & evt,
+            Event const &,
             FSM & fsm,
             SourceState&,
             TargetState&
         )
     {
+        auto state_data = std::make_shared<ResolveData>(
+            fsm.get_work_io_service());
+
         const Url * url = fsm.get_parsed_url();
 
         assert(url);
@@ -85,18 +108,14 @@ struct ResolveHostAction
         auto fsmp = fsm.AsFrontShared();
 
         asio::ip::tcp::resolver::query query(host, port);
-        fsm.resolver_.async_resolve(
+        state_data->resolver.async_resolve(
             query,
-            [fsmp, race_preventer](
+            [fsmp, state_data, race_preventer](
                     const boost::system::error_code& ec,
                     boost::asio::ip::tcp::resolver::iterator iterator
                 )
             {
-                HandleResolve(
-                    fsmp,
-                    race_preventer,
-                    ec,
-                    iterator);
+                HandleResolve( *fsmp, state_data, race_preventer, ec, iterator);
             });
     }
 };

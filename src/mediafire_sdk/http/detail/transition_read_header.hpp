@@ -21,11 +21,10 @@ namespace mf {
 namespace http {
 namespace detail {
 
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
-
 template <typename FSM>
 void HandleHeaderRead(
         FSM & fsm,
+        SharedStreamBuf read_buffer,
         RacePreventer race_preventer,
         const TimePoint start_time,
         const std::size_t bytes_transferred,
@@ -42,7 +41,7 @@ void HandleHeaderRead(
     if (fsm.get_bw_analyser())
     {
         fsm.get_bw_analyser()->RecordIncomingBytes(
-            fsm.get_read_buffer()->size(), start_time, sclock::now() );
+            read_buffer->size(), start_time, sclock::now() );
     }
 
     if (!err)
@@ -52,7 +51,7 @@ void HandleHeaderRead(
             // Copy headers.
 
             asio::streambuf::const_buffers_type bufs =
-                fsm.get_read_buffer()->data();
+                read_buffer->data();
 
             evt.raw_headers = std::string(
                     asio::buffers_begin(bufs),
@@ -61,7 +60,10 @@ void HandleHeaderRead(
                 );
         }
 
-        std::istream response_stream(fsm.get_read_buffer());
+        // Pass the buffer incase it contains any unread data.
+        evt.read_buffer = read_buffer;
+
+        std::istream response_stream(read_buffer.get());
         response_stream >> evt.http_version;
         response_stream >> evt.status_code;
         std::getline(response_stream, evt.status_message);
@@ -85,9 +87,6 @@ void HandleHeaderRead(
         std::string last_header_name;
         while (std::getline(response_stream, line) && line != "\r")
         {
-            // Debug
-            // std::cout << line << std::endl;
-
             boost::trim_right(line);
 
             if ( line.empty() ) continue;
@@ -199,14 +198,16 @@ struct ReadHeaderAction
         auto fsmp = fsm.AsFrontShared();
         auto start_time = sclock::now();
 
+        auto read_buffer = std::make_shared<boost::asio::streambuf>();
+
         asio::async_read_until( *fsm.get_socket_wrapper(),
-            *fsm.get_read_buffer(), "\r\n\r\n",
-            [fsmp, race_preventer, start_time](
+            *read_buffer, "\r\n\r\n",
+            [fsmp, read_buffer, race_preventer, start_time](
                     const boost::system::error_code& ec,
                     std::size_t bytes_transferred
                 )
             {
-                HandleHeaderRead(*fsmp, race_preventer, start_time,
+                HandleHeaderRead(*fsmp, read_buffer, race_preventer, start_time,
                     bytes_transferred, ec);
             });
     }

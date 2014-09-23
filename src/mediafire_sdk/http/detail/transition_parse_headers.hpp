@@ -20,9 +20,9 @@ namespace detail {
 
 struct ParseHeadersAction
 {
-    template <typename Event, typename FSM,typename SourceState,typename TargetState>
+    template <typename FSM,typename SourceState,typename TargetState>
     void operator()(
-            Event const & evt,
+            HeadersReadEvent const & evt,
             FSM & fsm,
             SourceState&,
             TargetState&
@@ -54,8 +54,6 @@ struct ParseHeadersAction
         }
         else
         {
-            fsm.set_read_headers(evt);
-
             mf::http::Headers headers;
 
             headers.raw_headers = evt.raw_headers;
@@ -71,7 +69,11 @@ struct ParseHeadersAction
                     }
                 );
 
-            fsm.ProcessEvent(HeadersParsedEvent{});
+            fsm.ProcessEvent(HeadersParsedEvent{
+                evt.content_length,
+                evt.headers,
+                evt.read_buffer
+                });
         }
     }
 };

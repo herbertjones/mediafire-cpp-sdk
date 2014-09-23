@@ -7,6 +7,9 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
+
+#include "boost/asio/streambuf.hpp"
 
 namespace mf {
 namespace http {
@@ -21,6 +24,9 @@ Duration AsDuration(const T & t)
 {
     return std::chrono::duration_cast<Duration>(t);
 }
+
+using SharedStreamBuf = std::shared_ptr<boost::asio::streambuf>;
+
 
 }  // namespace detail
 }  // namespace http

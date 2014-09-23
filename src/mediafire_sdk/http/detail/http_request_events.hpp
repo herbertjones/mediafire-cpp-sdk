@@ -14,6 +14,7 @@
 #include "boost/variant/variant.hpp"
 
 #include "../shared_buffer.hpp"
+#include "types.hpp"
 
 namespace mf {
 namespace http {
@@ -96,6 +97,8 @@ struct HeadersReadEvent
      * converted to lowercase for ease of use.
      */
     std::map<std::string, std::string> headers;
+
+    SharedStreamBuf read_buffer;
 };
 struct RedirectEvent : public HeadersReadEvent
 {
@@ -106,7 +109,18 @@ struct RedirectEvent : public HeadersReadEvent
     std::string redirect_url;
 };
 struct RedirectedEvent {};
-struct HeadersParsedEvent {};
+struct HeadersParsedEvent
+{
+    uint64_t content_length;
+
+    /**
+     * HTTP header names are case insensitive, so the key value here is
+     * converted to lowercase for ease of use.
+     */
+    std::map<std::string, std::string> headers;
+
+    SharedStreamBuf read_buffer;
+};
 struct ContentReadEvent {};
 
 }  // namespace detail

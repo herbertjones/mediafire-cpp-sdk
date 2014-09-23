@@ -100,9 +100,9 @@ public:
     asio::io_service & get_io_service()
     {
         if ( ssl_socket_ )
-            ssl_socket_->get_io_service();
+            return ssl_socket_->get_io_service();
         else
-            socket_->get_io_service();
+            return socket_->get_io_service();
     }
 
     template<typename ConstBuffer, typename ReadHandler>

@@ -193,12 +193,9 @@ public:
         request_method_("GET"),
         url_(config.url),
         original_url_(config.url),
-        post_interface_size_(0),
-        post_interface_read_bytes_(0),
-        headers_(http_config_->GetDefaultHeaders()),
+        send_headers_(http_config_->GetDefaultHeaders()),
         http_proxy_(http_config_->GetHttpProxy()),
         https_proxy_(http_config_->GetHttpsProxy()),
-        filter_buf_consumed_(0),
         delay_multiplier_(MultiplierFromPercent(
                 http_config_->GetBandwidthUsagePercent()))
     {
@@ -461,20 +458,20 @@ public:
     {
         using CI = hl::HttpRequest::HeaderContainer::value_type;
         auto it = std::find_if(
-                headers_.begin(),
-                headers_.end(),
+                send_headers_.begin(),
+                send_headers_.end(),
                 [&name](const CI & pair)
                 {
                     return boost::iequals(pair.first, name);
                 }
             );
-        if ( it != headers_.end() )
+        if ( it != send_headers_.end() )
         {
             it->second = value;
         }
         else
         {
-            headers_.emplace_back(name, value);
+            send_headers_.emplace_back(name, value);
         }
     }
 
@@ -610,38 +607,23 @@ public:
     std::shared_ptr<SocketWrapper> get_socket_wrapper() const {return socket_wrapper_;}
     void set_socket_wrapper(std::shared_ptr<SocketWrapper> v) {socket_wrapper_=v;}
 
-    const hl::HttpRequest::HeaderContainer & get_headers() const {return headers_;}
+    const hl::HttpRequest::HeaderContainer & get_headers() const {return send_headers_;}
 
     hl::BandwidthAnalyserInterface::Pointer get_bw_analyser() const {return bw_analyser_;}
 
     const asio::ssl::verify_mode get_ssl_verify_mode() const {return ssl_verify_mode_;}
-
-    size_t get_post_interface_size() const {return post_interface_size_;}
-    void set_post_interface_size(size_t v) {post_interface_size_=v;}
-
-    size_t get_post_interface_read_bytes() const {return post_interface_read_bytes_;}
-    void set_post_interface_read_bytes(size_t v) {post_interface_read_bytes_=v;}
-    void increment_post_interface_read_bytes(size_t v) {post_interface_read_bytes_+=v;}
 
     boost::asio::steady_timer * get_transmission_delay_timer() {return &transmission_delay_timer_;}
 
     bool get_transmission_delay_timer_enabled() const {return transmission_delay_timer_enabled_;}
     void set_transmission_delay_timer_enabled(bool v) {transmission_delay_timer_enabled_=v;}
 
-    asio::streambuf * get_read_buffer() {return &read_buffer_;}
-    asio::streambuf * get_gzip_buffer() {return &gzipped_buffer_;}
-
     asio::io_service * get_callback_io_service() {return callback_io_service_;}
     std::shared_ptr<hl::RequestResponseInterface> get_callback() const {return callback_;}
 
-    HeadersReadEvent & get_read_headers() {return read_headers_;}
-    void set_read_headers(HeadersReadEvent v) {read_headers_=v;}
+    asio::io_service * get_work_io_service() const {return work_io_service_;}
 
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> &
-        get_filter_buf() {return filter_buf_;}
-
-    std::size_t get_filter_buf_consumed() const {return filter_buf_consumed_;}
-    void set_filter_buf_consumed(std::size_t v) {filter_buf_consumed_=v;}
+    boost::asio::ssl::context * get_ssl_ctx() const {return ssl_ctx_;}
 
 protected:
 #if ! defined(NDEBUG)
@@ -698,31 +680,15 @@ protected:
 
     hl::SharedBuffer::Pointer post_data_;
     std::shared_ptr<hl::PostDataPipeInterface> post_interface_;
-    size_t post_interface_size_;
-    size_t post_interface_read_bytes_;
 
-    hl::HttpRequest::HeaderContainer headers_;
-    HeadersReadEvent read_headers_;
+    hl::HttpRequest::HeaderContainer send_headers_;
 
     boost::optional<hl::Proxy> http_proxy_;
     boost::optional<hl::Proxy> https_proxy_;
 
-    asio::streambuf read_buffer_;
-    asio::streambuf gzipped_buffer_;
-
-    boost::iostreams::filtering_streambuf<boost::iostreams::input>
-        filter_buf_;
-    std::size_t filter_buf_consumed_;
-
     const float delay_multiplier_;
-
-    /** @todo hjones: Remove these */
-    friend struct InitializeAction;
-    friend struct ResolveHostAction;
 };
-
 
 }  // namespace detail
 }  // namespace http
 }  // namespace mf
-
