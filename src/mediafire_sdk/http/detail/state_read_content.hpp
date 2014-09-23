@@ -168,22 +168,22 @@ struct ReadContentData
     ReadContentData() :
         cancelled(false),
         content_length(0),
-        transfer_encoding(0),
-        content_encoding(0),
-        filter_buf_consumed(0)
+        filter_buf_consumed(0),
+        using_gzip(false),
+        using_content_length(false)
     {}
 
     bool cancelled;
 
     uint64_t content_length;
 
-    int transfer_encoding;
-    int content_encoding;
-
     SharedStreamBuf read_buffer;
 
     asio::streambuf gzipped_buffer;
     std::size_t filter_buf_consumed;
+
+    bool using_gzip;
+    bool using_content_length;
 
     boost::iostreams::filtering_streambuf<boost::iostreams::input> filter_buf;
 };
@@ -303,7 +303,7 @@ void HandleContentRead(
         const std::size_t total_read =
             total_previously_read + bytes_to_process;
 
-        if ( ! ( state_data->content_encoding & CE_Gzip ) )
+        if ( ! state_data->using_gzip )
         {
             // Non gzip buffer passing.
             std::istream post_data_stream(state_data->read_buffer.get());
@@ -328,7 +328,7 @@ void HandleContentRead(
         }
 
         // Also handle content-length.
-        if ( state_data->transfer_encoding & TE_ContentLength )
+        if ( state_data->using_content_length )
         {
             if ( state_data->content_length == total_read )
             {
@@ -358,7 +358,7 @@ void HandleContentRead(
 
         if ( read_complete )
         {
-            if ( state_data->content_encoding & CE_Gzip )
+            if ( state_data->using_gzip )
             {
                 auto & filter_buffer = state_data->filter_buf;
 
@@ -407,7 +407,7 @@ void HandleContentRead(
         else
         {
             uint64_t max_read_size = kMaxUnknownReadLength;
-            if ( state_data->transfer_encoding & TE_ContentLength )
+            if ( state_data->using_content_length )
             {
                 max_read_size = std::min(
                         state_data->content_length - total_read,
@@ -532,7 +532,7 @@ void HandleContentChunkRead(
 
     if ( !err || eof )
     {
-        if ( state_data->content_encoding & CE_Gzip )
+        if ( state_data->using_gzip )
         {
             boost::iostreams::copy(
                     boost::iostreams::restrict(
@@ -705,7 +705,7 @@ void HandleCompleteAllChunks(
     if (state_data->cancelled == true)
         return;
 
-    if ( state_data->content_encoding & CE_Gzip )
+    if ( state_data->using_gzip )
     {
         std::shared_ptr<VectorBuffer> return_buffer(
             new VectorBuffer() );
@@ -894,14 +894,14 @@ public:
 
         // Encodings!
         const int transfer_encoding = ParseTransferEncoding(headers);
-        const int content_encoding = [&headers, transfer_encoding]()
-            {
-                int ce = ParseContentEncoding(headers);
-                // gzip can be in transfer-encoding or content-encoding...
-                if ( transfer_encoding & TE_Gzip )
-                    ce |= static_cast<int>(CE_Gzip);
-                return ce;
-            }();
+        const int content_encoding = ParseContentEncoding(headers);
+
+        // gzip can be in transfer-encoding or content-encoding...
+        if (transfer_encoding & TE_Gzip || content_encoding & CE_Gzip)
+            state_data->using_gzip = true;
+
+        if ( transfer_encoding & TE_ContentLength )
+            state_data->using_content_length = true;
 
         if ( transfer_encoding & TE_Unknown )
         {
@@ -934,7 +934,7 @@ public:
         }
 
         if ( transfer_encoding & TE_Chunked
-            && transfer_encoding & TE_ContentLength )
+            && state_data->using_content_length )
         {
             std::stringstream ss;
             ss << "Unable to handle chunked encoding and content length.";
@@ -955,14 +955,12 @@ public:
 
         // Populate state specific data
         state_data->content_length = evt.content_length;
-        state_data->transfer_encoding = transfer_encoding;
-        state_data->content_encoding = content_encoding;
 
         // Move any previouly gathered data from the header reading over to the
         // read buffer.
         state_data->read_buffer = evt.read_buffer;
 
-        if ( content_encoding & CE_Gzip )
+        if ( state_data->using_gzip )
         {
             state_data->filter_buf.push(boost::iostreams::gzip_decompressor());
         }
@@ -991,7 +989,7 @@ public:
         else
         {
             uint64_t max_read_size = kMaxUnknownReadLength;
-            if ( transfer_encoding & TE_ContentLength )
+            if ( state_data->using_content_length )
             {
                 max_read_size = std::min(
                     state_data->content_length,
@@ -1031,6 +1029,7 @@ public:
 private:
     ReadContentDataPointer state_data_;
 };
+
 
 }  // namespace detail
 }  // namespace http
