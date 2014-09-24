@@ -80,6 +80,7 @@ std::string mf::utils::wide_to_bytes(const std::wstring & wide_string)
         NULL);
 
     assert( chars_written == bytes_required );
+    assert( buffer.size() == strlen(buffer.c_str()) );
 
     if ( chars_written == 0 )
     {
@@ -131,6 +132,7 @@ std::wstring mf::utils::bytes_to_wide(const std::string & byte_string)
         wchars_required);
 
     assert( wchars_written == wchars_required );
+    assert( buffer.size() == wcslen(buffer.c_str()) );
 
     if ( wchars_written == 0 )
     {
