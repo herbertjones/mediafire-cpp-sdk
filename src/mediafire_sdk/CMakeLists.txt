@@ -1,11 +1,6 @@
 
 include_directories("..")
 
-add_definitions(-DTEST_USER_1_USERNAME="${TEST_USER_1_USERNAME}")
-add_definitions(-DTEST_USER_1_PASSWORD="${TEST_USER_1_PASSWORD}")
-add_definitions(-DTEST_USER_2_USERNAME="${TEST_USER_2_USERNAME}")
-add_definitions(-DTEST_USER_2_PASSWORD="${TEST_USER_2_PASSWORD}")
-
 # Boost json parser relies on boost spirit, which needs a define to be thread
 # safe.
 add_definitions(-DBOOST_SPIRIT_THREADSAFE)
