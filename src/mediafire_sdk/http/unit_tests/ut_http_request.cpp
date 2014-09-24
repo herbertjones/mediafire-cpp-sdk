@@ -159,8 +159,7 @@ namespace {
         {}
 
         virtual void RedirectHeaderReceived(
-                const std::string & /* raw_header */,
-                const std::map<std::string, std::string> & /* headers */,
+                const mf::http::Headers & /* headers */,
                 const mf::http::Url & /* new_url */
             ) override
         {

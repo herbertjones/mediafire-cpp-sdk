@@ -46,23 +46,23 @@ public:
             {
                 try {
                     auto iface = fsm.get_callback();
-                    auto & raw_headers = evt.raw_headers;
-                    auto & header_map = evt.headers;
                     auto url = mf::http::Url(it->second);
+
+                    mf::http::Headers headers = { evt.raw_headers,
+                        evt.status_code, evt.status_message, evt.headers };
 
                     if ( fsm.get_callback_io_service() ==
                         fsm.get_work_io_service())
                     {
-                        iface->RedirectHeaderReceived( raw_headers, header_map,
+                        iface->RedirectHeaderReceived( headers,
                             url );
                     }
                     else
                     {
                         fsm.get_callback_io_service()->dispatch(
-                            [iface, raw_headers, header_map, url]()
+                            [iface, headers, url]()
                             {
-                                iface->RedirectHeaderReceived( raw_headers,
-                                    header_map, url );
+                                iface->RedirectHeaderReceived( headers, url );
                             }
                         );
                     }
@@ -87,12 +87,8 @@ public:
         }
         else
         {
-            mf::http::Headers headers;
-
-            headers.raw_headers = evt.raw_headers;
-            headers.status_code = evt.status_code;
-            headers.status_message = evt.status_message;
-            headers.headers = evt.headers;
+            mf::http::Headers headers = { evt.raw_headers, evt.status_code,
+                evt.status_message, evt.headers };
 
             auto iface = fsm.get_callback();
             if ( fsm.get_callback_io_service() == fsm.get_work_io_service())

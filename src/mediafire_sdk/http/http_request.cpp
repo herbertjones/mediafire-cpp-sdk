@@ -130,8 +130,7 @@ mf::http::HttpRequest::Pointer mf::http::HttpRequest::Create(
          * @param[in] new_url New request target.
          */
         virtual void RedirectHeaderReceived(
-                const std::string & /*raw_header*/,
-                const std::map<std::string, std::string> & /*headers*/,
+                const mf::http::Headers & /*headers*/,
                 const mf::http::Url & new_url
             ) override
         {
