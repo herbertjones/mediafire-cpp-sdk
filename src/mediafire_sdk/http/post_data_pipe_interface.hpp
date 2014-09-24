@@ -28,6 +28,9 @@ public:
      * This must return the entire size to be read.
      *
      * @return Byte size of POST data.
+     *
+     * @warning This happens in the work io_service of the HttpRequest, so it
+     * may occur in a different thread than the callback io_service.
      */
     virtual uint64_t PostDataSize() const = 0;
 
@@ -43,6 +46,9 @@ public:
      * http_error::PostInterfaceReadFailure(std::errc::broken_pipe) error.
      *
      * @return Handle to buffer of next POST data to be sent.
+     *
+     * @warning This happens in the work io_service of the HttpRequest, so it
+     * may occur in a different thread than the callback io_service.
      */
     virtual SharedBuffer::Pointer RetreivePostDataChunk() = 0;
 
