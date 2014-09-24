@@ -48,53 +48,54 @@ uint64_t mf::utils::str_to_uint64(
 std::string mf::utils::wide_to_bytes(const std::wstring & wide_string)
 {
     // Get required size of buffer (in characters!)
-    int chars_required_with_null_terminator = WideCharToMultiByte(
+    int bytes_required = WideCharToMultiByte(
         CP_UTF8, /* code page */
         0, /* flags */
         wide_string.data(), /* wide char source */
-        wide_string.size(), /* wide char size */
+        wide_string.size(), /* wide char size in wchars, not bytes */
         NULL, /* write pointer */
         0, /* write pointer size */
         NULL, /* pointer to char for unrepresentable characters */
         NULL  /* pointer to bool if unrepresentable char used */);
 
-    if ( chars_required_with_null_terminator == 0 )
+    if ( bytes_required == 0 )
     {
         return std::string();
     }
 
-    std::vector<char> buffer(chars_required_with_null_terminator, '\0');
+    auto buffer = std::string(
+        std::string::size_type(bytes_required),
+        '\0'
+        );
 
     // Convert string
-    int bytes_written = WideCharToMultiByte(
+    int chars_written = WideCharToMultiByte(
         CP_UTF8,
         0,
         wide_string.data(),
         wide_string.size(),
-        buffer.data(),
-        chars_required_with_null_terminator,
+        &buffer[0],
+        bytes_required,
         NULL,
         NULL);
-    // bytes_written contains the number of characters written, unlike the first
-    // count, which should be +1 as it includes the null terminator.
 
-    assert( (bytes_written-1) == chars_required_with_null_terminator );
+    assert( chars_written == bytes_required );
 
-    if ( bytes_written == 0 )
+    if ( chars_written == 0 )
     {
         return std::string();
     }
 
     // Return the string minus the terminator character as std::string handles
     // that for us
-    return std::string(buffer.data(), bytes_written);
+    return buffer;
 }
 
 // This function receives a Utf8 std::string and returns a std::wstring
 std::wstring mf::utils::bytes_to_wide(const std::string & byte_string)
 {
-    // Get required size of buffer
-    int wchars_required_with_null_terminator = MultiByteToWideChar(
+    // Get required size of buffer (in wide characters!)
+    int wchars_required = MultiByteToWideChar(
         CP_UTF8,
         0,
         byte_string.data(),
@@ -102,34 +103,41 @@ std::wstring mf::utils::bytes_to_wide(const std::string & byte_string)
         NULL,
         0);
 
-    if ( wchars_required_with_null_terminator == 0 )
+    // It is uncertain from the documentation if the return size contains the
+    // null terminator.  If the input, passing the size of the input, doesn't
+    // have a NULL terminator, then the output shouldn't have one either by
+    // existing conventions(input size should equal converted output size, not
+    // converted output size plus one) (if -1 were passed to the 4th parameter,
+    // then maybe the output size would contain the NULL terminator, but we
+    // aren't doing that here)
+
+    if ( wchars_required == 0 )
     {
         return std::wstring();
     }
 
-    std::vector<wchar_t> buffer(wchars_required_with_null_terminator, L'\0');
+    auto buffer = std::wstring(
+        std::string::size_type(wchars_required),
+        L'\0'
+        );
 
     // Convert string
-    int bytes_written = MultiByteToWideChar(
+    int wchars_written = MultiByteToWideChar(
         CP_UTF8,
         0,
         byte_string.data(),
         byte_string.size(),
-        buffer.data(),
-        wchars_required_with_null_terminator);
-    // bytes_written contains the number of characters written, unlike the first
-    // count, which should be +1 as it includes the null terminator.
+        &buffer[0],
+        wchars_required);
 
-    assert( (bytes_written - 1) == wchars_required_with_null_terminator );
+    assert( wchars_written == wchars_required );
 
-    if ( bytes_written == 0 )
+    if ( wchars_written == 0 )
     {
         return std::wstring();
     }
 
-    // Return the string minus the terminator character as std::wstring handles
-    // that for us
-    return std::wstring(buffer.data(), bytes_written);
+    return buffer;
 }
 #else
 uint64_t mf::utils::str_to_uint64(
