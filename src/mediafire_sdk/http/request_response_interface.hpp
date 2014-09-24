@@ -45,6 +45,9 @@ public:
     /**
      * @brief Called after response header is parsed.
      *
+     * This is called once for the response.  If there are any redirects they
+     * are received through RedirectHeaderReceived.
+     *
      * @param[in] headers Headers parsed into parts.
      */
     virtual void ResponseHeaderReceived(
