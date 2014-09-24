@@ -35,8 +35,12 @@ static const uint64_t kMaxUnknownReadLength = 1024 * 8;
 
 bool IsSslShortRead(const boost::system::error_code & ec)
 {
-    return (ec.category() == boost::asio::error::get_ssl_category()
-        && ec.value() == SSL_R_SHORT_READ);
+    // Asio internally uses OpenSSL ERR_PACK, which adds library code, function
+    // code and reason.  The reason is in the lowest 3 hexadecimal digits.
+    bool ret = (ec.category() == boost::asio::error::get_ssl_category()
+        && (ec.value() & 0xfff) == SSL_R_SHORT_READ);
+
+    return ret;
 }
 
 int ParseTransferEncoding(
