@@ -37,7 +37,6 @@ set(UTILS_HEADERS
     thread_id.hpp
     thread_id_impl.hpp
     timed_actions.hpp
-    singleton.hpp
     sha1_hasher.hpp
     sha256_hasher.hpp
     string.hpp
