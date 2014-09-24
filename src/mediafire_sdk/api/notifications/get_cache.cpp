@@ -65,14 +65,17 @@ bool NotificationFromPropertyBranch(
             mf::api::api_code::ContentInvalidData,
             "missing \"message\"");
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
-            pt,
-            "resource",
-            &value->resource ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"resource\"");
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                pt,
+                "resource",
+                &optarg) )
+        {
+            value->resource = optarg;
+        }
+    }
 
     {
         std::string optval;

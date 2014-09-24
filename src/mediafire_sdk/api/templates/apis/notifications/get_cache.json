@@ -39,7 +39,8 @@
             {
                 "cpp_type": "std::string",
                 "cpp_name": "resource",
-                "api_path": "resource"
+                "api_path": "resource",
+                "optional": true
             },
             {
                 "cpp_type": "Viewable",

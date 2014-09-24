@@ -53,7 +53,7 @@ public:
         std::string message;
 
         /** API response field "resource" */
-        std::string resource;
+        boost::optional<std::string> resource;
 
         /** API response field "viewable" */
         Viewable viewable;
