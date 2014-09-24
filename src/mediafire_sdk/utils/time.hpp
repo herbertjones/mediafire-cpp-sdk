@@ -29,6 +29,8 @@ boost::optional<std::time_t> TimeFromPtime(const boost::posix_time::ptime & pt);
 /**
  * @brief Convert a string value to a time_t
  *
+ * The time should match the pattern: 2000-01-01 20:00:00.000
+ *
  * @param[in] str String to convert
  *
  * @return Epoch seconds if conversion possible.
