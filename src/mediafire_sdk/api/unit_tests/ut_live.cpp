@@ -331,6 +331,8 @@ BOOST_AUTO_TEST_CASE(SessionTokenOverSessionMaintainerLive)
             if ( response.error_code )
             {
                 std::ostringstream ss;
+                ss << "User: " << user1::username << std::endl;
+                ss << "Password: " << user1::password << std::endl;
                 ss << "Error: " << response.error_string << std::endl;
                 BOOST_FAIL(ss.str());
             }
@@ -1259,40 +1261,35 @@ BOOST_AUTO_TEST_CASE(GetLoginToken)
     StartWithDefaultTimeout();
 }
 
-#if 0  // Spam the server with the same call. Was used to verify claims made by
+// Spam the server with the same call. Was used to verify claims made by
 // another team that there could be a problem with session tokens expiring after
 // 100 calls or so. No problem was discovered. Place assert in
 // api::SessionMaintainer::HandleSessionTokenFailure to test again.
 BOOST_AUTO_TEST_CASE(SpamTest)
 {
-    uint32_t count = 1000;
-
-    std::function<void(const api::user::get_info::Response &)>
+    uint32_t fail_count = 0;
+    std::function<void(const api::device::get_changes::Response &,uint32_t)>
         callback(
-        [&](const api::user::get_info::Response & response)
+        [&](const api::device::get_changes::Response & response, uint32_t count)
         {
-            if (count > 0)
+            std::cout << "SpamTest: Count: " << count << std::endl;
+            if ( response.error_code )
             {
-                std::cout << count << std::endl;
-                --count;
-                Call(
-                    api::user::get_info::Request(),
-                    callback );
+                ++fail_count;
+                std::cout << "Error: " << response.error_string << std::endl;
             }
-            else if ( response.error_code )
-            {
-                Fail(response);
-            }
-            else
-                Success();
         });
 
-    Call(
-        api::user::get_info::Request(),
-        callback );
-
-        Start();
+    uint32_t count = 50;
+    while ( count-- > 0 )
+    {
+        Call(
+                api::device::get_changes::Request(0),
+                std::bind(callback, std::placeholders::_1, count)
+            );
+    }
+    Start();
+    BOOST_CHECK_EQUAL( fail_count, 0 );
 }
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()
