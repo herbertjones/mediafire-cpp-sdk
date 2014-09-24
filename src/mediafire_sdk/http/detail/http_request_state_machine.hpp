@@ -150,6 +150,8 @@ struct ProxyConnectRequired
     template <class Fsm,class Evt,class SourceState,class TargetState>
     bool operator()(Evt const&, Fsm& fsm, SourceState&,TargetState&)
     {
+        // HTTP proxy CONNECT only needed if authentication is required.
+        // HTTPS always needs to go through the CONNECT step.
         return (fsm.get_is_ssl() && fsm.get_https_proxy())
             || (! fsm.get_is_ssl() && fsm.get_http_proxy() &&
                 ! fsm.get_http_proxy()->username.empty() );

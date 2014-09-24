@@ -1372,11 +1372,25 @@ bool TestHttpProxyLogin()
             );
 
     // Simple proxy sends uri instead of query, along with authorization.
-    std::string regex_str = "GET http://.*";
-    regex_str += auth_line;
-    regex_str += ".*";
-    regex_str += "\r\n\r\n";
-    server->Push( ExpectRegex{ boost::regex( regex_str ) } );
+    std::string connect_regex;
+    connect_regex += "CONNECT ";  // Authentication over proxy requires CONNECT
+    connect_regex += ".*";        // Hostname and anything till
+    connect_regex += auth_line;
+    connect_regex += ".*";
+    connect_regex += "\r\n\r\n";  // The header end.
+    server->Push( ExpectRegex{ boost::regex( connect_regex ) } );
+
+    // Send the proxy OK response.
+    server->Push( expect_server_test::SendMessage(
+            "HTTP/1.1 200 OK\r\n"
+            "\r\n"
+        ));
+
+    // Proceed as normally.
+    server->Push( ExpectRegex{ boost::regex(
+            "GET.*\r\n"
+            "\r\n"
+        )});
 
     server->Push( expect_server_test::SendMessage(
             "HTTP/1.1 200 OK\r\n"
