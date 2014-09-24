@@ -38,6 +38,10 @@ public:
      * valid data until no more data exists.  This function will be called until
      * PostDataSize() bytes are read or an error occurs.
      *
+     * If an error occurs while preparing the next chunk, return a bad Pointer
+     * or empty response.  This will stop the request with an
+     * http_error::PostInterfaceReadFailure(std::errc::broken_pipe) error.
+     *
      * @return Handle to buffer of next POST data to be sent.
      */
     virtual SharedBuffer::Pointer RetreivePostDataChunk() = 0;

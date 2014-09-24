@@ -61,7 +61,7 @@ std::string CategoryImpl::message(int ev) const
             return "unable to parse http headers";
         case http_error::UnsupportedEncoding:
             return "unsupported http encoding";
-        case http_error::VariablePostInterfaceFailure:
+        case http_error::PostInterfaceReadFailure:
             return "variable post interface failure";
         case http_error::Cancelled:
             return "request cancelled";
@@ -111,7 +111,7 @@ std::error_condition CategoryImpl::default_error_condition(
             return std::errc::protocol_error;
         case http_error::UnsupportedEncoding:
             return std::errc::protocol_error;
-        case http_error::VariablePostInterfaceFailure:
+        case http_error::PostInterfaceReadFailure:
             return std::errc::broken_pipe;
         case http_error::Cancelled:
             return std::errc::operation_canceled;

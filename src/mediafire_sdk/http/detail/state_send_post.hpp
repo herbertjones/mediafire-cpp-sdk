@@ -109,7 +109,7 @@ void PostViaInterface(
         ss << " Error: " << err.what();
         fsm.ProcessEvent(ErrorEvent{
                 make_error_code(
-                    http_error::VariablePostInterfaceFailure ),
+                    http_error::PostInterfaceReadFailure ),
                 ss.str()
             });
     }
@@ -128,7 +128,7 @@ void PostViaInterface(
             ss << " Received: " << state_data->bytes_read_from_interface;
             fsm.ProcessEvent(ErrorEvent{
                     make_error_code(
-                        http_error::VariablePostInterfaceFailure ),
+                        http_error::PostInterfaceReadFailure ),
                     ss.str()
                 });
         }

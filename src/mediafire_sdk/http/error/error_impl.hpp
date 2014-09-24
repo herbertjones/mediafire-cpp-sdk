@@ -29,7 +29,7 @@ enum class http_error
     CompressionFailure,
     UnparsableHeaders,
     UnsupportedEncoding,
-    VariablePostInterfaceFailure,
+    PostInterfaceReadFailure,
     Cancelled,
     IoTimeout,
 };
