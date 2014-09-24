@@ -134,7 +134,7 @@ mf::http::HttpRequest::Pointer mf::http::HttpRequest::Create(
                 const mf::http::Url & new_url
             ) override
         {
-            response_.redirects.push_back(new_url.url());
+            response_.redirects.push_back(new_url.full_url());
         }
 
         /**

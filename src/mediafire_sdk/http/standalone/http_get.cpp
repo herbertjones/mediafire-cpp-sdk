@@ -37,7 +37,7 @@ public:
         )
     {
         std::cout << "Redirect received: " << headers.raw_headers << std::endl;
-        std::cout << "New URL: " << new_url.url() << std::endl;
+        std::cout << "New URL: " << new_url.full_url() << std::endl;
     }
 
     virtual void ResponseHeaderReceived(

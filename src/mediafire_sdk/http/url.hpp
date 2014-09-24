@@ -143,7 +143,7 @@ public:
      *
      * @return The URL.
      */
-    std::string url() const {return url_;}
+    std::string full_url() const {return full_url_;}
 
     /**
      * Create a Url from a redirect, which may or may not contain the host and
@@ -159,7 +159,7 @@ public:
     Url FromRedirect(const std::string & redirect) const;
 
 private:
-    std::string url_;
+    std::string full_url_;
     std::string scheme_;
     std::string host_;
     std::string port_;

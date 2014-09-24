@@ -27,10 +27,10 @@ namespace {
 
 typedef std::string::const_iterator ci;
 
-hl::Url::Url(const std::string & url) : url_(url)
+hl::Url::Url(const std::string & url) : full_url_(url)
 {
-    const ci url_begin = url_.begin();
-    const ci url_end = url_.end();
+    const ci url_begin = full_url_.begin();
+    const ci url_end = full_url_.end();
 
     path_ = "/";
     full_path_ = "/";
@@ -108,7 +108,7 @@ hl::Url::Url(const std::string & url) : url_(url)
 
 void hl::Url::ParsePath(std::string::const_iterator path_start)
 {
-    const ci url_end = url_.end();
+    const ci url_end = full_url_.end();
 
     path_ = "/";
     full_path_ = "/";

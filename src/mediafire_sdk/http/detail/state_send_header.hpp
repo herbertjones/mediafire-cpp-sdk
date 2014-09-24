@@ -101,7 +101,7 @@ public:
         if (     ( is_ssl && fsm.get_https_proxy() )
             || ( ! is_ssl && fsm.get_http_proxy() ) )
         {
-            path = url->url();
+            path = url->full_url();
         }
 
         std::ostringstream request_stream_local;
