@@ -66,7 +66,7 @@ public:
     /**
      * @return The size of the buffer.
      */
-    virtual uint64_t Size() const
+    virtual uint64_t Size() const override
     {
         return size_;
     }
@@ -78,7 +78,7 @@ public:
      *
      * @warning Do not exceed Size().
      */
-    virtual uint8_t * Data()
+    uint8_t * Data()
     {
         // Buffer has canary
         assert( buffer_[size_] == 0 );
@@ -93,7 +93,7 @@ public:
      *
      * @warning Do not exceed Size().
      */
-    virtual const uint8_t * Data() const
+    virtual const uint8_t * Data() const override
     {
         // Buffer has canary
         assert( buffer_[size_] == 0 );
@@ -101,7 +101,7 @@ public:
         return buffer_.get();
     }
 
-protected:
+private:
     /**
      * @brief Create shared buffer.
      *

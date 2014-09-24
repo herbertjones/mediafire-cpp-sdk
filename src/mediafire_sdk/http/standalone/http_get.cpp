@@ -228,9 +228,7 @@ int main(int argc, char *argv[])
 
         if ( ! post_data.empty() )
         {
-            request->SetPostData(
-                mf::http::SharedBuffer::Create(
-                    std::move(post_data) ) );
+            request->SetPostData( mf::http::SharedBuffer::Create( post_data ) );
         }
 
         // Start the request.
