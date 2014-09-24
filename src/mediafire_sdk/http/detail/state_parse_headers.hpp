@@ -13,6 +13,7 @@
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/headers.hpp"
+#include "mediafire_sdk/http/url.hpp"
 
 namespace mf {
 namespace http {
@@ -43,9 +44,45 @@ public:
             }
             else
             {
-                RedirectEvent redirect(evt);
-                redirect.redirect_url = it->second;
-                fsm.ProcessEvent(redirect);
+                try {
+                    auto iface = fsm.get_callback();
+                    auto & raw_headers = evt.raw_headers;
+                    auto & header_map = evt.headers;
+                    auto url = mf::http::Url(it->second);
+
+                    if ( fsm.get_callback_io_service() ==
+                        fsm.get_work_io_service())
+                    {
+                        iface->RedirectHeaderReceived( raw_headers, header_map,
+                            url );
+                    }
+                    else
+                    {
+                        fsm.get_callback_io_service()->dispatch(
+                            [iface, raw_headers, header_map, url]()
+                            {
+                                iface->RedirectHeaderReceived( raw_headers,
+                                    header_map, url );
+                            }
+                        );
+                    }
+
+                    RedirectEvent redirect(evt);
+                    redirect.redirect_url = it->second;
+                    fsm.ProcessEvent(redirect);
+                }
+                catch(mf::http::InvalidUrl & err)
+                {
+                    std::stringstream ss;
+                    ss << "Bad " << evt.status_code << " redirect.";
+                    ss << " Source URL: " << fsm.get_url();
+                    ss << " Invalid redirect url: " << it->second;
+                    fsm.ProcessEvent(ErrorEvent{
+                            make_error_code(
+                                http_error::InvalidRedirectUrl ),
+                            ss.str()
+                        });
+                }
             }
         }
         else
@@ -58,12 +95,18 @@ public:
             headers.headers = evt.headers;
 
             auto iface = fsm.get_callback();
-            fsm.get_callback_io_service()->dispatch(
-                    [iface, headers](){
-                        iface->ResponseHeaderReceived(
-                            headers );
-                    }
-                );
+            if ( fsm.get_callback_io_service() == fsm.get_work_io_service())
+            {
+                iface->ResponseHeaderReceived( headers );
+            }
+            else
+            {
+                fsm.get_callback_io_service()->dispatch(
+                    [iface, headers]()
+                    {
+                        iface->ResponseHeaderReceived( headers );
+                    });
+            }
 
             fsm.ProcessEvent(HeadersParsedEvent{
                 evt.content_length,

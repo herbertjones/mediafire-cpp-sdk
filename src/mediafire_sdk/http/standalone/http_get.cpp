@@ -32,9 +32,9 @@ public:
     {}
 
     virtual void RedirectHeaderReceived(
-            std::string raw_header,
-            std::map<std::string, std::string> /* headers */,
-            mf::http::Url new_url
+            const std::string & raw_header,
+            const std::map<std::string, std::string> & /* headers */,
+            const mf::http::Url & new_url
         )
     {
         std::cout << "Redirect received: " << raw_header << std::endl;
@@ -42,7 +42,7 @@ public:
     }
 
     virtual void ResponseHeaderReceived(
-            mf::http::Headers headers
+            const mf::http::Headers & headers
         )
     {
         if ( show_headers_ )

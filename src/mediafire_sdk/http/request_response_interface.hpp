@@ -37,9 +37,9 @@ public:
      * @param[in] new_url New request target.
      */
     virtual void RedirectHeaderReceived(
-            std::string raw_header,
-            std::map<std::string, std::string> headers,
-            Url new_url
+            const std::string & raw_header,
+            const std::map<std::string, std::string> & headers,
+            const Url & new_url
         ) = 0;
 
     /**
@@ -51,7 +51,7 @@ public:
      * @param[in] headers Headers parsed into parts.
      */
     virtual void ResponseHeaderReceived(
-            Headers headers
+            const Headers & headers
         ) = 0;
 
     /**

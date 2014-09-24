@@ -278,9 +278,9 @@ public:
      * @param[in] new_url New request target.
      */
     virtual void RedirectHeaderReceived(
-            std::string raw_header,
-            std::map<std::string, std::string> headers,
-            Url new_url
+            const std::string & raw_header,
+            const std::map<std::string, std::string> & headers,
+            const Url & new_url
         )
     {
         std::cout << "Got redirected" << std::endl;
@@ -292,7 +292,7 @@ public:
      * @param[in] headers Headers parsed into parts.
      */
     virtual void ResponseHeaderReceived(
-            Headers headers
+            const Headers & headers
         )
     {
         std::cout << "Got headers: " << headers.raw_headers << std::endl;
