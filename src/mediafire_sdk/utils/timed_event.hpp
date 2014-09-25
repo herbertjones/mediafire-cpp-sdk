@@ -31,9 +31,11 @@ namespace utils {
  * approach of having one timer for each timeout.
  *
  * @warning When cancelling, or when TimedEvent is destroyed, all unfired events
- * will fire with std::errc::operation_aborted.  The events will be processed in
- * whatever thread the cancel happens in, so if there is an error do not assume
- * the EventProcessor was called in the same thread as the io_service.
+ * will fire with std::errc::operation_aborted.  The events will still be
+ * processed by the io_service passed to Create.  If calling cancel on your
+ * handler's destruction, if you are using a pointer to the handler's object,
+ * the pointer will now be invalid.  Be sure to check for this or use a shared
+ * pointer to the handler.
  */
 template<typename Event>
 class TimedEvent :
@@ -91,10 +93,8 @@ public:
             auto event = std::move( data_.begin()->second );
             data_.erase(data_.begin());
 
-            unique_lock.unlock();
-            event_processor_(std::move(event),
-                std::make_error_code(std::errc::operation_canceled));
-            unique_lock.lock();
+            io_service_->post( boost::bind( event_processor_, std::move(event),
+                    std::make_error_code(std::errc::operation_canceled)));
         }
 
         data_.clear();

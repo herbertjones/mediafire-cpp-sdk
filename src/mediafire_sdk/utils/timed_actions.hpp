@@ -26,9 +26,10 @@ namespace utils {
  * approach of having one timer for each timeout.
  *
  * @warning When cancelling, or when TimedActions is destroyed, all unfired
- * actions will fire with std::errc::operation_aborted.  The action will occur
- * in whatever thread the cancel happens in, so if there is an error do not
- * assume the Action was called in the same thread as the io_service.
+ * events will fire with std::errc::operation_aborted.  The events will still be
+ * processed by the io_service passed to Create.  If the actions may now hold
+ * invalid pointers, so if ignoring operation_aborted, be sure to use a shared
+ * pointer.
  */
 class TimedActions :
     public std::enable_shared_from_this<TimedActions>
