@@ -29,7 +29,8 @@ std::string AssembleQueryParts(std::map<std::string, std::string> & parts)
     char divider = '?';
     for ( const auto & it : parts )
     {
-        query += divider + it.first + '=' + mf::utils::UrlEncode(it.second);
+        query += divider + it.first + '=' +
+            mf::utils::url::get_parameter::Encode(it.second);
         divider = '&';
     }
     return query;

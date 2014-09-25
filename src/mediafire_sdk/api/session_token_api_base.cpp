@@ -14,6 +14,7 @@
 #include "mediafire_sdk/utils/url_encode.hpp"
 
 namespace api = mf::api;
+namespace get_parameter = mf::utils::url::get_parameter;
 
 void api::detail::SessionTokenApiBaseStatic::SetSessionToken(
         std::string session_token,
@@ -38,8 +39,8 @@ std::string api::detail::SessionTokenApiBaseStatic::MakePathAndQuery(
 
         for ( const auto & it : query_parts )
         {
-            query += separator + it.first + '='
-                + mf::utils::UrlEncode(it.second);
+            query += separator + it.first + '=' +
+                get_parameter::Encode(it.second);
             separator = '&';
         }
 
@@ -58,7 +59,7 @@ std::string api::detail::SessionTokenApiBaseStatic::MakePathAndQuery(
         std::string unencoded_query = query;
         for ( const auto & it : query_parts )
         {
-            query += '&' + it.first + '=' + mf::utils::UrlEncode(it.second);
+            query += '&' + it.first + '=' + get_parameter::Encode(it.second);
             unencoded_query += '&' + it.first + '=' + it.second;
         }
 
@@ -84,7 +85,7 @@ std::string api::detail::SessionTokenApiBaseStatic::MakePost(
 
     for ( const auto & it : query_parts )
     {
-        query += '&' + it.first + '=' + mf::utils::UrlEncode(it.second);
+        query += '&' + it.first + '=' + get_parameter::Encode(it.second);
     }
 
     const std::string signature_full_path = url_path + '?' + query;

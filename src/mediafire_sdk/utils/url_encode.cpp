@@ -16,36 +16,46 @@
 #include "boost/lexical_cast.hpp"
 
 namespace {
-    bool IsUnreserved(char ch)
-    {
-        if (
-                ( 'A' <= ch && ch <= 'Z' ) ||   // character is between A and Z
-                ( 'a' <= ch && ch <= 'z' ) ||   // character is between a and z
-                ( '0' <= ch && ch <= '9' ) ||   // charcater is between 0 and 9
-                ( '-' == ch ) ||                // character is - or
-                ( '_' == ch ) ||                // character is _ or
-                ( '.' == ch ) ||                // character is . or
-                ( '~' == ch ) )                 // character is ~
-            return false;
-        else
-            return true;
-    }
 
-std::string UrlEncodeBase(const std::string & unencoded_str, bool plus_encode)
+enum class PlusEncode
+{
+    No,
+    Yes
+};
+
+bool RequiresPercentEncoding(char ch)
+{
+    if (
+        ( 'A' <= ch && ch <= 'Z' ) ||   // character is between A and Z
+        ( 'a' <= ch && ch <= 'z' ) ||   // character is between a and z
+        ( '0' <= ch && ch <= '9' ) ||   // charcater is between 0 and 9
+        ( '-' == ch ) ||                // character is - or
+        ( '_' == ch ) ||                // character is _ or
+        ( '.' == ch ) ||                // character is . or
+        ( '~' == ch ) )                 // character is ~
+        return false;
+    else
+        return true;
+}
+
+std::string UrlEncodeBase(
+        const std::string & unencoded_str,
+        PlusEncode plus_encode
+    )
 {
     char output[3] = {0};
 
     std::string encoded_str;
     encoded_str.reserve(unencoded_str.size()*3);
     for ( std::string::const_iterator
-            it = unencoded_str.begin(), end = unencoded_str.end();
-            it != end; ++it )
+        it = unencoded_str.begin(), end = unencoded_str.end();
+        it != end; ++it )
     {
-        if ( ! IsUnreserved( *it ) )
+        if ( ! RequiresPercentEncoding( *it ) )
         {
             encoded_str += *it;
         }
-        else if ( plus_encode && *it == ' ' )
+        else if ( plus_encode == PlusEncode::Yes && *it == ' ' )
         {
             encoded_str += "+";
         }
@@ -68,8 +78,7 @@ std::string UrlEncodeBase(const std::string & unencoded_str, bool plus_encode)
     return encoded_str;
 }
 boost::optional<std::string> UrlUnencodeBase(
-        const std::string & encoded_str,
-        bool plus_encode
+        const std::string & encoded_str
     )
 {
     std::string unencoded_str;
@@ -119,9 +128,16 @@ boost::optional<std::string> UrlUnencodeBase(
             else
                 return boost::optional<std::string>();  // Fail
         }
-        else if ( plus_encode && *it == '+' )
+        else if ( *it == '+' )
         {
+            // Due to lax nature of web, allow '+' in any situation to be a
+            // space.
             unencoded_str += ' ';
+        }
+        else if ( RequiresPercentEncoding( *it ))
+        {
+            // This should not be in here.
+            return boost::optional<std::string>();  // Fail
         }
         else
         {
@@ -133,26 +149,37 @@ boost::optional<std::string> UrlUnencodeBase(
 }
 }  // namespace
 
-std::string mf::utils::UrlEncode(const std::string & unencoded_str)
-{
-    return UrlEncodeBase(unencoded_str, false);
-}
+namespace mf {
+namespace utils {
+namespace url {
 
-std::string mf::utils::UrlPostEncode(const std::string & unencoded_str)
+namespace percent {
+std::string Encode(const std::string & unencoded_str)
 {
-    return UrlEncodeBase(unencoded_str, true);
+    return UrlEncodeBase(unencoded_str, PlusEncode::No);
 }
-
-boost::optional<std::string> mf::utils::UrlUnencode(
+boost::optional<std::string> Decode(
         const std::string & encoded_str
     )
 {
-    return UrlUnencodeBase(encoded_str, false);
+    return UrlUnencodeBase(encoded_str);
+}
+}  // namespace percent
+
+namespace percent_plus {
+std::string Encode(const std::string & unencoded_str)
+{
+    return UrlEncodeBase(unencoded_str, PlusEncode::Yes);
 }
 
-boost::optional<std::string> mf::utils::UrlPostUnencode(
+boost::optional<std::string> Decode(
         const std::string & encoded_str
     )
 {
-    return UrlUnencodeBase(encoded_str, true);
+    return UrlUnencodeBase(encoded_str);
 }
+}  // namespace percent_plus
+
+}  // namespace url
+}  // namespace utils
+}  // namespace mf

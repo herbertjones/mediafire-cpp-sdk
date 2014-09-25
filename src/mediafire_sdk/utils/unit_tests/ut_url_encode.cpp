@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(UrlEncode)
     for ( std::size_t i = 0; i < sizeof(pairs)/sizeof(pairs[0]); ++i )
     {
         BOOST_CHECK_EQUAL(
-                mf::utils::UrlEncode( pairs[i][0] ),
+                mf::utils::url::get_parameter::Encode( pairs[i][0] ),
                 std::string( pairs[i][1] )
             );
     }
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(UrlUnencode)
     for ( std::size_t i = 0; i < sizeof(pairs)/sizeof(pairs[0]); ++i )
     {
         boost::optional<std::string> maybe_decoded =
-            mf::utils::UrlUnencode( pairs[i][1] );
+            mf::utils::url::get_parameter::Decode( pairs[i][1] );
 
         BOOST_CHECK(
                 maybe_decoded

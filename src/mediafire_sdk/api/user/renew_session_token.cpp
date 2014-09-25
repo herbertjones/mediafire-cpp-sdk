@@ -31,7 +31,8 @@ std::string v0::Request::Url(std::string hostname) const
 
     url = "https://" + hostname + "/api/user/renew_session_token.php";
 
-    url += "?session_token=" + mf::utils::UrlEncode(session_token_);
+    url += "?session_token=" +
+        mf::utils::url::get_parameter::Encode(session_token_);
 
     url += "&response_format=json";
 

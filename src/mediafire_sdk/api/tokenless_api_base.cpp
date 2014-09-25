@@ -24,7 +24,8 @@ std::string api::detail::TokenlessApiBaseStatic::MakePathAndQuery(
 
     for ( const auto & it : query_parts )
     {
-        query += separator + it.first + '=' + mf::utils::UrlEncode(it.second);
+        query += separator + it.first + '=' +
+            mf::utils::url::get_parameter::Encode(it.second);
         separator = '&';
     }
 
@@ -34,7 +35,7 @@ std::string api::detail::TokenlessApiBaseStatic::MakePathAndQuery(
 }
 
 std::string api::detail::TokenlessApiBaseStatic::MakePost(
-        const std::string & url_path,
+        const std::string & /*url_path*/,
         const std::map<std::string, std::string> & query_parts
     ) const
 {
@@ -43,7 +44,8 @@ std::string api::detail::TokenlessApiBaseStatic::MakePost(
 
     for ( const auto & it : query_parts )
     {
-        query += separator + it.first + '=' + mf::utils::UrlEncode(it.second);
+        query += separator + it.first + '=' +
+            mf::utils::url::post_parameter::Encode(it.second);
         separator = '&';
     }
 

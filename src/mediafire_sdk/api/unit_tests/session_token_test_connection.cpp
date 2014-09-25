@@ -22,6 +22,8 @@
 
 namespace au = mf::api::ut;
 namespace asio = boost::asio;
+namespace get_parameter = mf::utils::url::get_parameter;
+namespace post_parameter = mf::utils::url::post_parameter;
 
 au::SessionTokenTestConnection::SessionTokenTestConnection(
         boost::asio::io_service * io_service,
@@ -228,7 +230,7 @@ void au::SessionTokenTestConnection::ParseHeaders(
                 part,
                 boost::is_any_of("="));
 
-            boost::optional<std::string> key = mf::utils::UrlUnencode(
+            boost::optional<std::string> key = get_parameter::Decode(
                 key_pair[0] );
             if ( ! key )
             {
@@ -239,7 +241,7 @@ void au::SessionTokenTestConnection::ParseHeaders(
 
             if (key_pair.size() > 1)
             {
-                boost::optional<std::string> value = mf::utils::UrlUnencode(
+                boost::optional<std::string> value = get_parameter::Decode(
                     key_pair[1] );
                 if ( ! value )
                 {
@@ -326,7 +328,7 @@ void au::SessionTokenTestConnection::HandleContentRead(
                     part,
                     boost::is_any_of("="));
 
-                boost::optional<std::string> key = mf::utils::UrlPostUnencode(
+                boost::optional<std::string> key = post_parameter::Decode(
                     key_pair[0] );
                 if ( ! key )
                 {
@@ -337,8 +339,8 @@ void au::SessionTokenTestConnection::HandleContentRead(
 
                 if (key_pair.size() > 1)
                 {
-                    boost::optional<std::string> value =
-                        mf::utils::UrlPostUnencode( key_pair[1] );
+                    boost::optional<std::string> value = post_parameter::Decode(
+                        key_pair[1] );
                     if ( ! value )
                     {
                         std::cout << "Got invalid POST data." << std::endl;
