@@ -17,6 +17,7 @@ namespace utils {
 
 using boost::mutex;
 using boost::lock_guard;
+using boost::unique_lock;
 
 }  // namespace utils
 }  // namespace mf
@@ -25,13 +26,12 @@ using boost::lock_guard;
 
 #include <mutex>
 
-#include "boost/thread.hpp"
-
 namespace mf {
 namespace utils {
 
 using std::mutex;
 using std::lock_guard;
+using std::unique_lock;
 
 }  // namespace utils
 }  // namespace mf

@@ -16,10 +16,10 @@ set(UTILS_SOURCES
     fileio.cpp
     io_service_connection.cpp
     md5_hasher.cpp
-    thread_id.cpp
     sha1_hasher.cpp
     sha256_hasher.cpp
     string.cpp
+    thread_id.cpp
     time.cpp
     url_encode.cpp
     ${OS_DIR}/thread_id_impl.cpp
@@ -29,18 +29,19 @@ set(UTILS_HEADERS
 
     base64.hpp
     fileio.hpp
-    io_service_connection.hpp
     io_service_connection-inl.hpp
+    io_service_connection.hpp
     io_service_connection_helper.hpp
     md5_hasher.hpp
     mutex.hpp
-    thread_id.hpp
-    thread_id_impl.hpp
-    timed_actions.hpp
     sha1_hasher.hpp
     sha256_hasher.hpp
     string.hpp
+    thread_id.hpp
+    thread_id_impl.hpp
     time.hpp
+    timed_actions.hpp
+    timed_events.hpp
     url_encode.hpp
 )
 

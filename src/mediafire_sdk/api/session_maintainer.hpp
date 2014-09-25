@@ -20,8 +20,6 @@
 #include "mediafire_sdk/api/connection_state.hpp"
 #include "mediafire_sdk/api/session_state.hpp"
 
-#include "mediafire_sdk/utils/timed_actions.hpp"
-
 namespace mf {
 namespace api {
 

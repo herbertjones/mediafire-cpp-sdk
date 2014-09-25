@@ -22,6 +22,7 @@
 
 #include "mediafire_sdk/api/error.hpp"
 #include "mediafire_sdk/utils/mutex.hpp"
+#include "mediafire_sdk/utils/timed_events.hpp"
 
 #if ! defined(NDEBUG)
 // Counter to keep track of number of HttpRequests
@@ -118,28 +119,41 @@ namespace detail {
 class SessionMaintainerLocker
 {
 public:
+    using TimedEvents = mf::utils::TimedEvent<STRequest>;
+    using WeakTimedEvents = mf::utils::TimedEvent<STRequestWeak>;
+
     SessionMaintainerLocker(
             boost::asio::io_service * work_ios,
-            mf::utils::TimedActions<STRequest>::Callback callback
+            TimedEvents::EventProcessor event_processor
         ) :
         work_ios_(work_ios),
         session_state_(session_state::Uninitialized()),
         connection_state_(connection_state::Uninitialized()),
         session_state_change_count_(0),
-        delayed_requests_(mf::utils::TimedActions<STRequest>::Create(
-                work_ios, callback)),
+        delayed_requests_(TimedEvents::Create( work_ios, event_processor)),
         in_progress_session_token_requests_(0),
-        time_out_requests_(mf::utils::TimedActions<STRequestWeak>::Create(
-                work_ios, boost::bind(
-                    &SessionMaintainerLocker::HandleTimedOutRequest, this, _1
-                )))
+        time_out_requests_(WeakTimedEvents::Create( work_ios,
+                CreateTimeoutProcessor()))
     {
     }
 
     ~SessionMaintainerLocker()
     {
-        delayed_requests_->Release();
-        time_out_requests_->Release();
+        delayed_requests_->Stop();
+        time_out_requests_->Stop();
+    }
+
+    WeakTimedEvents::EventProcessor CreateTimeoutProcessor()
+    {
+        // Safe to pass in this as we call Stop in DTOR.
+        return [this](
+                STRequestWeak weak_request,
+                const std::error_code & ec
+            )
+        {
+            if (!ec)
+                HandleTimedOutRequest(weak_request);
+        };
     }
 
     Credentials GetCredenials()
@@ -168,7 +182,7 @@ public:
 
         time_out_requests_->Add(
             std::chrono::seconds(request->TimeoutSeconds()),
-            request );
+            STRequestWeak(request) );
 
         if (request->UsesSessionToken())
             waiting_st_requests_.push_back( request );
@@ -207,9 +221,7 @@ public:
     {
         mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
         in_progress_requests_.erase( request );
-        delayed_requests_->Add(
-            std::chrono::seconds(delay_sec),
-            request );
+        delayed_requests_->Add( std::chrono::seconds(delay_sec), request );
     }
 
     boost::optional< STRequest > NextWaitingNonSessionTokenRequest()
@@ -427,8 +439,8 @@ public:
     void StopTimeouts()
     {
         mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
-        delayed_requests_->Clear();
-        time_out_requests_->Clear();
+        delayed_requests_->Stop();
+        time_out_requests_->Stop();
     }
 
 private:
@@ -457,13 +469,13 @@ private:
 
     std::map< STRequest, SessionToken > checked_out_tokens_;
 
-    mf::utils::TimedActions<STRequest>::Pointer delayed_requests_;
+    TimedEvents::Pointer delayed_requests_;
 
     std::vector< SessionToken > session_tokens_;
 
     std::size_t in_progress_session_token_requests_;
 
-    mf::utils::TimedActions<STRequestWeak>::Pointer time_out_requests_;
+    WeakTimedEvents::Pointer time_out_requests_;
 
     void ChangeSessionStateInternal(
             api::SessionState state
