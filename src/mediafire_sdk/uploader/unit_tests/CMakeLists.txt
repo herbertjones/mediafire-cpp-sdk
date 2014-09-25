@@ -1,4 +1,10 @@
 
+# Unit test usernames/passwords
+add_definitions(-DTEST_USER_1_USERNAME="${TEST_USER_1_USERNAME}")
+add_definitions(-DTEST_USER_1_PASSWORD="${TEST_USER_1_PASSWORD}")
+add_definitions(-DTEST_USER_2_USERNAME="${TEST_USER_2_USERNAME}")
+add_definitions(-DTEST_USER_2_PASSWORD="${TEST_USER_2_PASSWORD}")
+
 # --- ut_hasher --------------------------------------------
 add_executable(ut_hasher
     ut_hasher.cpp
