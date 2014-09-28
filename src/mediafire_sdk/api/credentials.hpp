@@ -31,6 +31,23 @@ struct Email
 };
 
 /**
+ * @struct Ekey
+ * @brief Wrapper for session login via ekey and password.
+ *
+ * The ekey (pronounced "e key") is an identifier that uniquely identifies a
+ * user regardless of email address changes and should be the preferred way to
+ * log in.
+ */
+struct Ekey
+{
+    /** Ekey returned by user/get_info and user/get_session_token. */
+    std::string ekey;
+
+    /** User's password. */
+    std::string password;
+};
+
+/**
  * @struct Facebook
  * @brief Wrapper for session login via facebook token.
  *
@@ -51,6 +68,7 @@ struct Facebook
  */
 typedef boost::variant
     < credentials::Email
+    , credentials::Ekey
     , credentials::Facebook
     > Credentials;
 
@@ -65,6 +83,16 @@ namespace credentials {
  * @return True if equal.
  */
 bool operator==(const Email& lhs, const Email& rhs);
+
+/**
+ * @brief Compare two Ekeys.
+ *
+ * @param[in] lhs Left side
+ * @param[in] rhs Right side
+ *
+ * @return True if equal.
+ */
+bool operator==(const Ekey& lhs, const Ekey& rhs);
 
 /**
  * @brief Compare two Facebook.

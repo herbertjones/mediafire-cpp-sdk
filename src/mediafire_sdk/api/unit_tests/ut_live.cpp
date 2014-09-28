@@ -165,8 +165,6 @@ public:
         connection_(&globals::connection),
         timeout_timer_(*connection_->io_service)
     {
-        // Can't call run again without resetting io service.
-        connection_->io_service->reset();
     }
 
     ~Fixture()
@@ -181,6 +179,8 @@ public:
 
     void Start()
     {
+        // Can't call run again without resetting io service.
+        connection_->io_service->reset();
         connection_->io_service->run();
     }
 
@@ -1255,6 +1255,49 @@ BOOST_AUTO_TEST_CASE(GetLoginToken)
                     << "https://" << constants::host
                     << "/api/user/login_with_token.php?login_token="
                     << response.login_token << std::endl;
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(EkeyTest)
+{
+    api::credentials::Email email_creds = {user1::username, user1::password};
+    boost::optional<api::credentials::Ekey> ekey_creds;
+    Call(
+        api::user::get_session_token::Request(email_creds),
+        [&](const api::user::get_session_token::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                std::cout << "Got ekey: " << response.ekey << std::endl;
+                ekey_creds = api::credentials::Ekey{response.ekey, user1::password};
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+
+    // Now use the ekey
+    BOOST_REQUIRE( ekey_creds );
+
+    Call(
+        api::user::get_session_token::Request(*ekey_creds),
+        [&](const api::user::get_session_token::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                std::cout << "Logged in with ekey!" << std::endl;
+                Success();
             }
         });
 

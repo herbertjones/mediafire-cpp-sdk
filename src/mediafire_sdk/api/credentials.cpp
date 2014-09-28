@@ -19,6 +19,12 @@ bool operator==(const Email& lhs, const Email& rhs)
         == std::tie(rhs.email, rhs.password);
 }
 
+bool operator==(const Ekey& lhs, const Ekey& rhs)
+{
+    return std::tie(lhs.ekey, lhs.password)
+        == std::tie(rhs.ekey, rhs.password);
+}
+
 bool operator==(const Facebook& lhs, const Facebook& rhs)
 {
     return (lhs.fb_access_token == rhs.fb_access_token);
@@ -34,6 +40,13 @@ std::size_t CredentialsHash(Credentials credentials)
         {
             std::ostringstream ss;
             ss << email_credentials.email << "::" << email_credentials.password;
+            return std::hash<std::string>()(ss.str());
+        }
+
+        std::size_t operator()(credentials::Ekey ekey_credentials) const
+        {
+            std::ostringstream ss;
+            ss << ekey_credentials.ekey << "::" << ekey_credentials.password;
             return std::hash<std::string>()(ss.str());
         }
 

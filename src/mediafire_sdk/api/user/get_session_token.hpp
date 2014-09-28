@@ -36,6 +36,9 @@ public:
     // The rest must be set by implementer
     std::string session_token;
 
+    /** Unique user identifier. Will never change. */
+    std::string ekey;
+
     /** Unique password identifier.  Changes when password changes. */
     std::string pkey;
 

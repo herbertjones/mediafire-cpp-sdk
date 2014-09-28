@@ -54,6 +54,20 @@ public:
     }
 
     std::map<std::string, std::string> operator()(
+            const mf::api::credentials::Ekey & ekey_credentials
+        ) const
+    {
+        std::map<std::string, std::string> parts;
+
+        parts.emplace(std::string("ekey"), ekey_credentials.ekey);
+        parts.emplace(std::string("password"), ekey_credentials.password);
+        parts.emplace(std::string("signature"), app_constants::BuildSignature(
+                ekey_credentials.ekey + ekey_credentials.password ) );
+
+        return parts;
+    }
+
+    std::map<std::string, std::string> operator()(
             const mf::api::credentials::Facebook & facebook_credentials
         ) const
     {
@@ -136,6 +150,13 @@ void v0::Request::HandleContent(
             response.error_code = make_error_code(
                     mf::api::api_code::ContentInvalidData );
             response.error_string = "missing session token";
+        }
+        if ( ! GetIfExists(response.pt, "response.ekey",
+                    &response.ekey ) )
+        {
+            response.error_code = make_error_code(
+                    mf::api::api_code::ContentInvalidData );
+            response.error_string = "missing \"response.ekey\"";
         }
     }
 
