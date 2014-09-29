@@ -64,7 +64,7 @@ public:
      * The error_code will be set if an error occurred while parsing the
      * content.
      */
-    virtual void InitializeWithContent(
+    void InitializeWithContent(
             const std::string & request_url,
             const std::string & debug,
             const mf::http::Headers & headers,
@@ -79,7 +79,7 @@ public:
      * @param[in] ec Error code passed from the HTTP request object.
      * @param[in] error_str Error text passed from the HTTP request object.
      */
-    virtual void InitializeWithError(
+    void InitializeWithError(
             const std::string & request_url,
             const std::string & debug,
             std::error_code ec,
