@@ -169,7 +169,7 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
         parts["allow_duplicate_name"] = AsString(*rename_on_name_collision_);
 
     std::string post_data = MakePost(api_path + ".php", parts);
-    api_data_type_debug_ += " POST data: " + post_data + "\n";
+    AddDebugText(" POST data: " + post_data + "\n");
     return mf::http::SharedBuffer::Create(post_data);
 }
 

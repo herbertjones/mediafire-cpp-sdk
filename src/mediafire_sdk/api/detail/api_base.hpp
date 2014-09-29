@@ -29,14 +29,16 @@ namespace detail {
  * @class ApiBase
  * @brief Templated base class for API operations.
  *
+ * @tparam ApiResponseType The response datatype for the API request.
+ *
  * Contains base functionality for API calls which are custom to each API type.
  */
-template<typename DataType>
+template<typename ApiResponseType>
 class ApiBase
 {
 public:
     /** Requester/SessionMaintainer expected class. */
-    typedef DataType ResponseType;
+    typedef ApiResponseType ResponseType;
 
     /** Requester/SessionMaintainer expected typedef. */
     typedef std::function<
@@ -59,7 +61,7 @@ public:
         assert( callback_ );
 
         ResponseType response;
-        response.InitializeWithContent(url, api_data_type_debug_, headers, content);
+        response.InitializeWithContent(url, debug_text_, headers, content);
 
 #       ifdef OUTPUT_DEBUG // Debug code
         std::cout << "Got content:\n" << content << std::endl;
@@ -102,7 +104,7 @@ public:
 #       endif
 
         ResponseType response;
-        response.InitializeWithError(url, api_data_type_debug_, ec, error_string);
+        response.InitializeWithError(url, debug_text_, ec, error_string);
 
         if ( callback_ )
             callback_(response);
@@ -117,7 +119,6 @@ public:
 
 protected:
     CallbackType callback_;
-    std::string api_data_type_debug_;
 
     /**
      * @brief Pure virtual function so implementer only needs to extract data
@@ -163,6 +164,14 @@ protected:
         response->error_code = make_error_code( error_id );
         response->error_string = error_str;
     }
+
+    void AddDebugText(const std::string & debug_text)
+    {
+        debug_text_ += debug_text;
+    }
+
+private:
+    std::string debug_text_;
 };
 
 }  // namespace detail

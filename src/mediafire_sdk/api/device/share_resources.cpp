@@ -132,7 +132,7 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
         parts["tw_oauth_token_secret"] = *tw_oauth_token_secret_;
 
     std::string post_data = MakePost(api_path + ".php", parts);
-    api_data_type_debug_ += " POST data: " + post_data + "\n";
+    AddDebugText(" POST data: " + post_data + "\n");
     return mf::http::SharedBuffer::Create(post_data);
 }
 

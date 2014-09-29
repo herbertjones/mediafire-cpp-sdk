@@ -27,16 +27,18 @@ namespace api {
  * @interface TokenlessApiBase
  * @brief Templated base class for non session token API operations.
  *
+ * @tparam ApiResponseType The response datatype for the API request.
+ *
  * Contains base functionality for API calls which are custom to each API type.
  */
-template<typename DataType>
+template<typename ApiResponseType>
 class TokenlessApiBase :
     public detail::TokenlessApiBaseStatic,
-    public detail::ApiBase<DataType>
+    public detail::ApiBase<ApiResponseType>
 {
 public:
     /** Requester/SessionMaintainer expected class. */
-    typedef DataType ResponseType;
+    typedef ApiResponseType ResponseType;
 
     /** Requester expected method. */
     std::string Url(const std::string & hostname) const
