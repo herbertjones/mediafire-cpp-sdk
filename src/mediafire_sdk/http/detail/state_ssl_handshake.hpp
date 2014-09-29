@@ -24,6 +24,12 @@ namespace detail {
 
 namespace {
 
+bool IsSelfSignedError(int error)
+{
+    return (error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+        || error == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN );
+}
+
 #define CASE(X) case X: error_msg=#X; break;
 void fprint_openssl_error(FILE* file, int error)
 {
@@ -65,8 +71,12 @@ void fprint_openssl_error(FILE* file, int error)
 class DebugCertificateVerifier
 {
 public:
-    DebugCertificateVerifier(std::string hostname) :
-        hostname_(std::move(hostname))
+    DebugCertificateVerifier(
+            std::string hostname,
+            asio::ssl::verify_mode verify_mode
+        ) :
+        hostname_(std::move(hostname)),
+        verify_mode_(verify_mode)
     {
         // Empty
     }
@@ -98,7 +108,14 @@ public:
         bool returnValue =
             boost::asio::ssl::rfc2818_verification(hostname_)(preVerified, ctx);
 
-        if ( X509_STORE_CTX_get_error(x509_ctx) != 0 )
+        if ( verify_mode_ == asio::ssl::verify_none
+            && IsSelfSignedError(X509_STORE_CTX_get_error(x509_ctx)) )
+        {
+            // This will skip this error.  This function is called repeatedly,
+            // so we should not lose other errors here by returning true.
+            returnValue = true;
+        }
+        else if ( X509_STORE_CTX_get_error(x509_ctx) != 0 )
         {
             fprintf(stdout, "Verification failed!\n");
             X509* failed_cert = X509_STORE_CTX_get_current_cert(x509_ctx);
@@ -121,6 +138,7 @@ public:
 
 private:
     std::string hostname_;
+    asio::ssl::verify_mode verify_mode_;
 };
 
 }  // anonymous namespace
@@ -196,7 +214,7 @@ public:
 
         // Properly walk the certificate chain.
         ssl_socket->set_verify_callback(
-                DebugCertificateVerifier(url->host())
+                DebugCertificateVerifier(url->host(), fsm.get_ssl_verify_mode())
             );
 
         // Must prime timeout for async actions.
