@@ -7,8 +7,9 @@
  */
 #pragma once
 
-#include <iostream>
 #include <functional>
+#include <future>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -118,11 +119,14 @@ public:
     /**
      * @brief Request an API call to be performed.
      *
-     * Callbacks will execute in the default handler thread.
+     * Blocks thread until work io_service handles request.  Due to this it must
+     * not be called from that io_service thread or it will block forever.
      *
      * @param[in] af The API functor for the desired call.
      *
      * @return The response object of the ApiRequest request.
+     *
+     * @warning Do not call from work io_service thread.
      */
     template<typename ApiRequest>
     typename ApiRequest::ResponseType CallSynchronous(
@@ -132,38 +136,24 @@ public:
         typedef detail::RequesterImpl<ApiRequest, boost::asio::io_service>
             Impl;
 
-        boost::asio::io_service synchronous_io_service;
-
-        typename ApiRequest::ResponseType response;
-
-        bool completed = false;
-
-        auto http_config_clone = http_config_->Clone();
-        http_config_clone->SetWorkIoService(&synchronous_io_service);
-        http_config_clone->SetDefaultCallbackIoService(&synchronous_io_service);
+        std::promise<typename ApiRequest::ResponseType> response_promise;
+        auto future = response_promise.get_future();
 
         std::shared_ptr<Impl> wrapper(
             std::make_shared<Impl>(
-                http_config_clone,
+                http_config_,
                 af,
-                [&response,&completed](
-                    const typename ApiRequest::ResponseType & inner_response )
+                [&response_promise](
+                    const typename ApiRequest::ResponseType & response )
                 {
-                    response = inner_response;
-                    completed = true;
+                    response_promise.set_value(response);
                 },
-                &synchronous_io_service,
+                http_config_->GetWorkIoService(),
                 hostname_));
 
         wrapper->Init(RequestStarted::Yes);
 
-        // This will run until there is no more work to do, which only occurs
-        // once the request has errored or completed successfully.
-        synchronous_io_service.run();
-
-        assert(completed);
-
-        return response;
+        return future.get();
     }
 
     /**
