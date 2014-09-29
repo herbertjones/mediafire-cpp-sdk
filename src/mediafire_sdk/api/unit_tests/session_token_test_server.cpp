@@ -15,41 +15,48 @@ namespace au = mf::api::ut;
 namespace asio = boost::asio;
 
 namespace {
-    char const  * const kPemCertificate =
-        "-----BEGIN PRIVATE KEY-----\n"
-        "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAMi5assnE7RG2iYF\n"
-        "NIOqA7lbVAH3g/NN3bflghKFZCUtKe3qlS3dgDujs4EvPA1yGrV4EUOs0XvFYebC\n"
-        "x+1BbsWAmQZnHQSHztAt6+DTCywJQJJUlbKwqsaanrnJ/dvARTEckXYKLRcgmfjf\n"
-        "fYqXyDNQxiV6pPa2KsVMwoGBUxLNAgMBAAECgYAVajLKmdCwWx7LD6MaqPjcvbGo\n"
-        "xA9/1b7h78qAz1pv3PGsQGrKCee0dTKhhbiSdqoC0lyFK9rtqZFYXU+XMHPwzfdx\n"
-        "IIOq/lagyzgEqTvHA0GEK1lzO8Eegsf5y67FWZXNlRpKmFPCmFFyEpOUKHK0x6HN\n"
-        "61/iZjMTXRo/AvFcAQJBAOY7BPjC7rphMqcLtw6Bb+WRId90VF72h3Q/LqLxtT2E\n"
-        "Vv+n/+Ecl0C9UjhAQ/+wCHCkE/M5/VmS80fKzNUXDVECQQDfMO5kzaeYpUyd/Elb\n"
-        "E2RNjTC4AAdtqel6fiGShfYrDxajXEq25CnnVFyxk7q6/ehM2mVnR1IuswDgvBhd\n"
-        "It69AkEAkCiseEc2zCVIXiiLut15fzldCFoC6mNbdYKKZSUL4zUWdIZxRjdszfC9\n"
-        "ptM2wMcswbs7crUA2jGVe4KUt2jzwQJARUT2eCqrvWBwKwhF7BJUqw0K9dBsfcii\n"
-        "QfYrjUIuaKbCK+lU9vZRWw5/xk1HQwnSsyeFGUy1YPEFcLpwBVfxMQJAEj4TJ4rI\n"
-        "T7lwtPOSek4nsVawxR95aAaqL1Qt+Khti9qAP6WM3OU7coRnfLjYLyPjpHnbFgZP\n"
-        "7vv+EceHXehx8w==\n"
-        "-----END PRIVATE KEY-----\n"
-        "-----BEGIN CERTIFICATE-----\n"
-        "MIIC7jCCAlegAwIBAgIJAPSjVyLAs5aJMA0GCSqGSIb3DQEBBQUAMIGPMQswCQYD\n"
-        "VQQGEwJVUzEOMAwGA1UECAwFVGV4YXMxEDAOBgNVBAcMB0hvdXN0b24xEjAQBgNV\n"
-        "BAoMCU1lZGlhRmlyZTEQMA4GA1UECwwHRGVza3RvcDESMBAGA1UEAwwJTWVkaWFG\n"
-        "aXJlMSQwIgYJKoZIhvcNAQkBFhVoZXJiZXJ0QG1lZGlhZmlyZS5jb20wHhcNMTQw\n"
-        "MzMxMjExNTUyWhcNMTQwNDMwMjExNTUyWjCBjzELMAkGA1UEBhMCVVMxDjAMBgNV\n"
-        "BAgMBVRleGFzMRAwDgYDVQQHDAdIb3VzdG9uMRIwEAYDVQQKDAlNZWRpYUZpcmUx\n"
-        "EDAOBgNVBAsMB0Rlc2t0b3AxEjAQBgNVBAMMCU1lZGlhRmlyZTEkMCIGCSqGSIb3\n"
-        "DQEJARYVaGVyYmVydEBtZWRpYWZpcmUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GN\n"
-        "ADCBiQKBgQDIuWrLJxO0RtomBTSDqgO5W1QB94PzTd235YIShWQlLSnt6pUt3YA7\n"
-        "o7OBLzwNchq1eBFDrNF7xWHmwsftQW7FgJkGZx0Eh87QLevg0wssCUCSVJWysKrG\n"
-        "mp65yf3bwEUxHJF2Ci0XIJn4332Kl8gzUMYleqT2tirFTMKBgVMSzQIDAQABo1Aw\n"
-        "TjAdBgNVHQ4EFgQULKVRo3R7fYQgUMjH5P4WR4nXqFswHwYDVR0jBBgwFoAULKVR\n"
-        "o3R7fYQgUMjH5P4WR4nXqFswDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOB\n"
-        "gQDGbN4rijD2U08t3CmGyQQwpq3jd2hHY5XggBr6ir9hHSZIFxq0zf4eCATRhKKQ\n"
-        "sYq3HokxmzzjOS/7Cs+Y0w70URgStkYale5Cc0oAIAABJmSrR4jOH3WXyOFz7Zrm\n"
-        "2mv1n5e34d6/1dsmWOFQaQgtKahMrabqLAtH4eVpBO//aQ==\n"
-        "-----END CERTIFICATE-----\n";
+
+/**
+ * Self signed cert
+ *
+ * To generate another:
+ * openssl genrsa -des3 -out server.key 1024
+ * openssl req -new -key server.key -out server.csr
+ * cp server.key server.key.org
+ * openssl rsa -in server.key.org -out server.key
+ * openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt
+ */
+char const  * const kPemCertificate =
+    "-----BEGIN RSA PRIVATE KEY-----\n"
+    "MIICXQIBAAKBgQDicODW3qiEH77ZxJPz+QhB7Y2tgu/TkSaoyksO45wyo5zkzXO+\n"
+    "TFSqC6AwJ/AzB8HMa0ZiYbmP0NUGbCrERWTBdzo5WjkPFmrETOQLUWlemuQtryaR\n"
+    "IlFeket/vyWCLvwts3vNzlF4Hyxnv1ffifgubw4BKtc0OI13HTTf8J4iGQIDAQAB\n"
+    "AoGAJFoMrlH2aaeTAvC888jB25ugR/+iMqu1shkvrYc6tyJu+IhHEYC9gsL1B2YR\n"
+    "+I9BPGjoVrjrijvzRuGsh++/+cW1QQyrFge3jRVV2t0kESQ2NCfqsgdskjsjO9XS\n"
+    "5YHTpThUCyV2mBDnh7LolyLOlp24nD3Yi3ugu+vlbDqaxsUCQQDw1pF4cJBicG3K\n"
+    "q55mkuNo01eZPApalcHMjgMV9PZOUF7JNvo6qhtD2qV4cv67QJ5e/+S9qvdKHvx9\n"
+    "W0JNfn4DAkEA8LJHgO/4ID4PPf6CgAuLB3OXkrIZ6iYAZPlDTuxiNAFoehD2ezTE\n"
+    "47MSyCPflMnf6evBN8r/iWxGli6ITBACswJAEAl5rldwhd2OsgwzhAkL85L/JkkF\n"
+    "N3r5aLGcKv4g2J4pcaSjjPx+zEnm8tpVdAqdgR3xEWAtD1Z44bAN/jMKGQJBAIrQ\n"
+    "9yYov/ywbg/+CfuZLKy2gNNs/j8pfY6+p5AMCrMdoMjNoan7DBaaf5mH/vmL2CTM\n"
+    "ABqSbAAwvyD8Y0Ui8rsCQQDlUvoW8fa3Q3wQ88FaBPHBhD0qsDWLHfBPLUGTmkhv\n"
+    "4ZovBFmthiM3NP7VzpdIYVtTdEO6MmHclyNIszeXYgDG\n"
+    "-----END RSA PRIVATE KEY-----\n"
+    "-----BEGIN CERTIFICATE-----\n"
+    "MIICSTCCAbICCQCxgYWdtbXq4TANBgkqhkiG9w0BAQUFADBpMQswCQYDVQQGEwJV\n"
+    "UzEOMAwGA1UECAwFVGV4YXMxEDAOBgNVBAcMB0hvdXN0b24xEjAQBgNVBAoMCU1l\n"
+    "ZGlhRmlyZTEQMA4GA1UECwwHRGVza3RvcDESMBAGA1UEAwwJbWVkaWFmaXJlMB4X\n"
+    "DTE0MDkyOTE0MTExNFoXDTI0MDkyNjE0MTExNFowaTELMAkGA1UEBhMCVVMxDjAM\n"
+    "BgNVBAgMBVRleGFzMRAwDgYDVQQHDAdIb3VzdG9uMRIwEAYDVQQKDAlNZWRpYUZp\n"
+    "cmUxEDAOBgNVBAsMB0Rlc2t0b3AxEjAQBgNVBAMMCW1lZGlhZmlyZTCBnzANBgkq\n"
+    "hkiG9w0BAQEFAAOBjQAwgYkCgYEA4nDg1t6ohB++2cST8/kIQe2NrYLv05EmqMpL\n"
+    "DuOcMqOc5M1zvkxUqgugMCfwMwfBzGtGYmG5j9DVBmwqxEVkwXc6OVo5DxZqxEzk\n"
+    "C1FpXprkLa8mkSJRXpHrf78lgi78LbN7zc5ReB8sZ79X34n4Lm8OASrXNDiNdx00\n"
+    "3/CeIhkCAwEAATANBgkqhkiG9w0BAQUFAAOBgQC+gV8XlQyGHLdimckTmvGxgqqg\n"
+    "IQrX63dDXDrertvZ9SkcT7Ae0Rx3+IvzpGc7rCq9AaBXqEf4p5laxsOz+gCXOlFG\n"
+    "8D60iIqCkv+3aIPNobnAczRvlqo7wFBxQ/11BQ1BTWBpx4grg4sRq7twLBxUHL9y\n"
+    "uXpH76ov1Z96Zw3cuQ==\n"
+    "-----END CERTIFICATE-----\n";
 
 }  // namespace
 
