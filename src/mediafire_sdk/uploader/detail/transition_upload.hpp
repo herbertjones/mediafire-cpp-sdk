@@ -41,7 +41,7 @@ std::string AssembleQuery(
         const std::map< std::string, std::string > & query_map
     )
 {
-    using mf::utils::UrlEncode;
+    using mf::utils::url::get_parameter;
 
     std::vector<std::string> query_pieces;
     query_pieces.reserve( query_map.size() );
@@ -49,13 +49,13 @@ std::string AssembleQuery(
     {
         if ( pair.second.empty() )
         {
-            query_pieces.push_back(UrlEncode(pair.first));
+            query_pieces.push_back(get_parameter::Encode(pair.first));
         }
         else
         {
-            std::string piece = UrlEncode(pair.first);
+            std::string piece = (pair.first);
             piece += "=";
-            piece += UrlEncode(pair.second);
+            piece += get_parameter::Encode(pair.second);
             query_pieces.push_back(piece);
         }
     }
