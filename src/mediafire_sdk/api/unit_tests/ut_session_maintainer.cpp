@@ -55,10 +55,10 @@ const std::string host = address + ":" + port;
 const std::string username = TEST_USER_1_USERNAME;
 const std::string password = TEST_USER_1_PASSWORD;
 
-enum Regenerate
+enum class Regenerate
 {
-    R_No,
-    R_Yes
+    No,
+    Yes
 };
 
 std::string TestName()
@@ -151,6 +151,8 @@ private:
     {
         if (!err)
         {
+            io_service_->stop();
+
             std::ostringstream ss;
             ss << "Timeout failure.";
             BOOST_FAIL(ss.str());
@@ -192,7 +194,9 @@ public:
     {
         std::string token;
         std::string pkey;
+        std::string ekey;
         std::string time;
+
         int secret_key;
     };
 
@@ -247,7 +251,7 @@ public:
         if ( signature != mf::utils::HashMd5(ss.str()) )
             return false;
 
-        if ( regenerate_on_success == R_Yes )
+        if ( regenerate_on_success == Regenerate::Yes )
             GenerateNextSecretKey(token);
 
         return true;
@@ -319,7 +323,7 @@ public:
             return false;
         }
 
-        if ( regenerate_on_success == R_Yes )
+        if ( regenerate_on_success == Regenerate::Yes )
             GenerateNextSecretKey(token);
 
         return true;
@@ -376,6 +380,11 @@ public:
         }
         st.pkey = pkey;
 
+        const uint32_t ekey_length = 32;
+        st.token.reserve(ekey_length);
+        for (uint32_t i = 0; i < ekey_length; ++i)
+            st.ekey.push_back( alphanum_chars[alphanum_dist(rng)] );
+
         // secret key
         static boost::random::uniform_int_distribution<> secret_key_dist(
             0, std::numeric_limits<int32_t>::max() );
@@ -406,15 +415,19 @@ public:
     void AddValidToken(
             std::string token,
             std::string pkey,
+            std::string ekey,
             std::string time,
             int secret_key
         )
     {
-        SessionToken td;
-        td.token      = token;
-        td.pkey       = pkey;
-        td.time       = time;
-        td.secret_key = secret_key;
+        SessionToken td =
+        {
+            token,
+            pkey,
+            ekey,
+            time,
+            secret_key
+        };
 
         tokens_[token] = std::move(td);
     }
@@ -453,6 +466,7 @@ public:
         pt.put(L"response.secret_key", mf::utils::bytes_to_wide(mf::utils::to_string(st.secret_key)) );
         pt.put(L"response.time", mf::utils::bytes_to_wide(st.time) );
         pt.put(L"response.pkey", mf::utils::bytes_to_wide(st.pkey) );
+        pt.put(L"response.ekey", mf::utils::bytes_to_wide(st.ekey) );
 
         request->Respond(api::ut::ok, api::ut::ToString(pt));
     }
@@ -474,7 +488,8 @@ public:
 
     void AcceptRequest(api::ut::RequestPointer request)
     {
-        if ( ! session_token_wallet.ValidateSignature( request.get(), R_Yes ) )
+        if ( ! session_token_wallet.ValidateSignature( request.get(),
+                Regenerate::Yes ) )
         {
             request->Respond(api::ut::forbidden,
                 InvalidSignatureResponse("folder/get_content"));
@@ -507,7 +522,8 @@ public:
 
     void AcceptRequest(api::ut::RequestPointer request)
     {
-        if ( ! session_token_wallet.ValidateSignature( request.get(), R_Yes ) )
+        if ( ! session_token_wallet.ValidateSignature( request.get(),
+                Regenerate::Yes ) )
         {
             request->Respond(api::ut::forbidden,
                 InvalidSignatureResponse("folder/get_content"));

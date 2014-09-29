@@ -56,6 +56,8 @@ BOOST_AUTO_TEST_CASE(SessionTokenSuccess)
     pt.put(L"response.secret_key", L"1955614760" );
     pt.put(L"response.time", L"1396873639.6026" );
     pt.put(L"response.pkey", L"09b3b02524" );
+    pt.put(L"response.ekey", L"9642583c5f69d94c45eff31123a5bc01" );
+    pt.put(L"response.current_api_version", L"1.1" );
 
     std::string request_header_regex = "GET.*get_session_token.*\r\n\r\n";
 
@@ -78,10 +80,20 @@ BOOST_AUTO_TEST_CASE(SessionTokenSuccess)
                 _1 )
         );
 
-    BOOST_CHECK( ! wrapper.Data().error_code );
+    auto & data = wrapper.Data();
+
+    BOOST_CHECK( ! data.error_code );
+
+    if (data.error_code)
+    {
+        std::cout << "Error code: " << data.error_code << std::endl;
+
+        if (data.error_string)
+            std::cout << "Error code: " << data.error_string << std::endl;
+    }
 
     BOOST_CHECK_EQUAL(
-            wrapper.Data().session_token,
+            data.session_token,
             session_token );
 }
 
