@@ -50,7 +50,7 @@ CREATE_HAS_MEMBER(GetPostDataPipe);
 
 template<typename ApiFunctor>
 typename std::enable_if<HasGetPostData<ApiFunctor>::value, void>::type
-HandlePost(
+SetupPossiblePostInput(
         mf::http::HttpRequest * request,
         ApiFunctor * api_functor
     )
@@ -63,7 +63,7 @@ HandlePost(
 
 template<typename ApiFunctor>
 typename std::enable_if<HasGetPostDataPipe<ApiFunctor>::value, void>::type
-HandlePost(
+SetupPossiblePostInput(
         mf::http::HttpRequest * request,
         ApiFunctor * api_functor
     )
@@ -78,7 +78,7 @@ HandlePost(
 template<typename ApiFunctor>
 typename std::enable_if< ! HasGetPostDataPipe<ApiFunctor>::value
     && ! HasGetPostData<ApiFunctor>::value , void>::type
-HandlePost(
+SetupPossiblePostInput(
         mf::http::HttpRequest * /* request */,
         ApiFunctor * /* api_functor */
     )
@@ -200,7 +200,7 @@ public:
                 url_ );
 
         // Session token may be included here if session token POST type.
-        HandlePost<ApiFunctor>(request_.get(), &api_functor_);
+        SetupPossiblePostInput<ApiFunctor>(request_.get(), &api_functor_);
 
         if (start == RequestStarted::Yes )
         {
