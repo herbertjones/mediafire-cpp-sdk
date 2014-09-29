@@ -14,10 +14,10 @@
 
 #include <cstring>
 
-#include "mediafire_sdk/api/config.hpp"
+#include "mediafire_sdk/api/detail/requester_impl.hpp"
 #include "mediafire_sdk/api/error.hpp"
 #include "mediafire_sdk/api/ptree_helpers.hpp"
-#include "mediafire_sdk/api/requester_impl.hpp"
+#include "mediafire_sdk/api/types.hpp"
 #include "mediafire_sdk/http/error.hpp"
 #include "mediafire_sdk/http/http_config.hpp"
 

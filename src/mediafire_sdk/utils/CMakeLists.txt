@@ -43,6 +43,7 @@ set(UTILS_HEADERS
     timed_actions.hpp
     timed_events.hpp
     url_encode.hpp
+    variant_comparison.hpp
 )
 
 add_library(mf_sdk_utils STATIC

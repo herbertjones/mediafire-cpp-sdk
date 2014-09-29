@@ -283,14 +283,14 @@ protected:
 
             // Stop not safe in this instance. Cancel all requests instead.
             // connection_->io_service.stop();
-            for ( const api::Request & request : requests_ )
+            for ( const api::SessionMaintainer::Request & request : requests_ )
                 request->Cancel();
         }
     }
 
     Connection * connection_;
     boost::asio::deadline_timer timeout_timer_;
-    std::set<api::Request> requests_;
+    std::set<api::SessionMaintainer::Request> requests_;
 };
 std::string RandomAlphaNum(int length)
 {

@@ -33,9 +33,5 @@ private:
 };
 
 }  // namespace detail
-
-/** Handle to an API request. */
-typedef std::shared_ptr<detail::RequestInterface> Request;
-
 }  // namespace api
 }  // namespace mf

@@ -4,7 +4,7 @@
  *
  * @copyright Copyright 2014 Mediafire
  */
-#include "tokenless_api_base.hpp"
+#include "tokenless_api_base_static.hpp"
 
 #include <map>
 #include <string>
@@ -12,9 +12,11 @@
 
 #include "mediafire_sdk/utils/url_encode.hpp"
 
-namespace api = mf::api;
+namespace mf {
+namespace api {
+namespace detail {
 
-std::string api::detail::TokenlessApiBaseStatic::MakePathAndQuery(
+std::string TokenlessApiBaseStatic::MakePathAndQuery(
         const std::string & url_path,
         const std::map<std::string, std::string> & query_parts
     ) const
@@ -34,7 +36,7 @@ std::string api::detail::TokenlessApiBaseStatic::MakePathAndQuery(
     return url;
 }
 
-std::string api::detail::TokenlessApiBaseStatic::MakePost(
+std::string TokenlessApiBaseStatic::MakePost(
         const std::string & /*url_path*/,
         const std::map<std::string, std::string> & query_parts
     ) const
@@ -52,3 +54,6 @@ std::string api::detail::TokenlessApiBaseStatic::MakePost(
     return query;
 }
 
+}  // namespace detail
+}  // namespace api
+}  // namespace mf

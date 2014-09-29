@@ -11,12 +11,12 @@
 #include <memory>
 #include <string>
 
-#include "mediafire_sdk/api/config.hpp"
 #include "mediafire_sdk/api/error.hpp"
-#include "mediafire_sdk/utils/string.hpp"
-#include "mediafire_sdk/http/http_request.hpp"
+#include "mediafire_sdk/api/types.hpp"
 #include "mediafire_sdk/http/headers.hpp"
+#include "mediafire_sdk/http/http_request.hpp"
 #include "mediafire_sdk/http/post_data_pipe_interface.hpp"
+#include "mediafire_sdk/utils/string.hpp"
 
 namespace mf {
 namespace api {

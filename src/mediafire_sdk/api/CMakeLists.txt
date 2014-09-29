@@ -17,6 +17,11 @@ project (mf_api_sdk CXX)
 
 set(API_SOURCES
     ${API_SOURCES}
+
+    detail/session_maintainer_locker.cpp
+    detail/session_token_api_base_static.cpp
+    detail/tokenless_api_base_static.cpp
+
     app_constants.cpp
     connection_state.cpp
     credentials.cpp
@@ -25,25 +30,27 @@ set(API_SOURCES
     response_base.cpp
     session_maintainer.cpp
     session_state.cpp
-    session_token_api_base.cpp
-    tokenless_api_base.cpp
     type_helpers.cpp
 )
 set(API_HEADERS
     ${API_HEADERS}
-    api_base.hpp
+
+    detail/api_base.hpp
+    detail/request_interface.hpp
+    detail/requester_impl.hpp
+    detail/session_maintainer_locker.hpp
+    detail/session_maintainer_request.hpp
+    detail/session_token_api_base_static.hpp
+    detail/tokenless_api_base_static.hpp
+
     app_constants.hpp
-    config.hpp
     connection_state.hpp
     credentials.hpp
     error.hpp
     ptree_helpers.hpp
-    request_interface.hpp
     requester.hpp
-    requester_impl.hpp
     response_base.hpp
     session_maintainer.hpp
-    session_maintainer_request.hpp
     session_state.hpp
     session_token_api_base.hpp
     tokenless_api_base.hpp

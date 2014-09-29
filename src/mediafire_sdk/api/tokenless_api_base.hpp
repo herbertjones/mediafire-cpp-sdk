@@ -15,36 +15,13 @@
 #include "mediafire_sdk/http/headers.hpp"
 #include "mediafire_sdk/http/http_request.hpp"
 #include "mediafire_sdk/api/response_base.hpp"
-#include "mediafire_sdk/api/api_base.hpp"
+#include "mediafire_sdk/api/detail/api_base.hpp"
+#include "mediafire_sdk/api/detail/tokenless_api_base_static.hpp"
 
 #include "boost/property_tree/json_parser.hpp"
 
 namespace mf {
 namespace api {
-
-namespace detail {
-/**
- * @interface TokenlessApiBaseStatic
- * @brief Non templated base class for session token API operations.
- *
- * Contains base functionality for API calls which don't need to be regenerated
- * due to return type changing.
- */
-class TokenlessApiBaseStatic
-{
-public:
-
-protected:
-    std::string MakePathAndQuery(
-            const std::string & url_path,
-            const std::map<std::string, std::string> & query_parts
-        ) const;
-    std::string MakePost(
-            const std::string & url_path,
-            const std::map<std::string, std::string> & query_parts
-        ) const;
-};
-}  // namespace detail
 
 /**
  * @interface TokenlessApiBase

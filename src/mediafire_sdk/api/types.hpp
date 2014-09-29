@@ -1,14 +1,22 @@
 /**
- * @file config.hpp
+ * @file types.hpp
  * @author Herbert Jones
- * @brief Configuration types
- *
+ * @brief Api types
  * @copyright Copyright 2014 Mediafire
  */
 #pragma once
 
 namespace mf {
 namespace api {
+
+/** The intended target HTTP method. */
+enum class RequestMethod
+{
+    /** The request method is "GET" */
+    Get,
+    /** The request method is "POST" */
+    Post
+};
 
 /** Option to prevent SessionMaintainer from starting API HttpRequest.
  * Used if additional options must be set on HttpRequest object. */

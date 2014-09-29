@@ -1,0 +1,425 @@
+/**
+ * @file session_maintainer_locker.cpp
+ * @author Herbert Jones
+ * @copyright Copyright 2014 Mediafire
+ */
+#include "session_maintainer_locker.hpp"
+
+#include "mediafire_sdk/utils/variant_comparison.hpp"
+
+namespace mf {
+namespace api {
+namespace detail {
+
+SessionMaintainerLocker::SessionMaintainerLocker(
+        boost::asio::io_service * work_ios,
+        TimedEvents::EventProcessor event_processor
+    ) :
+    work_ios_(work_ios),
+    session_state_(session_state::Uninitialized()),
+    connection_state_(connection_state::Uninitialized()),
+    session_state_change_count_(0),
+    delayed_requests_(TimedEvents::Create( work_ios, event_processor)),
+    in_progress_session_token_requests_(0),
+    time_out_requests_(WeakTimedEvents::Create( work_ios,
+            CreateTimeoutProcessor()))
+{
+}
+
+SessionMaintainerLocker::~SessionMaintainerLocker()
+{
+    delayed_requests_->Stop();
+    time_out_requests_->Stop();
+}
+
+SessionMaintainerLocker::WeakTimedEvents::EventProcessor
+SessionMaintainerLocker::CreateTimeoutProcessor()
+{
+    // Safe to pass in this as we call Stop in DTOR.
+    return [this](
+        STRequestWeak weak_request,
+        const std::error_code & ec
+    )
+    {
+        if (!ec)
+            HandleTimedOutRequest(weak_request);
+    };
+}
+
+Credentials SessionMaintainerLocker::GetCredenials()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    return credentials_;
+}
+
+void SessionMaintainerLocker::SetCredentials(
+        const Credentials & credentials
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    credentials_ = credentials;
+
+    // All session tokens must become invalid.
+    session_tokens_.clear();
+    checked_out_tokens_.clear();
+
+    // We have become initialized.
+    ChangeSessionStateInternal(session_state::Initialized());
+}
+
+void SessionMaintainerLocker::AddWaitingRequest( STRequest request )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+
+    time_out_requests_->Add(
+        std::chrono::seconds(request->TimeoutSeconds()),
+        STRequestWeak(request) );
+
+    if (request->UsesSessionToken())
+        waiting_st_requests_.push_back( request );
+    else
+        waiting_non_st_requests_.push_back( request );
+}
+
+void SessionMaintainerLocker::RemoveInProgressRequest( STRequest request )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    in_progress_requests_.erase( request );
+}
+
+void SessionMaintainerLocker::MoveInProgressToWaiting( STRequest request )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    in_progress_requests_.erase( request );
+
+    if (request->UsesSessionToken())
+        waiting_st_requests_.push_back( request );
+    else
+        waiting_non_st_requests_.push_back( request );
+}
+
+void SessionMaintainerLocker::DeleteCheckedOutToken( STRequest request )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    auto it = checked_out_tokens_.find( request );
+    if ( it != checked_out_tokens_.end() )
+    {
+        checked_out_tokens_.erase( it );
+    }
+}
+
+void SessionMaintainerLocker::MoveInProgressToDelayed(
+        STRequest request,
+        int delay_sec
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    in_progress_requests_.erase( request );
+    delayed_requests_->Add( std::chrono::seconds(delay_sec), request );
+}
+
+boost::optional< STRequest > SessionMaintainerLocker::NextWaitingNonSessionTokenRequest()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+
+    if ( ! waiting_non_st_requests_.empty() )
+    {
+        STRequest request = waiting_non_st_requests_.front();
+        waiting_non_st_requests_.pop_front();
+
+        return request;
+    }
+
+    return boost::none;
+}
+
+boost::optional< std::pair<STRequest, SessionMaintainerLocker::SessionToken> >
+SessionMaintainerLocker::NextWaitingSessionTokenRequest()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+
+    if ( ! waiting_st_requests_.empty() && ! session_tokens_.empty() )
+    {
+        SessionToken st = session_tokens_.back();
+        session_tokens_.pop_back();
+
+        STRequest request = waiting_st_requests_.front();
+        waiting_st_requests_.pop_front();
+
+        return std::make_pair(std::move(request), std::move(st));
+    }
+
+    return boost::none;
+}
+
+void SessionMaintainerLocker::AddInProgressRequest( STRequest request )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    in_progress_requests_.insert( request );
+}
+
+void SessionMaintainerLocker::AddInProgressRequest(
+        STRequest request,
+        SessionToken token
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    in_progress_requests_.insert( request );
+    checked_out_tokens_.insert(
+        std::make_pair(std::move(request), std::move(token) ) );
+}
+
+bool SessionMaintainerLocker::PermitSessionTokenCheckout()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    if (
+        (  // Have at least one session token at all times
+           in_progress_session_token_requests_ == 0
+           &&
+           session_tokens_.size()
+           + checked_out_tokens_.size() == 0
+        )
+        ||
+        (  // And if already has one, get as many session tokens as needed
+           (  /* Are there more requests than session tokens and session
+                 token requests?  No check against checked out tokens, as
+                 we allow maximum concurrent requests. */
+              waiting_st_requests_.size()
+              >
+              in_progress_session_token_requests_
+              + session_tokens_.size()
+           )
+           &&
+           ( /* Are there less session token requests than maximum
+                concurrent session token requests allowed? */
+             in_progress_session_token_requests_
+             <
+             SessionMaintainer::max_in_progress_token_requests
+           )
+           &&
+           ( /* Are there less session token requests and session tokens
+                than the maximum allowed session tokens? */
+             in_progress_session_token_requests_
+             + session_tokens_.size()
+             + checked_out_tokens_.size()
+             <
+             SessionMaintainer::max_tokens
+           )
+           )
+           )
+           {
+               ++in_progress_session_token_requests_;
+               return true;
+           }
+    return false;
+}
+
+void SessionMaintainerLocker::DecrementSessionTokenInProgressCount()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    --in_progress_session_token_requests_;
+}
+
+bool SessionMaintainerLocker::AddSessionToken(
+        SessionToken token,
+        Credentials old_credentials
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+
+    if ( mf::utils::AreVariantsEqual( old_credentials, credentials_ ) )
+    {
+        session_tokens_.push_back( std::move(token) );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void SessionMaintainerLocker::ReuseToken(
+        STRequest request,
+        ResponseBase * response
+    )
+{
+    if (request->UsesSessionToken())
+    {
+        mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+
+        auto it = checked_out_tokens_.find( request );
+        if ( it != checked_out_tokens_.end() )
+        {
+            SessionToken st;
+            std::swap( st, it->second );
+            checked_out_tokens_.erase( it );
+
+            // If a key was set to be renewed, we must modify the secret
+            // key.
+            if ( PropertyHasValue(
+                    response->pt,
+                    "response.new_key",
+                    std::string("yes") ) )
+            {
+                uint64_t current_key = st.secret_key;
+                uint64_t next_key = (current_key * 16807) % 2147483647;
+                st.secret_key = static_cast<int>(next_key);
+            }
+
+            session_tokens_.push_back( std::move(st) );
+        }
+    }
+}
+
+std::size_t SessionMaintainerLocker::TotalRequests()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    return waiting_st_requests_.size()
+        + waiting_non_st_requests_.size()
+        + in_progress_requests_.size()
+        + delayed_requests_->Size();
+}
+
+std::pair<api::SessionState, uint32_t>
+SessionMaintainerLocker::GetSessionState()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    return std::make_pair(session_state_, session_state_change_count_);
+}
+
+void SessionMaintainerLocker::SetSessionState(api::SessionState state)
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    ChangeSessionStateInternal(state);
+}
+
+api::ConnectionState SessionMaintainerLocker::GetConnectionState()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    return connection_state_;
+}
+
+void SessionMaintainerLocker::SetConnectionState(
+        const api::ConnectionState & state
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    ChangeConnectionStateInternal(state);
+}
+
+bool SessionMaintainerLocker::SetSessionStateSafe(
+        api::SessionState state,
+        uint32_t state_change_count
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    if (session_state_change_count_ == state_change_count)
+    {
+        ChangeSessionStateInternal(state);
+        return true;
+    }
+    return false;
+}
+
+void SessionMaintainerLocker::SetSessionStateChangeCallback(
+        SessionMaintainer::SessionStateChangeCallback callback
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    session_state_change_callback_ = callback;
+}
+
+void SessionMaintainerLocker::SetConnectionStateChangeCallback(
+        SessionMaintainer::ConnectionStateChangeCallback callback
+    )
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    connection_state_change_callback_ = callback;
+}
+
+void SessionMaintainerLocker::StopTimeouts()
+{
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    delayed_requests_->Stop();
+    time_out_requests_->Stop();
+}
+
+void SessionMaintainerLocker::ChangeSessionStateInternal(
+        api::SessionState state
+    )
+{
+    // No lock on this one since we should already be locked.
+    if ( ! mf::utils::AreVariantsEqual( session_state_, state ) )
+    {
+        session_state_ = state;
+        ++session_state_change_count_;
+        if (session_state_change_callback_)
+            work_ios_->post( boost::bind(
+                    session_state_change_callback_,
+                    session_state_) );
+    }
+}
+
+void SessionMaintainerLocker::ChangeConnectionStateInternal(
+        const api::ConnectionState & state
+    )
+{
+    // No lock on this one since we should already be locked.
+    if ( ! mf::utils::AreVariantsEqual( connection_state_, state) )
+    {
+        connection_state_ = state;
+        if (connection_state_change_callback_)
+            work_ios_->post( boost::bind(
+                    connection_state_change_callback_,
+                    connection_state_) );
+    }
+}
+
+void SessionMaintainerLocker::HandleTimedOutRequest(
+        STRequestWeak weak_request
+    )
+{
+    STRequest request = weak_request.lock();
+
+    if (request)
+    {
+        if (request->UsesSessionToken())
+        {
+            mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+            std::deque< STRequest >::iterator it = std::find(
+                waiting_st_requests_.begin(), waiting_st_requests_.end(),
+                request);
+            if (it != waiting_st_requests_.end())
+            {
+                waiting_st_requests_.erase(it);
+                request->Fail(
+                    make_error_code(
+                        api::api_code::SessionTokenUnavailableTimeout ),
+                    "No session token was available before the timeout was"
+                    " reached."
+                );
+            }
+        }
+        else
+        {
+            mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+            std::deque< STRequest >::iterator it = std::find(
+                waiting_non_st_requests_.begin(),
+                waiting_non_st_requests_.end(),
+                request);
+            if (it != waiting_non_st_requests_.end())
+            {
+                waiting_non_st_requests_.erase(it);
+                request->Fail(
+                    make_error_code(
+                        api::api_code::ConnectionUnavailableTimeout ),
+                    "connection unavailable before the timeout was reached."
+                );
+            }
+        }
+    }
+}
+
+}  // namespace detail
+}  // namespace api
+}  // namespace mf

@@ -13,24 +13,16 @@
 #include <map>
 #include <string>
 
+#include "mediafire_sdk/api/response_base.hpp"
+#include "mediafire_sdk/api/types.hpp"
 #include "mediafire_sdk/http/headers.hpp"
 #include "mediafire_sdk/http/http_request.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
 #include "mediafire_sdk/utils/string.hpp"
 
 #include "boost/property_tree/json_parser.hpp"
 
 namespace mf {
 namespace api {
-
-/** The intended target HTTP method. */
-enum class RequestMethod {
-    /** The request method is "GET" */
-    Get,
-    /** The request method is "POST" */
-    Post
-};
-
 namespace detail {
 
 /**

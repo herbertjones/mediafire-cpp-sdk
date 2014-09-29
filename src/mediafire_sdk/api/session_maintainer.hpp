@@ -14,11 +14,11 @@
 #include <string>
 #include <vector>
 
-#include "mediafire_sdk/api/session_maintainer_request.hpp"
-#include "mediafire_sdk/api/user/get_session_token.hpp"
-#include "mediafire_sdk/api/credentials.hpp"
 #include "mediafire_sdk/api/connection_state.hpp"
+#include "mediafire_sdk/api/credentials.hpp"
+#include "mediafire_sdk/api/detail/session_maintainer_request.hpp"
 #include "mediafire_sdk/api/session_state.hpp"
+#include "mediafire_sdk/api/user/get_session_token.hpp"
 
 namespace mf {
 namespace api {
@@ -35,6 +35,9 @@ class SessionMaintainerLocker;
 class SessionMaintainer
 {
 public:
+    /** Handle to an API request. */
+    using Request = std::shared_ptr<detail::RequestInterface>;
+
     /** Class static constants */
     enum {
         max_in_progress_token_requests = 4,

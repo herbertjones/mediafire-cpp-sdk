@@ -16,50 +16,13 @@
 #include "mediafire_sdk/http/headers.hpp"
 #include "mediafire_sdk/http/http_request.hpp"
 #include "mediafire_sdk/api/response_base.hpp"
-#include "mediafire_sdk/api/api_base.hpp"
+
+#include "mediafire_sdk/api/detail/session_token_api_base_static.hpp"
 
 #include "boost/property_tree/json_parser.hpp"
 
 namespace mf {
 namespace api {
-
-namespace detail {
-/**
- * @interface SessionTokenApiBaseStatic
- * @brief Non templated base class for session token API operations.
- *
- * Contains base functionality for API calls which don't need to be regenerated
- * due to return type changing.
- */
-class SessionTokenApiBaseStatic
-{
-public:
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
-
-protected:
-    std::string session_token_;
-    std::string time_;
-    int secret_key_;
-
-    /** ApiBase expected method. */
-    virtual api::RequestMethod GetRequestMethod() const = 0;
-
-    std::string MakePathAndQuery(
-            const std::string & url_path,
-            const std::map<std::string, std::string> & query_parts
-        ) const;
-    std::string MakePost(
-            const std::string & url_path,
-            const std::map<std::string, std::string> & query_parts
-        ) const;
-    std::string GetSignature(const std::string & path_and_query) const;
-};
-}  // namespace detail
 
 /**
  * @interface SessionTokenApiBase

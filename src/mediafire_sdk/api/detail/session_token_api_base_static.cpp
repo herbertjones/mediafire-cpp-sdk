@@ -4,7 +4,7 @@
  *
  * @copyright Copyright 2014 Mediafire
  */
-#include "session_token_api_base.hpp"
+#include "session_token_api_base_static.hpp"
 
 #include <map>
 #include <string>
@@ -13,10 +13,13 @@
 #include "mediafire_sdk/utils/md5_hasher.hpp"
 #include "mediafire_sdk/utils/url_encode.hpp"
 
-namespace api = mf::api;
 namespace get_parameter = mf::utils::url::get_parameter;
 
-void api::detail::SessionTokenApiBaseStatic::SetSessionToken(
+namespace mf {
+namespace api {
+namespace detail {
+
+void SessionTokenApiBaseStatic::SetSessionToken(
         std::string session_token,
         std::string time,
         int secret_key
@@ -27,7 +30,7 @@ void api::detail::SessionTokenApiBaseStatic::SetSessionToken(
     secret_key_ = secret_key;
 }
 
-std::string api::detail::SessionTokenApiBaseStatic::MakePathAndQuery(
+std::string SessionTokenApiBaseStatic::MakePathAndQuery(
         const std::string & url_path,
         const std::map<std::string, std::string> & query_parts
     ) const
@@ -71,7 +74,7 @@ std::string api::detail::SessionTokenApiBaseStatic::MakePathAndQuery(
     }
 }
 
-std::string api::detail::SessionTokenApiBaseStatic::MakePost(
+std::string SessionTokenApiBaseStatic::MakePost(
         const std::string & url_path,
         const std::map<std::string, std::string> & query_parts
     ) const
@@ -95,7 +98,7 @@ std::string api::detail::SessionTokenApiBaseStatic::MakePost(
     return post_data;
 }
 
-std::string api::detail::SessionTokenApiBaseStatic::GetSignature(
+std::string SessionTokenApiBaseStatic::GetSignature(
         const std::string & path_and_query
     ) const
 {
@@ -106,3 +109,7 @@ std::string api::detail::SessionTokenApiBaseStatic::GetSignature(
 
     return mf::utils::HashMd5(ss.str());
 }
+
+}  // namespace detail
+}  // namespace api
+}  // namespace mf

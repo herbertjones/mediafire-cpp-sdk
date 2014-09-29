@@ -11,10 +11,10 @@
 #include <memory>
 #include <string>
 
+#include "mediafire_sdk/api/detail/request_interface.hpp"
 #include "mediafire_sdk/api/error.hpp"
-#include "mediafire_sdk/api/request_interface.hpp"
 #include "mediafire_sdk/api/requester.hpp"
-#include "response_base.hpp"
+#include "mediafire_sdk/api/response_base.hpp"
 
 #include "boost/bind.hpp"
 
@@ -23,6 +23,10 @@
 #endif
 
 // #define OUTPUT_DEBUG
+
+namespace mf {
+namespace api {
+namespace detail {
 
 /** Create struct which is only well defined if X is member of passed in class.
  */
@@ -47,10 +51,6 @@ public:                                                                        \
 /** HasSetSessionToken<T>::value is set if T has method SetSessionToken */
 CREATE_HAS_MEMBER(SetSessionToken);
 #undef CREATE_HAS_MEMBER
-
-namespace mf {
-namespace api {
-namespace detail {
 
 class STRequestInterface : public RequestInterface
 {
