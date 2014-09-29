@@ -29,9 +29,6 @@ public:
     std::error_code error_code;
 
     /** Set if error occurred and had extra description. */
-    boost::optional<int32_t> api_error_code;
-
-    /** Set if error occurred and had extra description. */
     boost::optional<std::string> error_string;
 
     /** Set if API error occurred and had API error message. */

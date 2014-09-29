@@ -94,7 +94,6 @@ void api::ResponseBase::InitializeWithContent(
             int32_t api_code = 0;
             if ( GetIfExists( pt, "response.error", &api_code ) )
             {
-                api_error_code = api_code;
                 error_code = std::error_code(api_code, result_category());
             }
         }
@@ -112,7 +111,6 @@ void api::ResponseBase::InitializeWithContent(
             int32_t api_code = 0;
             if ( GetIfExists( pt, "response.error", &api_code ) )
             {
-                api_error_code = api_code;
                 error_code = std::error_code(api_code, result_category());
             }
             else
