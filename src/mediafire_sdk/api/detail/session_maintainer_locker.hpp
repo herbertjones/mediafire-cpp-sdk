@@ -25,6 +25,7 @@ public:
 
     SessionMaintainerLocker(
             boost::asio::io_service * work_ios,
+            boost::asio::io_service * callback_ios,
             TimedEvents::EventProcessor event_processor
         );
 
@@ -97,6 +98,7 @@ public:
 
 private:
     boost::asio::io_service * work_ios_;
+    boost::asio::io_service * callback_ios_;
 
     mf::utils::mutex mutex_;
 

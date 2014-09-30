@@ -13,9 +13,10 @@ namespace detail {
 
 SessionMaintainerLocker::SessionMaintainerLocker(
         boost::asio::io_service * work_ios,
+        boost::asio::io_service * callback_ios,
         TimedEvents::EventProcessor event_processor
     ) :
-    work_ios_(work_ios),
+    callback_ios_(callback_ios),
     session_state_(session_state::Uninitialized()),
     connection_state_(connection_state::Uninitialized()),
     session_state_change_count_(0),
@@ -360,7 +361,7 @@ void SessionMaintainerLocker::ChangeSessionStateInternal(
         session_state_ = state;
         ++session_state_change_count_;
         if (session_state_change_callback_)
-            work_ios_->post( boost::bind(
+            callback_ios_->post( boost::bind(
                     session_state_change_callback_,
                     session_state_) );
     }
@@ -375,7 +376,7 @@ void SessionMaintainerLocker::ChangeConnectionStateInternal(
     {
         connection_state_ = state;
         if (connection_state_change_callback_)
-            work_ios_->post( boost::bind(
+            callback_ios_->post( boost::bind(
                     connection_state_change_callback_,
                     connection_state_) );
     }

@@ -100,6 +100,7 @@ SessionMaintainer::SessionMaintainer(
     locker_(
         new detail::SessionMaintainerLocker(
             http_config->GetWorkIoService(),
+            http_config->GetDefaultCallbackIoService(),
             boost::bind(
                 &SessionMaintainer::AddWaitingRequest,
                 this, _1))),

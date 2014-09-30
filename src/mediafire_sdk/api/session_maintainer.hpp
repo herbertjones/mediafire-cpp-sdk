@@ -78,6 +78,8 @@ public:
     /**
      * @brief Set the callback for session state changes.
      *
+     * The callback will be handled by the callback io_service.
+     *
      * @param[in] callback Function to call on change.
      */
     void SetSessionStateChangeCallback(
@@ -86,6 +88,8 @@ public:
 
     /**
      * @brief Set the callback for connection state changes.
+     *
+     * The callback will be handled by the callback io_service.
      *
      * @param[in] callback Function to call on change.
      */
