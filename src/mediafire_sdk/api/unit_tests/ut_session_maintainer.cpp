@@ -1098,6 +1098,81 @@ BOOST_AUTO_TEST_CASE(TimeoutSeconds)
     io_service.run();
 }
 
+BOOST_AUTO_TEST_CASE(CleanupAssurance)
+{
+    using api::user::get_action_token::Type;
+
+    boost::asio::io_service io_service;
+    FailTimer ft(&io_service, 10);
+
+    api::ut::PathHandlers handlers;
+
+    SessionTokenServer st_responder;
+    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+
+    GetActionTokenServer at_responder;
+    handlers["/api/1.0/user/get_action_token.php"] = PHBind(&at_responder);
+
+    api::ut::SessionTokenTestServer server(
+        &io_service,
+        address,
+        port,
+        std::move(handlers)
+    );
+
+    auto http_config = mf::http::HttpConfig::Create();
+    http_config->SetWorkIoService(&io_service);
+    http_config->AllowSelfSignedCertificate();
+
+    auto stm = std::make_shared<api::SessionMaintainer>(
+        http_config,
+        host );
+    stm->SetLoginCredentials( api::credentials::Email{ username, password } );
+
+    // Make a bunch of requests and make sure they all get called correctly,
+    // event if the stm is reset.
+    int callback_count = 0;
+    const int callback_count_expected = 30;
+    auto callback(
+        [&stm, &ft, &callback_count, &io_service, callback_count_expected](
+                const api::user::get_action_token::Response & /*response*/
+            )
+        {
+            ++callback_count;
+            if (stm)
+            {
+                std::cout << "Destroying SessionMaintainer." << std::endl;
+                stm.reset();
+                std::cout << "SessionMaintainer destroyed." << std::endl;
+            }
+
+            // Can stop if all request callbacks counted for.
+            if (callback_count == callback_count_expected)
+            {
+                ft.Stop();
+                io_service.stop();
+            }
+        });
+
+    for (int i = 0; i < callback_count_expected; ++i)
+    {
+        stm->Call(
+            api::user::get_action_token::Request(Type::Upload),
+            callback
+        );
+    }
+
+    std::cout << "Starting " << TestName() <<  " main loop" << std::endl;
+    io_service.run();
+
+    if (stm)
+    {
+        BOOST_FAIL("Test invalid as SessionManager still exists!");
+    }
+
+    BOOST_CHECK_EQUAL( callback_count, callback_count_expected );
+}
+
 /** @todo hjones: Add test to ensure session token manager doesn't spam server
  * when failures occur. */
 

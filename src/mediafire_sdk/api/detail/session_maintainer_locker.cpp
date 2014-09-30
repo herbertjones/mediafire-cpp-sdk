@@ -29,8 +29,21 @@ SessionMaintainerLocker::SessionMaintainerLocker(
 
 SessionMaintainerLocker::~SessionMaintainerLocker()
 {
-    delayed_requests_->Stop();
-    time_out_requests_->Stop();
+    StopTimeouts();
+
+    // Cancel all requests
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+    auto old_waiting_st_requests = std::move(waiting_st_requests_);
+    auto old_waiting_non_st_requests = std::move(waiting_non_st_requests_);
+    auto in_progress_requests = std::move(in_progress_requests_);
+    lock.unlock();
+
+    for (auto & request : old_waiting_st_requests)
+        request->Cancel();
+    for (auto & request : old_waiting_non_st_requests)
+        request->Cancel();
+    for (auto & request : in_progress_requests)
+        request->Cancel();
 }
 
 SessionMaintainerLocker::WeakTimedEvents::EventProcessor

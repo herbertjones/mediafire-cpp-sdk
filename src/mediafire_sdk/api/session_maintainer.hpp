@@ -29,6 +29,11 @@ class SessionMaintainerLocker;
 
 /**
  * @class SessionMaintainer
+ *
+ * @warning If the session maintain is destroyed before all ongoing API requests
+ * are complete, those requests will be canceled.  Their callbacks may be called
+ * after the destruction of the maintainer.
+ *
  * @brief Maintains a list of session tokens, which are required to make most
  * API requests and keeps status of obtaining those tokens.
  */
@@ -126,32 +131,15 @@ public:
             IoService * callback_io_service
         )
     {
-        typedef detail::SessionMaintainerRequest<ApiFunctor, IoService> StImpl;
-
-        typedef std::function<void(detail::STRequest, ResponseBase*)>
-            CompletionCallback;
-
-        // This is called when the request is completed successfully or not.
-        CompletionCallback on_complete = boost::bind(
-            &api::SessionMaintainer::HandleCompletion, this, _1, _2);
-
-        // This is called when the request fails and can be retried.
-        CompletionCallback on_retry_request = boost::bind(
-            &api::SessionMaintainer::HandleRetryRequest, this, _1, _2);
-
-        // Always called so connection status, ect. can be updated.
-        CompletionCallback on_completion = boost::bind(
-            &api::SessionMaintainer::HandleCompletionNotification,
-            this, _1, _2);
-
-        typename StImpl::Pointer request = StImpl::Create(
-            &api_container,
-            callback,
-            callback_io_service,
-            timeout_seconds_,
-            on_complete,
-            on_retry_request,
-            on_completion );
+        detail::STRequest request =
+            detail::SessionMaintainerRequest<ApiFunctor, IoService>::Create(
+                &api_container,
+                callback,
+                callback_io_service,
+                timeout_seconds_,
+                on_stop_request_callback_,
+                on_retry_request_callback_,
+                info_update_callback_ );
 
         // SessionMaintainer maintain the life of request.
         AddWaitingRequest(request);
@@ -211,6 +199,18 @@ public:
     mf::http::HttpConfig::ConstPointer HttpConfig() const {return http_config_;}
 
 private:
+    using CompletionCallback = std::function<void(detail::STRequest,
+        ResponseBase*)>;
+
+    // This is called when the request is completed successfully or not.
+    CompletionCallback on_stop_request_callback_;
+
+    // This is called when the request fails and can be retried.
+    CompletionCallback on_retry_request_callback_;
+
+    // Always called so connection status, ect. can be updated.
+    CompletionCallback info_update_callback_;
+
     std::unique_ptr<detail::SessionMaintainerLocker> locker_;
 
     mf::http::HttpConfig::ConstPointer http_config_;
@@ -219,6 +219,13 @@ private:
     Requester requester_;
 
     uint32_t timeout_seconds_;
+
+    enum class Running
+    {
+        Yes,
+        No
+    };
+    std::shared_ptr<Running> is_running_;
 
     api::SessionState GetSessionState();
     void SetSessionState(api::SessionState);
@@ -230,6 +237,7 @@ private:
             detail::STRequest request,
             ResponseBase * response
         );
+
     void HandleRetryRequest(
             detail::STRequest request,
             ResponseBase * response

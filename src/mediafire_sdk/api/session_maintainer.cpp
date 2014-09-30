@@ -107,19 +107,50 @@ SessionMaintainer::SessionMaintainer(
     http_config_(http_config),
     session_token_failure_timer_(*http_config_->GetWorkIoService()),
     requester_(http_config_, hostname),
-    timeout_seconds_(60)
+    timeout_seconds_(60),
+    is_running_(std::make_shared<Running>(Running::Yes))
 {
     assert(http_config);
+
+    auto running_ptr = is_running_;
+
+    // Setup request callbacks
+    on_stop_request_callback_ = [this, running_ptr](
+            detail::STRequest request,
+            ResponseBase * response
+        )
+    {
+        if (*running_ptr == Running::Yes)
+            HandleCompletion(request, response);
+        else
+            request->Cancel();
+    };
+
+    on_retry_request_callback_ = [this, running_ptr](
+            detail::STRequest request,
+            ResponseBase * response
+        )
+    {
+        if (*running_ptr == Running::Yes)
+            HandleRetryRequest(request, response);
+        else
+            request->Cancel();
+    };
+
+    info_update_callback_ = [this, running_ptr](
+            detail::STRequest request,
+            ResponseBase * response
+        )
+    {
+        if (*running_ptr == Running::Yes)
+            HandleCompletionNotification(request, response);
+    };
 }
 
 SessionMaintainer::~SessionMaintainer()
 {
-    auto work_ios = http_config_->GetWorkIoService();
-
-    // There may be work still on the io service.  It must be stopped before we
-    // can be destroyed, else there may be memory corruption.
-    assert(work_ios->stopped());
-    work_ios->stop();
+    *is_running_ = Running::No;
+    session_token_failure_timer_.cancel();
 }
 
 void SessionMaintainer::SetLoginCredentials(
@@ -267,17 +298,18 @@ void SessionMaintainer::RequestSessionToken(
         << std::endl;
 #   endif
 
+    auto running_ptr = is_running_;
+
     hl::HttpRequest::Pointer http_request =
         requester_.Call(
-            user::get_session_token::Request(
-                credentials
-            ),
-            boost::bind(
-                &SessionMaintainer::HandleSessionTokenResponse,
-                this,
-                _1,
-                credentials
-            ),
+            user::get_session_token::Request(credentials),
+            [this, running_ptr, credentials](
+                    const user::get_session_token::Response & response
+                )
+            {
+                if (*running_ptr == Running::Yes)
+                    HandleSessionTokenResponse(response, credentials);
+            },
             RequestStarted::No
         );
 
