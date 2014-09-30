@@ -69,6 +69,18 @@ add_test(ut_session_maintainer
     ut_session_maintainer "${CMAKE_CURRENT_SOURCE_DIR}/test_sources"
 )
 
+# --- ut_multithread ---------------------------------------
+add_executable(ut_multithread
+    ut_multithread.cpp)
+
+target_link_libraries(ut_multithread
+    mf_api_sdk
+)
+
+add_test(ut_multithread
+    ut_multithread "${CMAKE_CURRENT_SOURCE_DIR}/test_sources"
+)
+
 # --- live -------------------------------------------------
 add_executable(ut_live
     ut_live.cpp)
