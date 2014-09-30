@@ -154,9 +154,15 @@ struct ProxyConnectRequired
     {
         // HTTP proxy CONNECT only needed if authentication is required.
         // HTTPS always needs to go through the CONNECT step.
-        return (fsm.get_is_ssl() && fsm.get_https_proxy())
-            || (! fsm.get_is_ssl() && fsm.get_http_proxy() &&
-                ! fsm.get_http_proxy()->username.empty() );
+        if (fsm.UsingProxy())
+        {
+            const auto & proxy = fsm.CurrentProxy();
+            bool needs_authentication = ! proxy.username.empty();
+
+            if ( needs_authentication || fsm.get_is_ssl() )
+                return true;
+        }
+        return false;
     }
 };
 struct HasPost
@@ -582,17 +588,28 @@ public:
         parsed_url_ = std::move(url);
     }
 
+    bool UsingProxy() const
+    {
+        return (( is_ssl_ && https_proxy_ )
+            || ( ! is_ssl_ && http_proxy_ ));
+    }
+
+    // Must never call this without verifying proxy exists via UsingProxy first.
+    const hl::Proxy & CurrentProxy() const
+    {
+        assert((is_ssl_ && https_proxy_) || (!is_ssl_ && http_proxy_));
+
+        if ( is_ssl_ )
+            return *https_proxy_;
+        else
+            return *http_proxy_;
+    }
+
     bool get_is_ssl() const {return is_ssl_;}
     void set_is_ssl(bool v) {is_ssl_=v;}
 
     const std::string & get_url() const {return url_;}
     void set_url(std::string v) {url_=v;}
-
-    const boost::optional<hl::Proxy> & get_http_proxy() const {return http_proxy_;}
-    void set_http_proxy(boost::optional<hl::Proxy> v) {http_proxy_=v;}
-
-    const boost::optional<hl::Proxy> & get_https_proxy() const {return https_proxy_;}
-    void set_https_proxy(boost::optional<hl::Proxy> v) {https_proxy_=v;}
 
     asio::io_service::strand * get_event_strand() {return &event_strand_;}
 

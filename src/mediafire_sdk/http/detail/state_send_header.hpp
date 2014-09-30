@@ -20,6 +20,7 @@
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
 #include "mediafire_sdk/http/detail/race_preventer.hpp"
 #include "mediafire_sdk/http/detail/types.hpp"
+#include "mediafire_sdk/utils/base64.hpp"
 
 namespace mf {
 namespace http {
@@ -98,8 +99,7 @@ public:
 
         // When a proxy is used, the full path must be sent.
         std::string path = url->full_path();
-        if (     ( is_ssl && fsm.get_https_proxy() )
-            || ( ! is_ssl && fsm.get_http_proxy() ) )
+        if ( fsm.UsingProxy() )
         {
             path = url->full_url();
         }
@@ -109,12 +109,12 @@ public:
             << path << " HTTP/1.1\r\n";
         request_stream_local << "Host: " << url->host() << "\r\n";
 
-        if ( ! is_ssl && fsm.get_http_proxy()
-            && ! fsm.get_http_proxy()->username.empty() )
+        if ( ! is_ssl && fsm.UsingProxy()
+            && ! fsm.CurrentProxy().username.empty() )
         {
-            std::string to_encode = fsm.get_http_proxy()->username;
+            std::string to_encode = fsm.CurrentProxy().username;
             to_encode += ':';
-            to_encode += fsm.get_http_proxy()->password;
+            to_encode += fsm.CurrentProxy().password;
             std::string encoded = mf::utils::Base64Encode(
                     to_encode.c_str(), to_encode.size() );
 

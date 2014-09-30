@@ -115,15 +115,10 @@ void HandleProxyHeaderRead(
     {
         std::stringstream ss;
         ss << "Failure reading from proxy.";
-        if ( is_ssl && fsm.get_https_proxy() )
+        if ( fsm.UsingProxy() )
         {
-            ss << " Proxy: " << fsm.get_https_proxy()->host;
-            ss << ":" << fsm.get_https_proxy()->port;
-        }
-        else if ( ! is_ssl && fsm.get_http_proxy() )
-        {
-            ss << " Proxy: " << fsm.get_http_proxy()->host;
-            ss << ":" << fsm.get_http_proxy()->port;
+            ss << " Proxy: " << fsm.CurrentProxy().host;
+            ss << ":" << fsm.CurrentProxy().port;
         }
 
         ss << " Error: " << err.message();
@@ -212,15 +207,10 @@ void HandleProxyConnectWrite(
     {
         std::stringstream ss;
         ss << "Failure connecting to proxy.";
-        if (is_ssl && fsm.get_https_proxy())
+        if ( fsm.UsingProxy() )
         {
-            ss << " Proxy: " << fsm.get_https_proxy()->host;
-            ss << ":" << fsm.get_https_proxy()->port;
-        }
-        else if ( ! is_ssl && fsm.get_http_proxy())
-        {
-            ss << " Proxy: " << fsm.get_http_proxy()->host;
-            ss << ":" << fsm.get_http_proxy()->port;
+            ss << " Proxy: " << fsm.CurrentProxy().host;
+            ss << ":" << fsm.CurrentProxy().port;
         }
 
         ss << " Error: " << err.message();
@@ -272,15 +262,10 @@ public:
 
         // Send authorization if provided.
         std::string username, password;
-        if (is_ssl && fsm.get_https_proxy())
+        if ( fsm.UsingProxy() )
         {
-            username = fsm.get_https_proxy()->username;
-            password = fsm.get_https_proxy()->password;
-        }
-        else if ( ! is_ssl && fsm.get_http_proxy())
-        {
-            username = fsm.get_http_proxy()->username;
-            password = fsm.get_http_proxy()->password;
+            username = fsm.CurrentProxy().username;
+            password = fsm.CurrentProxy().password;
         }
 
         if ( ! username.empty())

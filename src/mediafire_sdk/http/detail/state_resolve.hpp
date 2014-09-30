@@ -93,15 +93,10 @@ public:
             port = url->scheme();
 
         // Set proxy.
-        if ( fsm.get_is_ssl() && fsm.get_https_proxy() )
+        if ( fsm.UsingProxy() )
         {
-            host = fsm.get_https_proxy()->host;
-            port = boost::lexical_cast<std::string>(fsm.get_https_proxy()->port);
-        }
-        else if ( ! fsm.get_is_ssl() && fsm.get_http_proxy() )
-        {
-            host = fsm.get_http_proxy()->host;
-            port = boost::lexical_cast<std::string>(fsm.get_http_proxy()->port);
+            host = fsm.CurrentProxy().host;
+            port = boost::lexical_cast<std::string>(fsm.CurrentProxy().port);
         }
 
         // Must prime timeout for async actions.
