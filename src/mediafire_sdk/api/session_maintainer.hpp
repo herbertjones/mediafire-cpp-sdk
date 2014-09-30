@@ -58,10 +58,10 @@ public:
         ConnectionStateChangeCallback;
 
     /**
-     * @brief Create the session token maintainer.
+     * @brief Create the session token maintainer which will make API calls to
+     * www.mediafire.com.
      *
      * @param[in] http_config HttpConfig object
-     * @param[in] bwa Bandwidth analyser
      */
     SessionMaintainer(
             mf::http::HttpConfig::ConstPointer http_config

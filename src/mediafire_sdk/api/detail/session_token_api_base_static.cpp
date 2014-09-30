@@ -79,11 +79,6 @@ std::string SessionTokenApiBaseStatic::MakePost(
         const std::map<std::string, std::string> & query_parts
     ) const
 {
-    /**
-     * The API doesn't look at the raw path and query passed to it, but rather
-     * decodes it first and re-assembles it.  Due to this we must build a
-     * secondary query and path, but unencoded, to build the signature against.
-     */
     std::string query = "session_token=" + session_token_;
 
     for ( const auto & it : query_parts )
