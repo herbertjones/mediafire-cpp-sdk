@@ -20,6 +20,7 @@
 #include "upload_state_machine.hpp"
 
 #include "mediafire_sdk/api/user/get_action_token.hpp"
+#include "mediafire_sdk/utils/mutex.hpp"
 
 // Forward declarations
 namespace boost { namespace filesystem { class path; } }
@@ -90,6 +91,8 @@ private:
     uint32_t current_uploads_;
 
     bool disable_enqueue_;
+
+    mf::utils::mutex mutex_;
 
     void Tick();
     void EnqueueTick();

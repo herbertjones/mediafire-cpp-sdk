@@ -53,9 +53,17 @@ UploadManagerImpl::UploadManagerImpl(
 
 UploadManagerImpl::~UploadManagerImpl()
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     disable_enqueue_ = true;
 
-    for (auto & request : requests_)
+    std::set<StateMachinePointer> requests;
+    std::swap(requests, requests_);
+
+    // Unlock before calling external
+    lock.unlock();
+
+    for (auto & request : requests)
     {
         request->Disconnect();
         request->process_event(event::Error{
@@ -63,7 +71,6 @@ UploadManagerImpl::~UploadManagerImpl()
             "Cancelled due to shutdown."
             });
     }
-    requests_.clear();
 }
 
 UploadHandle UploadManagerImpl::Add(
@@ -86,7 +93,10 @@ UploadHandle UploadManagerImpl::Add(
 
     auto request = std::make_shared<UploadStateMachine>(std::move(config));
 
-    requests_.insert(request);
+    {
+        mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+        requests_.insert(request);
+    }
 
     // Initialization step
     request->process_event(event::Start{});
@@ -113,10 +123,12 @@ void UploadManagerImpl::ModifyUpload(
 
         void operator()(modification::Cancel) const
         {
+            mf::utils::unique_lock<mf::utils::mutex> lock(this_->mutex_);
             for (auto & request : this_->requests_)
             {
                 if (request->Handle().id == upload_handle_.id)
                 {
+                    lock.unlock();
                     request->ProcessEvent(event::Error{
                         make_error_code(mf::uploader::errc::Cancelled),
                         "Cancellation requested"
@@ -128,10 +140,12 @@ void UploadManagerImpl::ModifyUpload(
 
         void operator()(modification::Pause) const
         {
+            mf::utils::unique_lock<mf::utils::mutex> lock(this_->mutex_);
             for (auto & request : this_->requests_)
             {
                 if (request->Handle().id == upload_handle_.id)
                 {
+                    lock.unlock();
                     request->ProcessEvent(event::Error{
                         make_error_code(mf::uploader::errc::Paused),
                         "Pause requested."
@@ -158,6 +172,8 @@ void UploadManagerImpl::Tick()
 
 void UploadManagerImpl::EnqueueTick()
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     if ( ! disable_enqueue_ )
     {
         io_service_->post( boost::bind( &UploadManagerImpl::Tick,
@@ -167,6 +183,8 @@ void UploadManagerImpl::EnqueueTick()
 
 void UploadManagerImpl::Tick_StartHashings()
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     auto current_count = current_hashings_;
 
     if ( ! to_hash_.empty()
@@ -177,12 +195,17 @@ void UploadManagerImpl::Tick_StartHashings()
         auto request = to_hash_.front();
         to_hash_.pop_front();
 
+        // Unlock before calling external
+        lock.unlock();
+
         request->process_event(event::StartHash{});
     }
 }
 
 void UploadManagerImpl::Tick_StartUploads()
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
 #ifndef NDEBUG
     // Ensure calling process event never causes recursion here.
     static bool recursing = false;
@@ -208,6 +231,9 @@ void UploadManagerImpl::Tick_StartUploads()
             else
             {
                 action_token_state_ = ActionTokenState::Retrieving;
+
+                // Unlock before calling external
+                lock.unlock();
 
                 auto self = shared_from_this();
                 session_maintainer_->Call(
@@ -236,9 +262,12 @@ void UploadManagerImpl::Tick_StartUploads()
                     // Remove iterator before process event.
                     to_upload_.erase(it);
 
-                    request->process_event(event::StartUpload{action_token_});
-
                     uploading_hashes_.insert(request->Hash());
+
+                    // Unlock before calling external
+                    lock.unlock();
+
+                    request->process_event(event::StartUpload{action_token_});
 
                     // Only do one
                     break;
@@ -248,6 +277,8 @@ void UploadManagerImpl::Tick_StartUploads()
     }
 
 #ifndef NDEBUG
+    if (!lock)
+        lock.lock();
     recursing = false;
 #endif
 }
@@ -256,13 +287,17 @@ void UploadManagerImpl::HandleActionToken(
         const mf::api::user::get_action_token::Response & response
     )
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     if ( response.error_code )
     {
         // Retry soon if unable to obtain token.
         action_token_state_ = ActionTokenState::Error;
-
         action_token_expires_ = sclock::now() + kActionTokenRetry;
         action_token_retry_timer_.expires_at(action_token_expires_);
+
+        // unlock before calling external
+        lock.unlock();
 
         action_token_retry_timer_.async_wait(
             boost::bind(
@@ -277,6 +312,10 @@ void UploadManagerImpl::HandleActionToken(
         action_token_state_ = ActionTokenState::Valid;
         action_token_ = response.action_token;
         action_token_expires_ = sclock::now() + kActionTokenLife;
+
+        // Unlock before calling external
+        lock.unlock();
+
         Tick();
     }
 }
@@ -285,10 +324,16 @@ void UploadManagerImpl::ActionTokenRetry(
         const boost::system::error_code & err
     )
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     if (!err && action_token_state_ == ActionTokenState::Error)
     {
         action_token_.clear();
         action_token_state_ = ActionTokenState::Invalid;
+
+        // Unlock before calling external
+        lock.unlock();
+
         Tick();
     }
 }
@@ -296,37 +341,58 @@ void UploadManagerImpl::ActionTokenRetry(
 // -- UploadStateMachineCallbackInterface --------------------------------------
 void UploadManagerImpl::HandleAddToHash(StateMachinePointer request)
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     to_hash_.push_back(request);
+
+    // Unlock before calling external
+    lock.unlock();
 
     EnqueueTick();
 }
 void UploadManagerImpl::HandleRemoveToHash(StateMachinePointer request)
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     auto it = std::find(to_hash_.begin(), to_hash_.end(), request);
     if (it != to_hash_.end())
         to_hash_.erase(it);
+
+    // Unlock before calling external
+    lock.unlock();
 
     EnqueueTick();
 }
 
 void UploadManagerImpl::HandleAddToUpload(StateMachinePointer request)
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     to_upload_.push_back(request);
+
+    // Unlock before calling external
+    lock.unlock();
 
     EnqueueTick();
 }
 void UploadManagerImpl::HandleRemoveToUpload(StateMachinePointer request)
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
     auto it = std::find(to_upload_.begin(), to_upload_.end(),
         request);
     if (it != to_upload_.end())
         to_upload_.erase(it);
+
+    // Unlock before calling external
+    lock.unlock();
 
     EnqueueTick();
 }
 
 void UploadManagerImpl::HandleComplete(StateMachinePointer request)
 {
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
     requests_.erase(request);
 
     const auto chunk_data = request->GetChunkData();
@@ -337,26 +403,33 @@ void UploadManagerImpl::HandleComplete(StateMachinePointer request)
         uploading_hashes_.erase(request->Hash());
     }
 
+    // Unlock before calling external
+    lock.unlock();
+
     EnqueueTick();
 }
 
 void UploadManagerImpl::IncrementHashingCount(StateMachinePointer)
 {
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     ++current_hashings_;
 }
 
 void UploadManagerImpl::DecrementHashingCount(StateMachinePointer)
 {
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     --current_hashings_;
 }
 
 void UploadManagerImpl::IncrementUploadingCount(StateMachinePointer)
 {
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     ++current_uploads_;
 }
 
 void UploadManagerImpl::DecrementUploadingCount(StateMachinePointer)
 {
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     --current_uploads_;
 }
 // -- END UploadStateMachineCallbackInterface ----------------------------------
