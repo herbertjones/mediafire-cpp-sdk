@@ -34,6 +34,11 @@ class SessionMaintainerLocker;
  * are complete, those requests will be canceled.  Their callbacks may be called
  * after the destruction of the maintainer.
  *
+ * @warning If placing long running tasks in callbacks or on the work
+ * io_service, http requests can time out, as they won't be handled before the
+ * connection times out.  If you believe this may happen due to any long running
+ * processes, then use a separate thread to run the io_service.
+ *
  * @brief Maintains a list of session tokens, which are required to make most
  * API requests and keeps status of obtaining those tokens.
  */

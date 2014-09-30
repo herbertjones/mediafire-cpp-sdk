@@ -49,6 +49,11 @@ struct Proxy
  * Will create a default io_service if none provided which must be run in order
  * to work.
  *
+ * @warning If placing long running tasks in callbacks or on the work
+ * io_service, http requests can time out, as they won't be handled before the
+ * connection times out.  If you believe this may happen due to any long running
+ * processes, then use a separate thread to run the io_service.
+ *
  * Creates a default BandwidthAnalyser if none set.
  */
 class HttpConfig : public std::enable_shared_from_this<HttpConfig>
