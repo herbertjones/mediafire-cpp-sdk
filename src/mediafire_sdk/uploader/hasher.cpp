@@ -22,6 +22,7 @@
 
 #include "mediafire_sdk/uploader/detail/hasher_events.hpp"
 #include "mediafire_sdk/uploader/detail/hasher_transitions.hpp"
+#include "mediafire_sdk/uploader/error.hpp"
 
 namespace asio  = ::boost::asio;
 namespace mpl   = ::boost::mpl;
@@ -173,7 +174,11 @@ void Hasher::Start()
 
 void Hasher::Cancel()
 {
-    /** @todo hjones: Send fail event */
+    impl_->sm->process_event( detail::hash_event::Error{
+        impl_->state,
+        make_error_code(mf::uploader::errc::Cancelled),
+        "Call cancelled"
+        });
 }
 
 }  // namespace uploader
