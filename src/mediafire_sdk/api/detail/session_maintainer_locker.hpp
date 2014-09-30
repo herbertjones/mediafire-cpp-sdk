@@ -20,14 +20,6 @@ namespace detail {
 class SessionMaintainerLocker
 {
 public:
-    struct SessionToken
-    {
-        std::string session_token;
-        std::string pkey;
-        std::string time;
-        int secret_key;
-    };
-
     using TimedEvents = mf::utils::TimedEvent<STRequest>;
     using WeakTimedEvents = mf::utils::TimedEvent<STRequestWeak>;
 
@@ -40,7 +32,7 @@ public:
 
     WeakTimedEvents::EventProcessor CreateTimeoutProcessor();
 
-    Credentials GetCredenials();
+    boost::optional<Credentials> GetCredenials();
 
     void SetCredentials(
             const Credentials & credentials
@@ -58,18 +50,18 @@ public:
 
     boost::optional< STRequest > NextWaitingNonSessionTokenRequest();
 
-    boost::optional< std::pair<STRequest, SessionToken> >
+    boost::optional< std::pair<STRequest, SessionTokenData> >
         NextWaitingSessionTokenRequest();
 
     void AddInProgressRequest( STRequest request );
 
-    void AddInProgressRequest( STRequest request, SessionToken token );
+    void AddInProgressRequest( STRequest request, SessionTokenData token );
 
     bool PermitSessionTokenCheckout();
 
     void DecrementSessionTokenInProgressCount();
 
-    bool AddSessionToken( SessionToken token, Credentials old_credentials );
+    bool AddSessionToken( SessionTokenData token, Credentials old_credentials );
 
     void ReuseToken(
             STRequest request,
@@ -121,17 +113,17 @@ private:
     SessionMaintainer::ConnectionStateChangeCallback
         connection_state_change_callback_;
 
-    Credentials credentials_;
+    boost::optional<Credentials> credentials_;
 
     std::deque< STRequest > waiting_st_requests_;
     std::deque< STRequest > waiting_non_st_requests_;
     std::set< STRequest > in_progress_requests_;
 
-    std::map< STRequest, SessionToken > checked_out_tokens_;
+    std::map< STRequest, SessionTokenData > checked_out_tokens_;
 
     TimedEvents::Pointer delayed_requests_;
 
-    std::vector< SessionToken > session_tokens_;
+    std::vector< SessionTokenData > session_tokens_;
 
     std::size_t in_progress_session_token_requests_;
 

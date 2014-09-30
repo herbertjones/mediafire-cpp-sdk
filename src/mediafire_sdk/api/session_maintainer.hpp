@@ -127,10 +127,15 @@ public:
         typedef std::function<void(detail::STRequest, ResponseBase*)>
             CompletionCallback;
 
+        // This is called when the request is completed successfully or not.
         CompletionCallback on_complete = boost::bind(
             &api::SessionMaintainer::HandleCompletion, this, _1, _2);
+
+        // This is called when the request fails and can be retried.
         CompletionCallback on_retry_request = boost::bind(
             &api::SessionMaintainer::HandleRetryRequest, this, _1, _2);
+
+        // Always called so connection status, ect. can be updated.
         CompletionCallback on_completion = boost::bind(
             &api::SessionMaintainer::HandleCompletionNotification,
             this, _1, _2);
@@ -146,7 +151,6 @@ public:
 
         // SessionMaintainer maintain the life of request.
         AddWaitingRequest(request);
-        AttemptRequests();
 
         return request;
     }
@@ -195,6 +199,11 @@ public:
      */
     void StopTimeouts();
 
+    /**
+     * @brief Get the HttpConfig object associated with the maintainer.
+     *
+     * @return HttpConfig used for all configuration.
+     */
     mf::http::HttpConfig::ConstPointer HttpConfig() const {return http_config_;}
 
 private:

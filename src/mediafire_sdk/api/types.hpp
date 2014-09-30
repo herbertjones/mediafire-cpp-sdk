@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <string>
+
 namespace mf {
 namespace api {
 
@@ -25,6 +27,14 @@ enum class RequestStarted {
     No,
     /** Start the HttpRequest before passing back to caller. */
     Yes,
+};
+
+struct SessionTokenData
+{
+    std::string session_token;
+    std::string pkey;
+    std::string time;
+    int secret_key;
 };
 
 }  // namespace api

@@ -46,7 +46,7 @@ SessionMaintainerLocker::CreateTimeoutProcessor()
     };
 }
 
-Credentials SessionMaintainerLocker::GetCredenials()
+boost::optional<Credentials> SessionMaintainerLocker::GetCredenials()
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     return credentials_;
@@ -57,14 +57,19 @@ void SessionMaintainerLocker::SetCredentials(
     )
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
-    credentials_ = credentials;
 
-    // All session tokens must become invalid.
-    session_tokens_.clear();
-    checked_out_tokens_.clear();
+    if ( ! credentials_ ||
+        ! mf::utils::AreVariantsEqual( credentials, *credentials_ ) )
+    {
+        credentials_ = credentials;
 
-    // We have become initialized.
-    ChangeSessionStateInternal(session_state::Initialized());
+        // All session tokens must become invalid.
+        session_tokens_.clear();
+        checked_out_tokens_.clear();
+
+        // We have become initialized.
+        ChangeSessionStateInternal(session_state::Initialized());
+    }
 }
 
 void SessionMaintainerLocker::AddWaitingRequest( STRequest request )
@@ -133,14 +138,14 @@ boost::optional< STRequest > SessionMaintainerLocker::NextWaitingNonSessionToken
     return boost::none;
 }
 
-boost::optional< std::pair<STRequest, SessionMaintainerLocker::SessionToken> >
+boost::optional<std::pair<STRequest, SessionTokenData>>
 SessionMaintainerLocker::NextWaitingSessionTokenRequest()
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
 
     if ( ! waiting_st_requests_.empty() && ! session_tokens_.empty() )
     {
-        SessionToken st = session_tokens_.back();
+        SessionTokenData st = session_tokens_.back();
         session_tokens_.pop_back();
 
         STRequest request = waiting_st_requests_.front();
@@ -160,7 +165,7 @@ void SessionMaintainerLocker::AddInProgressRequest( STRequest request )
 
 void SessionMaintainerLocker::AddInProgressRequest(
         STRequest request,
-        SessionToken token
+        SessionTokenData token
     )
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
@@ -221,13 +226,14 @@ void SessionMaintainerLocker::DecrementSessionTokenInProgressCount()
 }
 
 bool SessionMaintainerLocker::AddSessionToken(
-        SessionToken token,
+        SessionTokenData token,
         Credentials old_credentials
     )
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
 
-    if ( mf::utils::AreVariantsEqual( old_credentials, credentials_ ) )
+    if ( credentials_ &&
+        mf::utils::AreVariantsEqual( old_credentials, *credentials_ ) )
     {
         session_tokens_.push_back( std::move(token) );
         return true;
@@ -250,7 +256,7 @@ void SessionMaintainerLocker::ReuseToken(
         auto it = checked_out_tokens_.find( request );
         if ( it != checked_out_tokens_.end() )
         {
-            SessionToken st;
+            SessionTokenData st;
             std::swap( st, it->second );
             checked_out_tokens_.erase( it );
 

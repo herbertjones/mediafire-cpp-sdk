@@ -31,39 +31,39 @@ boost::atomic<int> mf::api::detail::session_maintainer_request_count(0);
 #endif
 
 namespace hl = mf::http;
-namespace api = mf::api;
 
-using api::detail::STRequest;
-using api::detail::SessionMaintainerRequest;
-
-using SessionToken = api::detail::SessionMaintainerLocker::SessionToken;
+using mf::api::detail::STRequest;
+using mf::api::detail::SessionMaintainerRequest;
 
 namespace {
+namespace session_state = mf::api::session_state;
+using mf::api::SessionState;
+
 #ifdef OUTPUT_DEBUG // Debug code
 std::ostream& operator<<(
         std::ostream& out,
-        const api::SessionState & state
+        const mf::api::SessionState & state
     )
 {
     class DebugVisitor : public boost::static_visitor<std::string>
     {
     public:
-        std::string operator()(api::session_state::Uninitialized) const
+        std::string operator()(session_state::Uninitialized) const
         {
             return "session_state::Uninitialized";
         }
 
-        std::string operator()(api::session_state::Initialized) const
+        std::string operator()(session_state::Initialized) const
         {
             return "session_state::Initialized";
         }
 
-        std::string operator()(api::session_state::CredentialsFailure) const
+        std::string operator()(session_state::CredentialsFailure) const
         {
             return "session_state::CredentialsFailure";
         }
 
-        std::string operator()(api::session_state::Running) const
+        std::string operator()(session_state::Running) const
         {
             return "session_state::Running";
         }
@@ -74,24 +74,26 @@ std::ostream& operator<<(
 }
 #endif
 
-bool IsInitialized(const api::SessionState & state)
+bool IsInitialized(const SessionState & state)
 {
-    return (boost::get<api::session_state::Initialized>(&state));
+    return (boost::get<session_state::Initialized>(&state));
 }
-bool IsRunning(const api::SessionState & state)
+bool IsRunning(const SessionState & state)
 {
-    return (boost::get<api::session_state::Running>(&state));
+    return (boost::get<session_state::Running>(&state));
 }
-
 }  // namespace
 
-api::SessionMaintainer::SessionMaintainer(
+namespace mf {
+namespace api {
+
+SessionMaintainer::SessionMaintainer(
         mf::http::HttpConfig::ConstPointer http_config
     ) : SessionMaintainer(http_config, "www.mediafire.com")
 {
 }
 
-api::SessionMaintainer::SessionMaintainer(
+SessionMaintainer::SessionMaintainer(
         mf::http::HttpConfig::ConstPointer http_config,
         std::string hostname
     ) :
@@ -99,7 +101,7 @@ api::SessionMaintainer::SessionMaintainer(
         new detail::SessionMaintainerLocker(
             http_config->GetWorkIoService(),
             boost::bind(
-                &api::SessionMaintainer::AddWaitingRequest,
+                &SessionMaintainer::AddWaitingRequest,
                 this, _1))),
     http_config_(http_config),
     session_token_failure_timer_(*http_config_->GetWorkIoService()),
@@ -109,7 +111,7 @@ api::SessionMaintainer::SessionMaintainer(
     assert(http_config);
 }
 
-api::SessionMaintainer::~SessionMaintainer()
+SessionMaintainer::~SessionMaintainer()
 {
     auto work_ios = http_config_->GetWorkIoService();
 
@@ -119,7 +121,7 @@ api::SessionMaintainer::~SessionMaintainer()
     work_ios->stop();
 }
 
-void api::SessionMaintainer::SetLoginCredentials(
+void SessionMaintainer::SetLoginCredentials(
         const Credentials & credentials
     )
 {
@@ -128,11 +130,11 @@ void api::SessionMaintainer::SetLoginCredentials(
 
     locker_->SetCredentials(credentials);
 
-    // Credentials updated.
+    // Credentials updated.  There may be requests ready to send.
     AttemptRequests();
 }
 
-void api::SessionMaintainer::HandleCompletion(
+void SessionMaintainer::HandleCompletion(
         STRequest request,
         ResponseBase * response
     )
@@ -144,9 +146,12 @@ void api::SessionMaintainer::HandleCompletion(
         locker_->DeleteCheckedOutToken(request);
     else
         locker_->ReuseToken(request, response);
+
+    // Request done, start another if possible
+    AttemptRequests();
 }
 
-void api::SessionMaintainer::HandleRetryRequest(
+void SessionMaintainer::HandleRetryRequest(
         STRequest request,
         ResponseBase * response
     )
@@ -164,10 +169,12 @@ void api::SessionMaintainer::HandleRetryRequest(
             locker_->ReuseToken(request, response);
         }
     }
+
+    // Request done, start another if possible
     AttemptRequests();
 }
 
-void api::SessionMaintainer::HandleCompletionNotification(
+void SessionMaintainer::HandleCompletionNotification(
         STRequest /* request */,
         ResponseBase * response
     )
@@ -175,7 +182,7 @@ void api::SessionMaintainer::HandleCompletionNotification(
     UpdateStateFromErrorCode(response->error_code);
 }
 
-void api::SessionMaintainer::UpdateStateFromErrorCode(
+void SessionMaintainer::UpdateStateFromErrorCode(
         const std::error_code & ec
     )
 {
@@ -209,7 +216,7 @@ void api::SessionMaintainer::UpdateStateFromErrorCode(
     }
 }
 
-void api::SessionMaintainer::AttemptRequests()
+void SessionMaintainer::AttemptRequests()
 {
     // Handle requests that do not use session tokens.
     boost::optional< STRequest > opt_request;
@@ -222,11 +229,11 @@ void api::SessionMaintainer::AttemptRequests()
     }
 
     // Handle requests that have session tokens.
-    boost::optional< std::pair<STRequest, SessionToken> > request_pair;
+    boost::optional< std::pair<STRequest, SessionTokenData> > request_pair;
     while ( IsRunning(GetSessionState())
         && (request_pair = locker_->NextWaitingSessionTokenRequest()) )
     {
-        SessionToken & st = request_pair->second;
+        SessionTokenData & st = request_pair->second;
         STRequest & request = request_pair->first;
 
         request->SetSessionToken(
@@ -240,15 +247,17 @@ void api::SessionMaintainer::AttemptRequests()
     }
 
     // Request more session tokens for those that need it.
-    const Credentials credentials( locker_->GetCredenials() );
-
-    while ( locker_->PermitSessionTokenCheckout() )
+    const boost::optional<Credentials> credentials( locker_->GetCredenials() );
+    if (credentials)
     {
-        RequestSessionToken(credentials);
+        while ( locker_->PermitSessionTokenCheckout() )
+        {
+            RequestSessionToken(*credentials);
+        }
     }
 }
 
-void api::SessionMaintainer::RequestSessionToken(
+void SessionMaintainer::RequestSessionToken(
         const Credentials & credentials
     )
 {
@@ -259,11 +268,11 @@ void api::SessionMaintainer::RequestSessionToken(
 
     hl::HttpRequest::Pointer http_request =
         requester_.Call(
-            api::user::get_session_token::Request(
+            user::get_session_token::Request(
                 credentials
             ),
             boost::bind(
-                &api::SessionMaintainer::HandleSessionTokenResponse,
+                &SessionMaintainer::HandleSessionTokenResponse,
                 this,
                 _1,
                 credentials
@@ -277,14 +286,14 @@ void api::SessionMaintainer::RequestSessionToken(
     http_request->Start();
 }
 
-void api::SessionMaintainer::HandleSessionTokenResponse(
-        const api::user::get_session_token::Response & response,
+void SessionMaintainer::HandleSessionTokenResponse(
+        const user::get_session_token::Response & response,
         const Credentials & old_credentials
     )
 {
     locker_->DecrementSessionTokenInProgressCount();
 
-    api::SessionState session_state;
+    SessionState session_state;
     uint32_t session_state_change_count;
 
     std::tie(session_state, session_state_change_count) =
@@ -306,22 +315,25 @@ void api::SessionMaintainer::HandleSessionTokenResponse(
 
         session_token_failure_timer_.async_wait(
             boost::bind(
-                &api::SessionMaintainer::HandleSessionTokenFailureTimeout,
+                &SessionMaintainer::HandleSessionTokenFailureTimeout,
                 this,
                 boost::asio::placeholders::error
             )
         );
 
         // If username or password is incorrect, stop.
-        if (response.error_code == api::result_code::CredentialsInvalid)
+        if (response.error_code == result_code::CredentialsInvalid)
         {
             if (IsInitialized(session_state) || IsRunning(session_state))
             {
                 // State is valid.
 
-                const Credentials credentials = locker_->GetCredenials();
+                const boost::optional<Credentials> credentials(
+                    locker_->GetCredenials() );
+
                 // Equality check ensures this isn't an old request
-                if ( mf::utils::AreVariantsEqual(old_credentials, credentials))
+                if ( credentials &&
+                    mf::utils::AreVariantsEqual(old_credentials, *credentials))
                 {
                     session_state::CredentialsFailure new_state;
                     new_state.session_token_response = response;
@@ -351,12 +363,11 @@ void api::SessionMaintainer::HandleSessionTokenResponse(
             << std::endl;
 #       endif
 
-        SessionToken st;
-
-        st.session_token = response.session_token;
-        st.pkey = response.pkey;
-        st.secret_key = response.secret_key;
-        st.time = response.time;
+        SessionTokenData st = {
+            response.session_token,
+            response.pkey,
+            response.time,
+            response.secret_key };
 
         if ( locker_->AddSessionToken(std::move(st), old_credentials) )
         {
@@ -375,7 +386,7 @@ void api::SessionMaintainer::HandleSessionTokenResponse(
     }
 }
 
-void api::SessionMaintainer::HandleSessionTokenFailureTimeout(
+void SessionMaintainer::HandleSessionTokenFailureTimeout(
         const boost::system::error_code & err
     )
 {
@@ -385,7 +396,7 @@ void api::SessionMaintainer::HandleSessionTokenFailureTimeout(
     }
 }
 
-void api::SessionMaintainer::AddWaitingRequest(
+void SessionMaintainer::AddWaitingRequest(
         STRequest request
     )
 {
@@ -393,45 +404,48 @@ void api::SessionMaintainer::AddWaitingRequest(
     AttemptRequests();
 }
 
-api::SessionState
-api::SessionMaintainer::GetSessionState()
+SessionState
+SessionMaintainer::GetSessionState()
 {
     return locker_->GetSessionState().first;
 }
 
-void api::SessionMaintainer::SetSessionState(api::SessionState state)
+void SessionMaintainer::SetSessionState(SessionState state)
 {
     return locker_->SetSessionState(state);
 }
 
-api::ConnectionState
-api::SessionMaintainer::GetConnectionState()
+ConnectionState
+SessionMaintainer::GetConnectionState()
 {
     return locker_->GetConnectionState();
 }
 
-void api::SessionMaintainer::SetConnectionState(
-        const api::ConnectionState & state
+void SessionMaintainer::SetConnectionState(
+        const ConnectionState & state
     )
 {
     return locker_->SetConnectionState(state);
 }
 
-void api::SessionMaintainer::SetSessionStateChangeCallback(
+void SessionMaintainer::SetSessionStateChangeCallback(
         SessionStateChangeCallback callback
     )
 {
     return locker_->SetSessionStateChangeCallback(callback);
 }
 
-void api::SessionMaintainer::SetConnectionStateChangeCallback(
+void SessionMaintainer::SetConnectionStateChangeCallback(
         ConnectionStateChangeCallback callback
     )
 {
     return locker_->SetConnectionStateChangeCallback(callback);
 }
 
-void api::SessionMaintainer::StopTimeouts()
+void SessionMaintainer::StopTimeouts()
 {
     locker_->StopTimeouts();
 }
+
+}  // namespace api
+}  // namespace mf

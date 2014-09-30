@@ -84,6 +84,8 @@ namespace api = mf::api;
 # error "TEST_USER defines not set."
 #endif
 
+using TokenContainer = std::vector<mf::api::SessionTokenData>;
+
 namespace constants {
 const std::string host = "www.mediafire.com";
 }  // namespace constants
@@ -97,6 +99,7 @@ const std::string password = TEST_USER_2_PASSWORD;
 }  // namespace user2
 
 namespace globals {
+
 std::string test_folderkey;
 std::string test_folder_name;
 
@@ -127,66 +130,52 @@ std::string TestName()
 {
     return boost::unit_test::framework::current_test_case().p_name;
 }
-class Connection
+
+struct LoginCredentials
 {
-public:
-    Connection(std::string username, std::string password) :
-        http_config(mf::http::HttpConfig::Create()),
-        io_service(http_config->GetWorkIoService()),
-        stm(http_config, constants::host)
-    {
-        std::cout << "Creating Connection" << std::endl;
-
-        assert(http_config);
-        assert(io_service);
-        stm.SetLoginCredentials( api::credentials::Email{ username, password } );
-    }
-
-    ~Connection()
-    {
-        std::cout << "Destroying Connection" << std::endl;
-    }
-
-
-    mf::http::HttpConfig::Pointer http_config;
-    boost::asio::io_service * io_service;
-    api::SessionMaintainer stm;
+    std::string username;
+    std::string password;
 };
 }  // namespace
+
 namespace globals {
-Connection connection( user1::username, user1::password );
-Connection connection2( user2::username, user2::password );
+const api::credentials::Email connection1{ user1::username, user1::password };
+const api::credentials::Email connection2{ user2::username, user2::password };
 }  // namespace globals
+
 namespace {
 class Fixture
 {
 public:
     Fixture() :
-        connection_(&globals::connection),
-        timeout_timer_(*connection_->io_service)
+        credentials_(globals::connection1),
+        http_config_(mf::http::HttpConfig::Create()),
+        timeout_timer_(*http_config_->GetWorkIoService()),
+        stm_(http_config_, constants::host)
     {
     }
 
     ~Fixture()
     {
+        http_config_->StopService();
     }
 
     void SetUser2()
     {
-        connection_ = &globals::connection2;
-        connection_->io_service->reset();
+        credentials_ = globals::connection2;
     }
 
     void Start()
     {
-        // Can't call run again without resetting io service.
-        connection_->io_service->reset();
-        connection_->io_service->run();
+        assert(http_config_);
+
+        stm_.SetLoginCredentials( credentials_ );
+        http_config_->RunService();
     }
 
     void StartWithDefaultTimeout()
     {
-        StartWithTimeout( posix_time::seconds(4) );
+        StartWithTimeout( posix_time::seconds(15) );
     }
 
     void StartWithTimeout(
@@ -211,17 +200,13 @@ public:
         timeout_timer_.cancel();
 
         // Stop any ongoing timeouts so that io_service::run stops on its own
-        connection_->stm.StopTimeouts();
-
-        // Calling stop is dangerous if going to restart. stop+reset do not
-        // clear the existing tasks on the io_service work queue.
-        // connection_->io_service.stop();
+        stm_.StopTimeouts();
     }
 
     template<typename Request, typename Callback>
     void Call(Request request, Callback callback)
     {
-        requests_.insert( connection_->stm.Call( request, callback ) );
+        requests_.insert( stm_.Call( request, callback ) );
     }
 
     template<typename Response>
@@ -282,14 +267,15 @@ protected:
             BOOST_FAIL(ss.str());
 
             // Stop not safe in this instance. Cancel all requests instead.
-            // connection_->io_service.stop();
             for ( const api::SessionMaintainer::Request & request : requests_ )
                 request->Cancel();
         }
     }
 
-    Connection * connection_;
+    api::Credentials credentials_;
+    mf::http::HttpConfig::Pointer http_config_;
     boost::asio::deadline_timer timeout_timer_;
+    api::SessionMaintainer stm_;
     std::set<api::SessionMaintainer::Request> requests_;
 };
 std::string RandomAlphaNum(int length)
@@ -321,18 +307,19 @@ BOOST_FIXTURE_TEST_SUITE( s, Fixture )
 
 BOOST_AUTO_TEST_CASE(SessionTokenOverSessionMaintainerLive)
 {
+    const api::credentials::Email & connection(globals::connection1);
+
     Call(
-        api::user::get_session_token::Request(
-            api::credentials::Email{ user1::username, user1::password }),
-        [&](const api::user::get_session_token::Response & response)
+        api::user::get_session_token::Request(globals::connection1),
+        [connection, this](const api::user::get_session_token::Response & response)
         {
             Stop();
 
             if ( response.error_code )
             {
                 std::ostringstream ss;
-                ss << "User: " << user1::username << std::endl;
-                ss << "Password: " << user1::password << std::endl;
+                ss << "User: " << connection.email << std::endl;
+                ss << "Password: " << connection.password << std::endl;
                 ss << "Error: " << response.error_string << std::endl;
                 BOOST_FAIL(ss.str());
             }
@@ -1310,29 +1297,48 @@ BOOST_AUTO_TEST_CASE(EkeyTest)
 // api::SessionMaintainer::HandleSessionTokenFailure to test again.
 BOOST_AUTO_TEST_CASE(SpamTest)
 {
-    uint32_t fail_count = 0;
+    const uint32_t requests_to_be_made = 50;
+
+    uint32_t times_failed = 0;
+    uint32_t times_returned = 0;
+
     std::function<void(const api::device::get_changes::Response &,uint32_t)>
         callback(
-        [&](const api::device::get_changes::Response & response, uint32_t count)
+        [this, &times_returned, &times_failed, requests_to_be_made](
+                const api::device::get_changes::Response & response,
+                uint32_t count
+            )
         {
             std::cout << "SpamTest: Count: " << count << std::endl;
+
             if ( response.error_code )
             {
-                ++fail_count;
+                ++times_failed;
                 std::cout << "Error: " << response.error_string << std::endl;
+            }
+
+            ++times_returned;
+            if (times_returned == requests_to_be_made)
+            {
+                if (times_failed)
+                    Fail(response);
+                else
+                    Success();
             }
         });
 
-    uint32_t count = 50;
-    while ( count-- > 0 )
+    for ( uint32_t i = 1; i <= requests_to_be_made; ++i )
     {
         Call(
                 api::device::get_changes::Request(0),
-                std::bind(callback, std::placeholders::_1, count)
+                std::bind(callback, std::placeholders::_1, i)
             );
     }
+
     Start();
-    BOOST_CHECK_EQUAL( fail_count, 0 );
+
+    BOOST_CHECK_EQUAL( times_failed, 0 );
+    BOOST_CHECK_EQUAL( times_returned, requests_to_be_made );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
