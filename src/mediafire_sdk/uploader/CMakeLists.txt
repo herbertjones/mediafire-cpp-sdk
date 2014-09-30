@@ -5,6 +5,7 @@ project (mf_uploader_sdk CXX)
 set(MF_UPLOADER_SOURCES
     detail/hasher_transitions.cpp
     detail/stepping.cpp
+    detail/transition_upload.cpp
     detail/upload_manager_impl.cpp
 
     error/codes/poll_file_error.cpp
