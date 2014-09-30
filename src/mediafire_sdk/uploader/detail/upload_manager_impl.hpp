@@ -46,12 +46,12 @@ public:
         );
     virtual ~UploadManagerImpl();
 
-    void Add(
+    UploadHandle Add(
             const UploadRequest & request,
             StatusCallback callback
         );
     void ModifyUpload(
-            const boost::filesystem::path & filepath,
+            UploadHandle upload_handle,
             ::mf::uploader::UploadModification modification
         );
 
@@ -78,6 +78,7 @@ private:
         Valid
     } action_token_state_;
     boost::asio::steady_timer action_token_retry_timer_;
+
     void ActionTokenRetry(
             const boost::system::error_code & err
         );

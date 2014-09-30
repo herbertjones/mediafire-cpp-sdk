@@ -68,6 +68,7 @@ typedef std::function<void(::mf::uploader::UploadStatus)> StatusCallback;
 
 struct UploadConfig
 {
+    UploadHandle upload_handle;
     UploadStateMachineCallbackInterface * callback_interface;
     ::mf::api::SessionMaintainer * session_maintainer;
     boost::filesystem::path filepath;
@@ -158,6 +159,7 @@ public:
         event_strand_(*http_config_->GetWorkIoService()),
         timer_(*work_io_service_),
         callback_interface_(config.callback_interface),
+        upload_handle_(config.upload_handle),
         filepath_(config.filepath),
         on_duplicate_action_(config.on_duplicate_action),
         status_callback_(config.status_callback),
@@ -510,6 +512,8 @@ public:
         callback_interface_ = nullptr;
     }
 
+    UploadHandle Handle() const {return upload_handle_;}
+
     boost::filesystem::path Path() const
     {
         return filepath_;
@@ -696,7 +700,7 @@ public:
 
     void SendStatus(const UploadState & state)
     {
-        status_callback_( UploadStatus{ filepath_, state } );
+        status_callback_( UploadStatus{ upload_handle_, filepath_, state } );
     }
 
     ChunkData GetChunkData() const
@@ -720,6 +724,8 @@ protected:
     asio::steady_timer timer_;
 
     UploadStateMachineCallbackInterface * callback_interface_;
+
+    const UploadHandle upload_handle_;
 
     // Path to local file
     boost::filesystem::path filepath_;

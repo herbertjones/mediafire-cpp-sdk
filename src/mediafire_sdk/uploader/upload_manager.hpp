@@ -11,6 +11,7 @@
 
 #include "boost/filesystem/path.hpp"
 
+#include "detail/types.hpp"
 #include "upload_modification.hpp"
 #include "upload_status.hpp"
 #include "upload_request.hpp"
@@ -33,7 +34,8 @@ namespace uploader {
 class UploadManager
 {
 public:
-    typedef std::function<void(UploadStatus)> StatusCallback;
+    using StatusCallback = std::function<void(UploadStatus)>;
+    using UploadHandle = detail::UploadHandle;
 
     /**
      * @brief UploadManager constructor
@@ -52,39 +54,19 @@ public:
      * @param[in] request Data on the upload to perform.
      * @param[in] callback A callback function that will receive updates on the
      * progress of the upload.
+     *
+     * @return Handle for upload that can be used to modify the upload.
      */
-    void Add(const UploadRequest & request, StatusCallback callback);
+    UploadHandle Add(const UploadRequest & request, StatusCallback callback);
 
     /**
      * @brief Modify an ongoing upload.
      *
-     * @param[in] filepath Local path of the file to modify.
+     * @param[in] upload_handle Handle to the file given from Add.
      * @param[in] modification How to modify the upload.
      */
     void ModifyUpload(
-            const std::string & filepath,
-            UploadModification modification
-        );
-
-    /**
-     * @brief Modify an ongoing upload.
-     *
-     * @param[in] filepath Local path of the file to modify.
-     * @param[in] modification How to modify the upload.
-     */
-    void ModifyUpload(
-            const std::wstring & filepath,
-            UploadModification modification
-        );
-
-    /**
-     * @brief Modify an ongoing upload.
-     *
-     * @param[in] filepath Local path of the file to modify.
-     * @param[in] modification How to modify the upload.
-     */
-    void ModifyUpload(
-            const boost::filesystem::path & filepath,
+            UploadHandle upload_handle,
             UploadModification modification
         );
 

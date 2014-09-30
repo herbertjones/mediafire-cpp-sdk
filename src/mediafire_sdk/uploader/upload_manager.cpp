@@ -25,38 +25,20 @@ UploadManager::~UploadManager()
 {
 }
 
-void UploadManager::Add(
+UploadManager::UploadHandle UploadManager::Add(
         const UploadRequest & request,
         StatusCallback callback
     )
 {
-    impl_->Add(request, callback);
+    return impl_->Add(request, callback);
 }
 
 void UploadManager::ModifyUpload(
-        const std::string & filepath,
+        UploadHandle upload_handle,
         UploadModification modification
     )
 {
-    boost::filesystem::path path(filepath);
-    ModifyUpload(path, modification);
-}
-
-void UploadManager::ModifyUpload(
-        const std::wstring & filepath,
-        UploadModification modification
-    )
-{
-    boost::filesystem::path path(filepath);
-    ModifyUpload(path, modification);
-}
-
-void UploadManager::ModifyUpload(
-        const boost::filesystem::path & filepath,
-        UploadModification modification
-    )
-{
-    impl_->ModifyUpload(filepath, modification);
+    impl_->ModifyUpload(upload_handle, modification);
 }
 
 }  // namespace uploader

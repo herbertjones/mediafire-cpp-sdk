@@ -24,6 +24,11 @@ enum class ChunkState
     Uploaded
 };
 
+struct UploadHandle
+{
+    uint32_t id;
+};
+
 }  // namespace detail
 }  // namespace uploader
 }  // namespace mf

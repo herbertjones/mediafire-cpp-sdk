@@ -9,6 +9,7 @@
 #include "boost/variant/apply_visitor.hpp"
 
 #include "mediafire_sdk/uploader/error.hpp"
+#include "mediafire_sdk/utils/mutex.hpp"
 
 namespace action_token = mf::api::user::get_action_token;
 namespace posix_time = boost::posix_time;
@@ -19,6 +20,16 @@ const std::chrono::seconds kActionTokenRetry(15);
 // Default lifetime is 1440 minutes(24h).  We should get a new upload token
 // before it expires.
 const std::chrono::minutes kActionTokenLife(1440/4*3);
+
+mf::uploader::detail::UploadHandle NextUploadHandle()
+{
+    static mf::uploader::detail::UploadHandle upload_handle = {0};
+    static mf::utils::mutex mutex;
+
+    mf::utils::lock_guard<mf::utils::mutex> lock(mutex);
+    ++upload_handle.id;
+    return upload_handle;
+}
 }  // namespace
 
 namespace mf {
@@ -55,13 +66,15 @@ UploadManagerImpl::~UploadManagerImpl()
     requests_.clear();
 }
 
-void UploadManagerImpl::Add(
+UploadHandle UploadManagerImpl::Add(
         const UploadRequest & upload_request,
         StatusCallback callback
     )
 {
+    auto upload_handle = NextUploadHandle();
     UploadConfig config;
 
+    config.upload_handle = upload_handle;
     config.session_maintainer = session_maintainer_;
     config.filepath = upload_request.local_file_path_;
     config.on_duplicate_action = upload_request.on_duplicate_action_;
@@ -79,10 +92,12 @@ void UploadManagerImpl::Add(
     request->process_event(event::Start{});
 
     Tick();
+
+    return upload_handle;
 }
 
 void UploadManagerImpl::ModifyUpload(
-        const boost::filesystem::path & filepath,
+        UploadHandle upload_handle,
         ::mf::uploader::UploadModification upload_modification
     )
 {
@@ -91,16 +106,16 @@ void UploadManagerImpl::ModifyUpload(
     public:
         Visitor(
                 UploadManagerImpl * um,
-                const boost::filesystem::path & filepath
+                UploadHandle upload_handle
             ) :
-            this_(um), filepath_(filepath)
+            this_(um), upload_handle_(upload_handle)
         {}
 
         void operator()(modification::Cancel) const
         {
             for (auto & request : this_->requests_)
             {
-                if (request->Path() == filepath_)
+                if (request->Handle().id == upload_handle_.id)
                 {
                     request->ProcessEvent(event::Error{
                         make_error_code(mf::uploader::errc::Cancelled),
@@ -115,7 +130,7 @@ void UploadManagerImpl::ModifyUpload(
         {
             for (auto & request : this_->requests_)
             {
-                if (request->Path() == filepath_)
+                if (request->Handle().id == upload_handle_.id)
                 {
                     request->ProcessEvent(event::Error{
                         make_error_code(mf::uploader::errc::Paused),
@@ -128,10 +143,10 @@ void UploadManagerImpl::ModifyUpload(
 
     private:
         UploadManagerImpl * this_;
-        const boost::filesystem::path & filepath_;
+        const UploadHandle & upload_handle_;
     };
 
-    boost::apply_visitor(Visitor(this, filepath), upload_modification);
+    boost::apply_visitor(Visitor(this, upload_handle), upload_modification);
 }
 
 void UploadManagerImpl::Tick()

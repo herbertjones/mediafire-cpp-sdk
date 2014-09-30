@@ -3,8 +3,6 @@
  * @author Herbert Jones
  *
  * @copyright Copyright 2014 Mediafire
- *
- * Beware, mutex lock being used.
  */
 #include "session_maintainer.hpp"
 
@@ -22,7 +20,6 @@
 
 #include "mediafire_sdk/api/detail/session_maintainer_locker.hpp"
 #include "mediafire_sdk/api/error.hpp"
-#include "mediafire_sdk/utils/mutex.hpp"
 #include "mediafire_sdk/utils/variant_comparison.hpp"
 
 #if ! defined(NDEBUG)

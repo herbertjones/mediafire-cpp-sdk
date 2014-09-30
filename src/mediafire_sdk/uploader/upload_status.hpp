@@ -9,6 +9,8 @@
 #include "boost/filesystem/path.hpp"
 #include "boost/variant/variant.hpp"
 
+#include "detail/types.hpp"
+
 #include <system_error>
 
 namespace mf {
@@ -43,6 +45,7 @@ using UploadState = boost::variant<
 
 struct UploadStatus
 {
+    detail::UploadHandle upload_handle;
     boost::filesystem::path path;
     UploadState state;
 };
