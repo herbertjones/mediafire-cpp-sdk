@@ -4,6 +4,7 @@
  *
  * @copyright Copyright 2014 Mediafire
  */
+#include <chrono>
 #include <limits>
 #include <map>
 #include <string>
@@ -20,17 +21,14 @@
 #include "mediafire_sdk/utils/string.hpp"
 
 #include "boost/algorithm/string/find.hpp"
-
 #include "boost/asio.hpp"
 #include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
 #include "boost/asio/ssl/impl/src.hpp"  // Define once in program
-
 #include "boost/date_time/posix_time/ptime.hpp"
-#include "boost/format.hpp"
-
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/fstream.hpp"
+#include "boost/format.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
 #include "mediafire_sdk/api/unit_tests/session_token_test_server.hpp"
@@ -130,14 +128,13 @@ public:
 
 private:
     boost::asio::io_service * io_service_;
-    boost::asio::deadline_timer timer_;
+    boost::asio::steady_timer timer_;
 
     int timeout_seconds_;
 
     void Run()
     {
-        timer_.expires_from_now(
-            boost::posix_time::seconds( timeout_seconds_ ) );
+        timer_.expires_from_now(std::chrono::seconds(timeout_seconds_));
         timer_.async_wait(
             boost::bind(
                 &FailTimer::HandleTimeout,
@@ -550,6 +547,54 @@ public:
 private:
     std::string files_response_;
     std::string folders_response_;
+};
+
+class TimeoutServer
+{
+public:
+    TimeoutServer(
+            boost::asio::io_service * io_service,
+            int seconds
+        ) :
+        timer_(*io_service),
+        seconds_(seconds)
+    {
+    }
+
+    ~TimeoutServer()
+    {
+        timer_.cancel();
+    }
+
+    void AcceptRequest(api::ut::RequestPointer request)
+    {
+        // Don't respond, but keep request around
+
+        timer_.expires_from_now( std::chrono::seconds(seconds_) );
+        timer_.async_wait(
+            boost::bind(
+                &TimeoutServer::HandleTimeout,
+                this,
+                request,
+                boost::asio::placeholders::error
+            )
+        );
+    }
+
+    void HandleTimeout(
+            api::ut::RequestPointer /*request*/,
+            const boost::system::error_code & err
+        )
+    {
+        if (!err)
+        {
+            std::cout << "Timeout reached!  Releasing request." << std::endl;
+        }
+    }
+
+private:
+    boost::asio::steady_timer timer_;
+    int seconds_;
 };
 
 class SessionTokenSimpleResponder
@@ -973,6 +1018,81 @@ BOOST_AUTO_TEST_CASE(GetActionToken)
 
     stm.Call( image_request, callback );
     stm.Call( upload_request, callback );
+
+    std::cout << "Starting " << TestName() <<  " main loop" << std::endl;
+    io_service.run();
+}
+
+BOOST_AUTO_TEST_CASE(TimeoutSeconds)
+{
+    boost::asio::io_service io_service;
+    FailTimer ft(&io_service, 10);
+
+    api::ut::PathHandlers handlers;
+
+    SessionTokenServer st_responder;
+    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+
+    TimeoutServer rcc_responder(&io_service, 10);
+    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+
+    api::ut::SessionTokenTestServer server(
+        &io_service,
+        address,
+        port,
+        std::move(handlers)
+    );
+
+    auto http_config = mf::http::HttpConfig::Create();
+    http_config->SetWorkIoService(&io_service);
+    http_config->AllowSelfSignedCertificate();
+
+    api::SessionMaintainer stm(
+        http_config,
+        host );
+    stm.SetLoginCredentials( api::credentials::Email{ username, password } );
+
+    // Set timeout seconds to short amount to ensure timeout happens correctly.
+    stm.SetTimeoutSeconds(0);
+
+    api::folder::get_content::Request get_content(
+        "myfiles",  // folder_key
+        0,  // chunk
+        api::folder::get_content::ContentType::Folders  // content_type
+    );
+
+    stm.Call(
+        get_content,
+        [&io_service, &ft, &stm](
+                const api::folder::get_content::Response & response
+            )
+        {
+            if ( response.error_code ==
+                api::api_code::SessionTokenUnavailableTimeout )
+            {
+                std::cout << "Successful timeout" << std::endl;
+            }
+            else if ( response.error_code )
+            {
+                std::cout << response.debug << std::endl;
+
+                std::ostringstream ss;
+                ss << "Error: " << response.error_string << std::endl;
+                BOOST_FAIL(ss.str());
+            }
+            else
+            {
+                BOOST_FAIL("Response succeeded where it should not have.");
+            }
+
+            std::cout << "Calling possible single thread deadlock." << std::endl;
+            stm.StopTimeouts();
+
+            // Still stop io_service to prevent assert in session manager.
+            ft.Stop();
+            io_service.stop();
+        }
+    );
 
     std::cout << "Starting " << TestName() <<  " main loop" << std::endl;
     io_service.run();

@@ -391,13 +391,17 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
     {
         if (request->UsesSessionToken())
         {
-            mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+            mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
             std::deque< STRequest >::iterator it = std::find(
                 waiting_st_requests_.begin(), waiting_st_requests_.end(),
                 request);
             if (it != waiting_st_requests_.end())
             {
                 waiting_st_requests_.erase(it);
+
+                // In case of Fail calling mutex
+                lock.unlock();
+
                 request->Fail(
                     make_error_code(
                         api::api_code::SessionTokenUnavailableTimeout ),
@@ -408,7 +412,7 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
         }
         else
         {
-            mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+            mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
             std::deque< STRequest >::iterator it = std::find(
                 waiting_non_st_requests_.begin(),
                 waiting_non_st_requests_.end(),
@@ -416,6 +420,10 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
             if (it != waiting_non_st_requests_.end())
             {
                 waiting_non_st_requests_.erase(it);
+
+                // In case of Fail calling mutex
+                lock.unlock();
+
                 request->Fail(
                     make_error_code(
                         api::api_code::ConnectionUnavailableTimeout ),
