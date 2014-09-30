@@ -60,9 +60,11 @@
 #include "boost/random/uniform_int_distribution.hpp"
 
 #include "boost/asio.hpp"
-#include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/ssl/impl/src.hpp"  // Define once in program
+#ifdef BOOST_ASIO_SEPARATE_COMPILATION
+#  include "boost/asio/impl/src.hpp"  // Define once in program
+#  include "boost/asio/ssl/impl/src.hpp"  // Define once in program
+#endif
 
 #include "boost/format.hpp"
 

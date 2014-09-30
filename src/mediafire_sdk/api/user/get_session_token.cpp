@@ -112,6 +112,10 @@ std::string v0::Request::Url(std::string hostname) const
         query_parts.emplace(std::string("application_id"),
             app_constants::kAppId);
     }
+    else
+    {
+        assert( !"app_constants::kAppId not defined!" );
+    }
 
     query_parts.emplace(std::string("token_version"), AsString(token_version_));
     query_parts.emplace(std::string("response_format"), std::string("json"));

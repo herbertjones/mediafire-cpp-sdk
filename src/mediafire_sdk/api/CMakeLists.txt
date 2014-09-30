@@ -2,6 +2,17 @@ cmake_minimum_required(VERSION 2.8)
 
 add_subdirectory(error)
 
+# For convenience
+set(DMF_API_APP_ID "" CACHE STRING "The app ID assigned to you by MediaFire. Can be left blank if MDF_API_OVERRIDE_APP_ID is defined in the build environment.")
+if ( NOT "${MDF_API_APP_ID}" STREQUAL "" )
+    add_definitions(-DMDF_API_APP_ID="${MDF_API_APP_ID}")
+endif( NOT "${MDF_API_APP_ID}" STREQUAL "" )
+
+set(DMF_API_APP_ID "" CACHE STRING "The app key assigned to you by MediaFire. Can be left blank if MDF_API_OVERRIDE_APP_KEY is defined in the build environment.")
+if ( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
+    add_definitions(-DMDF_API_APP_KEY="${MDF_API_APP_KEY}")
+endif( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
+
 # -- API by path ---------------
 add_subdirectory(billing)
 add_subdirectory(contact)

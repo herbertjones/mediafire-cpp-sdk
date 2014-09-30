@@ -2,7 +2,9 @@
 #define BOOST_TEST_MODULE IoServiceConnection
 #include <string>
 
-#include "boost/asio/impl/src.hpp" // Define once in program
+#ifdef BOOST_ASIO_SEPARATE_COMPILATION
+#  include "boost/asio/impl/src.hpp"  // Define once in program
+#endif
 #include "boost/test/unit_test.hpp"
 #include "boost/asio/io_service.hpp"
 #include "boost/scoped_ptr.hpp"

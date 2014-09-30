@@ -22,9 +22,11 @@
 
 #include "boost/algorithm/string/find.hpp"
 #include "boost/asio.hpp"
-#include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/ssl/impl/src.hpp"  // Define once in program
+#ifdef BOOST_ASIO_SEPARATE_COMPILATION
+#  include "boost/asio/impl/src.hpp"  // Define once in program
+#  include "boost/asio/ssl/impl/src.hpp"  // Define once in program
+#endif
 #include "boost/date_time/posix_time/ptime.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/fstream.hpp"

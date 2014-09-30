@@ -20,10 +20,10 @@ unit tests.
 ==== Example config ====
 
  <nowiki>
-SET(TEST_USER_1_USERNAME "test@test.com" CACHE STRING "User 1 username")
-SET(TEST_USER_1_PASSWORD "password" CACHE STRING "User 1 password")
-SET(TEST_USER_2_USERNAME "test2@test.com" CACHE STRING "User 2 username")
-SET(TEST_USER_2_PASSWORD "password" CACHE STRING "User 2 password")</nowiki>
+SET(TEST_USER_1_USERNAME test@test.com CACHE STRING "User 1 username")
+SET(TEST_USER_1_PASSWORD password CACHE STRING "User 1 password")
+SET(TEST_USER_2_USERNAME test2@test.com CACHE STRING "User 2 username")
+SET(TEST_USER_2_PASSWORD password CACHE STRING "User 2 password")</nowiki>
 
 == Optional Variables ==
 
@@ -56,11 +56,11 @@ add_definitions(-DMDF_API_OVERRIDE_BUILD_SIGNATURE)
 set(MFD_API_APP_CONSTANTS_LIBRARY our_app_constants)
 
 # We don't use the internal app_constants::kAppId in the SDK
-#add_definitions(-DMDF_API_APP_ID=My_app_id)
+#add_definitions(-DMDF_API_APP_ID="My_app_id")
 
 # We don't supply an application key for use in app_constants::BuildSignature
 # inside the SDK.
-#add_definitions(-DMDF_API_APP_KEY=My_app_key)
+#add_definitions(-DMDF_API_APP_KEY="My_app_key")
 
 include_directories("api_sdk/src")
 add_subdirectory("api_sdk/src" "${PROJECT_BINARY_DIR}/api_sdk")</nowiki>

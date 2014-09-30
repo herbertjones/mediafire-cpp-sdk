@@ -95,6 +95,8 @@ std::string v0::Request::Url(std::string hostname) const
 
     if (has_app_id)
         query_parts.emplace(std::string("application_id"), app_constants::kAppId);
+    else
+        assert( !"app_constants::kAppId not defined!" );
 
     query_parts.emplace(std::string("response_format"), std::string("json"));
 

@@ -22,9 +22,9 @@ namespace app_constants {
  */
 #ifndef MDF_API_OVERRIDE_APP_ID
 #   ifdef MDF_API_APP_ID
-        char const * const kAppId = #MDF_API_APP_ID;
+        char const * const kAppId = MDF_API_APP_ID;
 #   else
-        char const * const kAppId = nullptr;
+#       error "You must supply an APP ID for the SDK to function."
 #   endif
 #endif
 
@@ -34,7 +34,7 @@ std::string BuildSignature(
     )
 {
 #ifdef MDF_API_APP_KEY
-    const char kAppKey[] = #MDF_API_APP_KEY;
+    const char kAppKey[] = MDF_API_APP_KEY;
 #else
     const char kAppKey[] = "";
 #endif

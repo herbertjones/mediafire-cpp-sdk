@@ -33,6 +33,53 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     SET(PTHREADS_LIBRARY_DIR  "" CACHE PATH "Path to pthread library (Optional).")
 endif()
 
+# Boost asio SSL depends on OpenSSL
+find_package(OpenSSL REQUIRED)
+
+# Boost library
+set(Boost_USE_MULTITHREADING "ON")
+set(Boost_USE_STATIC_LIBS "ON")
+if( BOOST_ROOT OR Boost_INCLUDE_DIR )
+    set(Boost_NO_SYSTEM_PATHS "ON")
+else()
+    set(Boost_NO_SYSTEM_PATHS "OFF")
+endif()
+
+#Link zlib from manual built source (if you use distro package)
+if (WIN32)
+    option(USE_SYSTEM_ZLIB "Use the system provided zlib" OFF)
+else(WIN32)
+    option(USE_SYSTEM_ZLIB "Use the system provided zlib" ON)
+endif()
+
+if(USE_SYSTEM_ZLIB)
+    set(BOOST_ZLIB_NAME)
+    find_package(ZLIB)
+else(USE_SYSTEM_ZLIB)
+    set(BOOST_ZLIB_NAME zlib)
+endif(USE_SYSTEM_ZLIB)
+
+find_package(Boost 1.50 REQUIRED
+    chrono
+    date_time
+    filesystem
+    iostreams
+    locale
+    program_options
+    random
+    regex
+    random
+    serialization
+    system
+    thread
+    unit_test_framework
+    ${BOOST_ZLIB_NAME}
+    )
+
+######### Include some directories ##########
+include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 add_subdirectory(utils)
 add_subdirectory(http)
 add_subdirectory(api)

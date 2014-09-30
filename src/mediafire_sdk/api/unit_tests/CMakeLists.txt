@@ -6,6 +6,18 @@ if (WIN32 AND NOT DEFINED MINGW)
 endif(WIN32 AND NOT DEFINED MINGW)
 
 # Unit test usernames/passwords
+
+if ( "${TEST_USER_1_USERNAME}" STREQUAL "" )
+  message(WARNING
+    "The following variables must be set in order for unit tests to work correctly:
+        TEST_USER_1_USERNAME
+        TEST_USER_2_USERNAME
+        TEST_USER_1_PASSWORD
+        TEST_USER_2_PASSWORD"
+    )
+    message("Please define these variables in your cache in order to run unit tests.")
+endif( "${TEST_USER_1_USERNAME}" STREQUAL "" )
+
 add_definitions(-DTEST_USER_1_USERNAME="${TEST_USER_1_USERNAME}")
 add_definitions(-DTEST_USER_1_PASSWORD="${TEST_USER_1_PASSWORD}")
 add_definitions(-DTEST_USER_2_USERNAME="${TEST_USER_2_USERNAME}")
