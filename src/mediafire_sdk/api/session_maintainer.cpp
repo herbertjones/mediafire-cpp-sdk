@@ -101,9 +101,14 @@ SessionMaintainer::SessionMaintainer(
         new detail::SessionMaintainerLocker(
             http_config->GetWorkIoService(),
             http_config->GetDefaultCallbackIoService(),
-            boost::bind(
-                &SessionMaintainer::AddWaitingRequest,
-                this, _1))),
+            [this](
+                    STRequest request,
+                    const std::error_code & ec
+                )
+            {
+                if (!ec)
+                    AddWaitingRequest(request);
+            })),
     http_config_(http_config),
     session_token_failure_timer_(*http_config_->GetWorkIoService()),
     requester_(http_config_, hostname),

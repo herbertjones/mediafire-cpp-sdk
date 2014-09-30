@@ -123,6 +123,7 @@ private:
 
     std::map< STRequest, SessionTokenData > checked_out_tokens_;
 
+    // This contains the list of requests that were delayed for retrying later.
     TimedEvents::Pointer delayed_requests_;
 
     std::vector< SessionTokenData > session_tokens_;
