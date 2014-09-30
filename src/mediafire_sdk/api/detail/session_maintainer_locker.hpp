@@ -20,8 +20,8 @@ namespace detail {
 class SessionMaintainerLocker
 {
 public:
-    using TimedEvents = mf::utils::TimedEvent<STRequest>;
-    using WeakTimedEvents = mf::utils::TimedEvent<STRequestWeak>;
+    using TimedEvents = mf::utils::TimedEvents<STRequest>;
+    using WeakTimedEvents = mf::utils::TimedEvents<STRequestWeak>;
 
     SessionMaintainerLocker(
             boost::asio::io_service * work_ios,

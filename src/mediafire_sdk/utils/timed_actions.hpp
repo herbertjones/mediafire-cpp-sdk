@@ -37,7 +37,7 @@ class TimedActions :
 public:
     using Action = std::function<void(const std::error_code &)>;
     using Pointer = std::shared_ptr<TimedActions>;
-    using Impl = TimedEvent<Action>;
+    using Impl = TimedEvents<Action>;
     using TimePoint = Impl::TimePoint;
 
     /**

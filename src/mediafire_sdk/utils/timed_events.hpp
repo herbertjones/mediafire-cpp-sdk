@@ -1,5 +1,5 @@
 /**
- * @file timed_event.hpp
+ * @file timed_events.hpp
  * @author Herbert Jones
  * @brief A class for encapsulating a series of timed actions effeciently.
  *
@@ -23,30 +23,27 @@ namespace mf {
 namespace utils {
 
 /**
- * @class TimedEvent
+ * @class TimedEvents
  * @brief A timer wrapper for when multiple items of same type need to be
  *        handled at individual timeouts.
  *
- * This class uses a single asio timer for multiple items instead of the nieve
+ * This class uses a single asio timer for multiple items instead of the naive
  * approach of having one timer for each timeout.
  *
- * @warning When cancelling, or when the object is destroyed, all unfired events
- * will fire with std::errc::operation_aborted.  The callbacks will occur in
- * whatever thread the cancel happens in, so if there is an error do not assume
- * the EventProcessor was called in the same thread as the io_service.
- *
- * @warning The life of the actions can outlive your usage of TimedEvent.  If
- * you bind a pointer to your callback the callback may be called after the
- * pointer object is destroyed.  To prevent this, you must call cancel before
- * destroying the object pointer.
+ * @warning When cancelling, or when TimedEvents is destroyed, all unfired events
+ * will fire with std::errc::operation_aborted.  The events will still be
+ * processed by the io_service passed to Create.  If calling cancel on your
+ * handler's destruction, if you are using a pointer to the handler's object,
+ * the pointer will now be invalid.  Be sure to check for this or use a shared
+ * pointer to the handler.
  */
 template<typename Event>
-class TimedEvent :
-    public std::enable_shared_from_this<TimedEvent<Event>>
+class TimedEvents :
+    public std::enable_shared_from_this<TimedEvents<Event>>
 {
 public:
     using EventProcessor = std::function<void(Event, std::error_code)>;
-    using Pointer = std::shared_ptr<TimedEvent>;
+    using Pointer = std::shared_ptr<TimedEvents>;
     using Lock = mf::utils::lock_guard<mf::utils::mutex>;
     using UniqueLock = mf::utils::unique_lock<mf::utils::mutex>;
     using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
@@ -60,11 +57,11 @@ public:
             EventProcessor event_processor
         )
     {
-        return std::shared_ptr<TimedEvent<Event>>( new TimedEvent<Event>(
+        return std::shared_ptr<TimedEvents<Event>>( new TimedEvents<Event>(
                 io_service, event_processor));
     }
 
-    ~TimedEvent()
+    ~TimedEvents()
     {
         Stop();
     }
@@ -96,10 +93,8 @@ public:
             auto event = std::move( data_.begin()->second );
             data_.erase(data_.begin());
 
-            unique_lock.unlock();
-            event_processor_(std::move(event),
-                std::make_error_code(std::errc::operation_canceled));
-            unique_lock.lock();
+            io_service_->post( boost::bind( event_processor_, std::move(event),
+                    std::make_error_code(std::errc::operation_canceled)));
         }
 
         data_.clear();
@@ -136,7 +131,7 @@ public:
         data_.insert( std::make_pair(timeout_time, std::move(event)) );
 
         io_service_->post(
-            boost::bind( &TimedEvent<Event>::ResetTimer,
+            boost::bind( &TimedEvents<Event>::ResetTimer,
                 this->shared_from_this() ));
     }
 
@@ -166,7 +161,7 @@ private:
     /**
      * @param[in] io_service IO service used to execute acions.
      */
-    TimedEvent(
+    TimedEvents(
             boost::asio::io_service * io_service,
             EventProcessor event_processor
         ) :
@@ -205,7 +200,7 @@ private:
 
                 timeout_timer_.async_wait(
                     boost::bind(
-                        &TimedEvent<Event>::HandleTimeout,
+                        &TimedEvents<Event>::HandleTimeout,
                         this->shared_from_this(),
                         boost::asio::placeholders::error
                     )
