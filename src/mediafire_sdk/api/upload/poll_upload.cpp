@@ -110,6 +110,18 @@ void Impl::ParseResponse( Response * response )
         std::string optarg;
         if ( GetIfExists(
                 response->pt,
+                "response.doupload.filename",
+                &optarg) )
+        {
+            response->filename = optarg;
+        }
+    }
+
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                response->pt,
                 "response.doupload.description",
                 &optarg) )
         {

@@ -41,9 +41,21 @@ void HandlePollCompleteResponse(
 {
     if (response.quickkey)
     {
-        fsm.ProcessEvent(event::PollComplete{
-            *response.quickkey
-            });
+        if (response.filename)
+        {
+            // Filename was changed
+            fsm.ProcessEvent(event::PollComplete{
+                *response.quickkey,
+                *response.filename
+                });
+        }
+        else
+        {
+            fsm.ProcessEvent(event::PollComplete{
+                *response.quickkey,
+                fsm.Filename()
+                });
+        }
     }
     else
     {

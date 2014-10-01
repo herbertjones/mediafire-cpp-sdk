@@ -36,8 +36,22 @@ struct DoInstantUpload
         auto request = instant::Request( fsm.Filename(), fsm.Hash(),
             fsm.Filesize());
 
-        if (fsm.OnDuplicateAction() == OnDuplicateAction::Replace)
-            request.SetActionOnDuplicate(instant::ActionOnDuplicate::Replace);
+        switch (fsm.OnDuplicateAction())
+        {
+            case OnDuplicateAction::Fail:
+                // This is the default, same as "skip" and doesn't need to be
+                // set.
+                break;
+            case OnDuplicateAction::Replace:
+                request.SetActionOnDuplicate(instant::ActionOnDuplicate::Replace);
+                break;
+            case OnDuplicateAction::AutoRename:
+                request.SetActionOnDuplicate(instant::ActionOnDuplicate::Keep);
+                break;
+            default:
+                assert(!"Invalid duplicate action.");
+                break;
+        }
 
 
         class Visitor : public boost::static_visitor<>
@@ -74,8 +88,8 @@ struct DoInstantUpload
                 }
                 else
                 {
-                    fsmp->ProcessEvent(event::InstantSuccess{
-                        response.quickkey });
+                    fsmp->ProcessEvent(event::InstantSuccess{ response.quickkey,
+                        response.filename });
                 }
             });
     }

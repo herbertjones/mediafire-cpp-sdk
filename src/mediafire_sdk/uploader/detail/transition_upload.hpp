@@ -237,8 +237,22 @@ struct DoSimpleUpload
         // Use JSON
         query_map["response_format"] = "json";
 
-        if (fsm.OnDuplicateAction() == OnDuplicateAction::Replace)
-            query_map["action_on_duplicate"] = "replace";
+        switch (fsm.OnDuplicateAction())
+        {
+            case OnDuplicateAction::Fail:
+                // This is the default, same as "skip" and doesn't need to be
+                // set.
+                break;
+            case OnDuplicateAction::Replace:
+                query_map["action_on_duplicate"] = "replace";
+                break;
+            case OnDuplicateAction::AutoRename:
+                query_map["action_on_duplicate"] = "keep";
+                break;
+            default:
+                assert(!"Invalid duplicate action.");
+                break;
+        }
 
         // Use JSON
         query_map["mtime"] = AsDateTime(fsm.Mtime());
@@ -436,8 +450,22 @@ struct DoChunkUpload
         // Use JSON
         query_map["response_format"] = "json";
 
-        if (fsm.OnDuplicateAction() == OnDuplicateAction::Replace)
-            query_map["action_on_duplicate"] = "replace";
+        switch (fsm.OnDuplicateAction())
+        {
+            case OnDuplicateAction::Fail:
+                // This is the default, same as "skip" and doesn't need to be
+                // set.
+                break;
+            case OnDuplicateAction::Replace:
+                query_map["action_on_duplicate"] = "replace";
+                break;
+            case OnDuplicateAction::AutoRename:
+                query_map["action_on_duplicate"] = "keep";
+                break;
+            default:
+                assert(!"Invalid duplicate action.");
+                break;
+        }
 
         // Use JSON
         query_map["mtime"] = AsDateTime(fsm.Mtime());

@@ -45,6 +45,9 @@ public:
     /** API response field "response.doupload.fileerror" */
     int32_t fileerror;
 
+    /** New filename if filename was changed. */
+    boost::optional<std::string> filename;
+
     /** API response field "response.doupload.description" */
     boost::optional<std::string> description;
 

@@ -419,7 +419,7 @@ public:
 
             CALLBACK_INTERFACE_FSM(HandleComplete);
 
-            fsm.SendStatus(us::Complete{evt.quickkey});
+            fsm.SendStatus(us::Complete{evt.quickkey, evt.filename});
         }
     };
 
@@ -521,7 +521,10 @@ public:
 
     std::string Filename() const
     {
-        return mf::utils::path_to_utf8(filepath_.filename());
+        if (cloud_file_name_)
+            return *cloud_file_name_;
+        else
+            return mf::utils::path_to_utf8(filepath_.filename());
     }
 
     UploadStateMachineCallbackInterface * GetCallbackInterface()

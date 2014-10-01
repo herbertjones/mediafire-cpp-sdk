@@ -28,7 +28,11 @@ enum class OnDuplicateAction
     Fail,
 
     /** Upload the file and replace the existing file. */
-    Replace
+    Replace,
+
+    /** Uploads the file and makes the file name unique by appending a number to
+     * it */
+    AutoRename
 };
 
 /**

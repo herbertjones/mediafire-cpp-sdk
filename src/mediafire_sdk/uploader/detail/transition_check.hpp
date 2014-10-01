@@ -25,10 +25,12 @@ namespace upload_transition {
 
 template<typename FSM>
 void HandleCheck(
-        FSM * fsm,
+        FSM & fsm,
         const mf::api::upload::check::Response & response
     )
 {
+    assert( ! fsm.Filename().empty());
+
     namespace chk = mf::api::upload::check;
 
     if (response.file_exists == chk::FilenameInFolder::Yes
@@ -37,25 +39,26 @@ void HandleCheck(
         )
     {
         // Filename same and hash same.  We are already done here.
-        fsm->ProcessEvent( event::AlreadyUploaded{*response.duplicate_quickkey});
+        fsm.ProcessEvent( event::AlreadyUploaded{ *response.duplicate_quickkey,
+            fsm.Filename() });
     }
     else if (response.storage_limit_exceeded == chk::StorageLimitExceeded::Yes)
     {
         // Can't upload, insufficient space.
 
-        fsm->ProcessEvent( event::Error{
+        fsm.ProcessEvent( event::Error{
                 make_error_code(mf::uploader::errc::InsufficientCloudStorage),
                 "Account lacks sufficient storage for upload to cloud"
             } );
     }
     else if (response.file_exists == chk::FilenameInFolder::Yes
-        && fsm->OnDuplicateAction() != OnDuplicateAction::Replace
-        )
+        &&  fsm.OnDuplicateAction() != OnDuplicateAction::Replace
+        && fsm.OnDuplicateAction() != OnDuplicateAction::AutoRename )
     {
-        switch (fsm->OnDuplicateAction())
+        switch (fsm.OnDuplicateAction())
         {
             case OnDuplicateAction::Fail:
-                fsm->ProcessEvent( event::Error{
+                fsm.ProcessEvent( event::Error{
                     make_error_code(mf::uploader::errc::FileExistInFolder),
                     "File already exists in folder."
                     } );
@@ -66,35 +69,35 @@ void HandleCheck(
     }
     else if (response.hash_exists == chk::HashAlreadyInSystem::Yes)
     {
-        fsm->ProcessEvent( event::InstantUpload{} );
+        fsm.ProcessEvent( event::InstantUpload{} );
     }
-    else if (fsm->ChunkRanges().size() > 1)
+    else if (fsm.ChunkRanges().size() > 1)
     {
         if ( ! response.resumable )
         {
             assert(!"bitmap missing when it should exist");
-            fsm->ProcessEvent( event::NeedsSingleUpload{} );
+            fsm.ProcessEvent( event::NeedsSingleUpload{} );
         }
         else
         {
             const auto & resumable = *response.resumable;
-            if (resumable.number_of_units != fsm->ChunkRanges().size())
+            if (resumable.number_of_units != fsm.ChunkRanges().size())
             {
                 assert(!"unit count does not match chunk count");
-                fsm->ProcessEvent( event::NeedsSingleUpload{} );
+                fsm.ProcessEvent( event::NeedsSingleUpload{} );
             }
             else
             {
-                fsm->SetBitmap(resumable.words);
+                fsm.SetBitmap(resumable.words);
 
                 // Do upload
-                fsm->ProcessEvent( event::NeedsChunkUpload{} );
+                fsm.ProcessEvent( event::NeedsChunkUpload{} );
             }
         }
     }
     else
     {
-        fsm->ProcessEvent( event::NeedsSingleUpload{} );
+        fsm.ProcessEvent( event::NeedsSingleUpload{} );
     }
 }
 
@@ -164,7 +167,7 @@ struct Check
                 }
                 else
                 {
-                    HandleCheck(fsmp.get(), response);
+                    HandleCheck(*fsmp, response);
                 }
             }
         );

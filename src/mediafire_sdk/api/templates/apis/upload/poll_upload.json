@@ -27,6 +27,13 @@
         },
         {
             "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "response.doupload.filename",
+            "description": "New filename if filename was changed.",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
             "cpp_name": "description",
             "api_path": "response.doupload.description",
             "optional": true

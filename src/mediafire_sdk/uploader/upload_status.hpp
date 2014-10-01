@@ -30,6 +30,7 @@ struct Error
 struct Complete
 {
     std::string quickkey;
+    std::string filename;
 };
 }  // namespace upload_state
 

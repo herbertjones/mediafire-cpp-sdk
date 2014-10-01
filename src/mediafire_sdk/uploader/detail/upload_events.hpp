@@ -49,6 +49,7 @@ struct InstantUpload
 struct AlreadyUploaded
 {
     std::string quickkey;
+    std::string filename;
 };
 
 // Upload
@@ -70,11 +71,13 @@ struct ChunkUploadComplete
 struct InstantSuccess
 {
     std::string quickkey;
+    std::string filename;
 };
 
 struct PollComplete
 {
     std::string quickkey;
+    std::string filename;
 };
 
 }  // namespace event

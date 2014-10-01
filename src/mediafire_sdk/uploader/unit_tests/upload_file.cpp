@@ -73,6 +73,7 @@ public:
     {
         std::cout << "Upload complete.\nNew quickkey: " << status.quickkey
             << std::endl;
+        std::cout << "Filename: " << status.filename << std::endl;
         io_service_.stop();
     }
 
@@ -80,6 +81,17 @@ private:
     asio::io_service & io_service_;
 };
 
+void ShowUsage(
+        const char * filename,
+        const po::options_description & visible
+    )
+{
+    std::cout << "Usage: " << filename << " [options]"
+        " -u USERNAME"
+        " -p PASSWORD"
+        " FILE\n";
+    std::cout << visible << "\n";
+}
 
 
 int main(int argc, char *argv[])
@@ -94,13 +106,14 @@ int main(int argc, char *argv[])
 
         po::options_description visible("Allowed options");
         visible.add_options()
-            ("folderkey"  , po::value<std::string>(&folderkey)      , "Folderkey to the directory where to upload")
-            ("help,h"     ,                                           "Show this message.")
-            ("password,p" , po::value<std::string>(&password)       , "Password for login")
-            ("path"       , po::value<std::string>(&directory_path) , "Directory path where to upload file")
-            ("saveas,s"   , po::value<std::string>(&save_as)        , "Upload file with custom name")
-            ("username,u" , po::value<std::string>(&username)       , "Username for login")
-            ("replace,r"  ,                                           "Replace file if one exists already with the same name.")
+            ("folderkey"     , po::value<std::string>(&folderkey)      , "Folderkey to the directory where to upload")
+            ("help,h"        ,                                           "Show this message.")
+            ("password,p"    , po::value<std::string>(&password)       , "Password for login")
+            ("path"          , po::value<std::string>(&directory_path) , "Directory path where to upload file")
+            ("saveas,s"      , po::value<std::string>(&save_as)        , "Upload file with custom name")
+            ("username,u"    , po::value<std::string>(&username)       , "Username for login")
+            ("replace,r"     ,                                           "Replace file if one exists already with the same name.")
+            ("autorename,a"  ,                                           "Rename the file if it exists already.")
             ;
 
         po::options_description hidden("Hidden options");
@@ -123,12 +136,15 @@ int main(int argc, char *argv[])
             || ! vm.count("username")
             || ! vm.count("password") )
         {
-            std::cout << "Usage: " << argv[0] << " [options]"
-                " -u USERNAME"
-                " -p PASSWORD"
-                " FILE\n";
-            std::cout << visible << "\n";
+            ShowUsage(argv[0], visible);
             return 0;
+        }
+
+        if (vm.count("replace") && vm.count("autorename"))
+        {
+            std::cout << "Unable to replace and autorename." << std::endl;
+            ShowUsage(argv[0], visible);
+            return 1;
         }
 
         asio::io_service io_service;
@@ -172,6 +188,12 @@ int main(int argc, char *argv[])
             {
                 request.SetOnDuplicateAction(
                     mf::uploader::OnDuplicateAction::Replace);
+            }
+
+            if (vm.count("autorename"))
+            {
+                request.SetOnDuplicateAction(
+                    mf::uploader::OnDuplicateAction::AutoRename);
             }
 
             um.Add(request,
