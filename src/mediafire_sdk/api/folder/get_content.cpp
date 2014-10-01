@@ -17,45 +17,45 @@
 
 #include "boost/property_tree/json_parser.hpp"
 
-namespace v1_0 = mf::api::folder::get_content::v1_0;
+namespace v2_0 = mf::api::folder::get_content::v2_0;
 
 
 namespace {
-std::string AsString(const v1_0::ContentType & value)
+std::string AsString(const v2_0::ContentType & value)
 {
-    if (value == v1_0::ContentType::Folders)
+    if (value == v2_0::ContentType::Folders)
         return "folders";
-    if (value == v1_0::ContentType::Files)
+    if (value == v2_0::ContentType::Files)
         return "files";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v1_0::OrderBy & value)
+std::string AsString(const v2_0::OrderBy & value)
 {
-    if (value == v1_0::OrderBy::Name)
+    if (value == v2_0::OrderBy::Name)
         return "name";
-    if (value == v1_0::OrderBy::Created)
+    if (value == v2_0::OrderBy::Created)
         return "created";
-    if (value == v1_0::OrderBy::Size)
+    if (value == v2_0::OrderBy::Size)
         return "size";
-    if (value == v1_0::OrderBy::Downloads)
+    if (value == v2_0::OrderBy::Downloads)
         return "downloads";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v1_0::OrderDirection & value)
+std::string AsString(const v2_0::OrderDirection & value)
 {
-    if (value == v1_0::OrderDirection::Ascending)
+    if (value == v2_0::OrderDirection::Ascending)
         return "asc";
-    if (value == v1_0::OrderDirection::Descending)
+    if (value == v2_0::OrderDirection::Descending)
         return "desc";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
-std::string AsString(const v1_0::Details & value)
+std::string AsString(const v2_0::Details & value)
 {
-    if (value == v1_0::Details::NoDetails)
+    if (value == v2_0::Details::NoDetails)
         return "no";
-    if (value == v1_0::Details::PopulateDetails)
+    if (value == v2_0::Details::PopulateDetails)
         return "yes";
-    if (value == v1_0::Details::ShallowDetails)
+    if (value == v2_0::Details::ShallowDetails)
         return "shallow";
     return mf::utils::to_string(static_cast<uint32_t>(value));
 }
@@ -65,7 +65,7 @@ std::string AsString(const v1_0::Details & value)
 
 namespace {
 // get_data_type_struct_extractor begin
-using namespace v1_0;  // NOLINT
+using namespace v2_0;  // NOLINT
 bool LinksFromPropertyBranch(
         Response * response,
         Response::Links * value,
@@ -145,7 +145,7 @@ bool LinksFromPropertyBranch(
 #   undef return_error
 }
 // get_data_type_struct_extractor begin
-using namespace v1_0;  // NOLINT
+using namespace v2_0;  // NOLINT
 bool FileFromPropertyBranch(
         Response * response,
         Response::File * value,
@@ -402,7 +402,7 @@ bool FileFromPropertyBranch(
 #   undef return_error
 }
 // get_data_type_struct_extractor begin
-using namespace v1_0;  // NOLINT
+using namespace v2_0;  // NOLINT
 bool FolderFromPropertyBranch(
         Response * response,
         Response::Folder * value,
@@ -648,7 +648,7 @@ namespace api {
 /** API action path "folder" */
 namespace folder {
 namespace get_content {
-namespace v1_0 {
+namespace v2_0 {
 
 const std::string api_path("/api/1.0/folder/get_content");
 
@@ -713,6 +713,7 @@ void Impl::ParseResponse( Response * response )
         SetError(response, error_type, error_message);                         \
         return;                                                                \
     }
+    response->chunks_remaining = ChunksRemaining::MoreChunks;
 
     // create_content_parse_single required
     if ( ! GetIfExists(
@@ -754,6 +755,21 @@ void Impl::ParseResponse( Response * response )
         return_error(
             mf::api::api_code::ContentInvalidData,
             "missing \"response.folder_content.chunk_number\"");
+
+    {
+        std::string optval;
+        // create_content_enum_parse TSingle
+        if ( GetIfExists(
+                response->pt,
+                "response.folder_content.???",
+                &optval) )
+        {
+            if ( optval == "" )
+                response->chunks_remaining = ChunksRemaining::MoreChunks;
+            else if ( optval == "yes" )
+                response->chunks_remaining = ChunksRemaining::LastChunk;
+        }
+    }
 
     // create_content_struct_parse TArray
     try {
@@ -897,7 +913,7 @@ mf::http::SharedBuffer::Pointer Request::GetPostData()
     return impl_->GetPostData();
 }
 
-}  // namespace v1_0
+}  // namespace v2_0
 }  // namespace get_content
 }  // namespace folder
 }  // namespace api

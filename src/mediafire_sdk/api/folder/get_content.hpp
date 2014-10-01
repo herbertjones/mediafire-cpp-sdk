@@ -24,7 +24,7 @@ namespace folder {
 /** API action "folder/get_content" */
 namespace get_content {
 /** API path "/api/1.0/folder/get_content" */
-namespace v1_0 {
+namespace v2_0 {
 
 enum class ContentType
 {
@@ -104,6 +104,14 @@ enum class SharedWithUser
     SharedWithUser
 };
 
+enum class ChunksRemaining
+{
+    /** API value "" */
+    MoreChunks,
+    /** API value "yes" */
+    LastChunk
+};
+
 /**
  * @class Response
  * @brief Response from API request "folder/get_content"
@@ -111,6 +119,9 @@ enum class SharedWithUser
 class Response : public ResponseBase
 {
 public:
+    Response() :
+        chunks_remaining(ChunksRemaining::MoreChunks)
+    {}
     struct Links
     {
         /** API response field "direct_download" */
@@ -252,6 +263,9 @@ public:
     /** API response field "response.folder_content.chunk_number" */
     uint32_t chunk_number;
 
+    /** API response field "response.folder_content.???" */
+    ChunksRemaining chunks_remaining;
+
     /** API response field "response.folder_content.files" */
     std::vector<File> files;
 
@@ -356,10 +370,10 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_0
+}  // namespace v2_0
 
 // The latest version
-using namespace v1_0;  // NOLINT
+using namespace v2_0;  // NOLINT
 
 }  // namespace get_content
 }  // namespace folder
