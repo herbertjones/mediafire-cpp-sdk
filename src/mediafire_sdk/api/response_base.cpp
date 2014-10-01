@@ -79,16 +79,31 @@ void api::ResponseBase::InitializeWithContent(
         // Try to get the error from the remote API call.
         if ( parsing_success )
         {
+            std::string api_action;
+            GetIfExists( pt, "response.action", &api_action );
+
             std::string api_message;
             if ( GetIfExists( pt, "response.message", &api_message ) )
             {
-                error_string = api_message;
+                if (!api_action.empty())
+                    error_string = api_action + ": " + api_message;
+                else
+                    error_string = api_message;
+
                 api_error_string = api_message;
             }
             else
             {
-                error_string =
-                    "API returned bad HTTP status and no error message.";
+                if (!api_action.empty())
+                {
+                    error_string = api_action + ": API returned bad HTTP status"
+                        " and no error message.";
+                }
+                else
+                {
+                    error_string = "API returned bad HTTP status and no error"
+                        " message.";
+                }
             }
 
             int32_t api_code = 0;
@@ -118,15 +133,31 @@ void api::ResponseBase::InitializeWithContent(
                 error_code = make_error_code( api::api_code::UnknownApiError );
             }
 
+            std::string api_action;
+            GetIfExists( pt, "response.action", &api_action );
+
             std::string api_message;
             if ( GetIfExists( pt, "response.message", &api_message ) )
             {
-                error_string = api_message;
+                if (!api_action.empty())
+                    error_string = api_action + ": " + api_message;
+                else
+                    error_string = api_message;
                 api_error_string = api_message;
             }
             else
             {
                 error_string = "API returned bad result and no error message.";
+                if (!api_action.empty())
+                {
+                    error_string = api_action + ": API returned bad result and"
+                        " no error message.";
+                }
+                else
+                {
+                    error_string = "API returned bad result and no error"
+                        " message.";
+                }
             }
         }
     }
