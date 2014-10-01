@@ -9,6 +9,9 @@
 #include <iostream>
 #include <map>
 
+#include "mediafire_sdk/http/http_request.hpp"
+#include "mediafire_sdk/http/post_data_pipe_interface.hpp"
+
 #include "boost/algorithm/string/join.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/variant/apply_visitor.hpp"
@@ -17,9 +20,6 @@
 #include "mediafire_sdk/api/error.hpp"
 #include "mediafire_sdk/api/ptree_helpers.hpp"
 #include "mediafire_sdk/api/response_base.hpp"
-
-#include "mediafire_sdk/http/http_request.hpp"
-#include "mediafire_sdk/http/post_data_pipe_interface.hpp"
 
 #include "mediafire_sdk/uploader/detail/hasher_events.hpp"
 #include "mediafire_sdk/uploader/detail/types.hpp"

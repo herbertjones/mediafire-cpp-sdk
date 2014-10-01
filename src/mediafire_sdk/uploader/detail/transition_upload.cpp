@@ -20,7 +20,7 @@ std::string AssembleQuery(
         const std::map< std::string, std::string > & query_map
     )
 {
-    using mf::utils::url::get_parameter;
+    namespace get_parameter = mf::utils::url::get_parameter;
 
     std::vector<std::string> query_pieces;
     query_pieces.reserve( query_map.size() );

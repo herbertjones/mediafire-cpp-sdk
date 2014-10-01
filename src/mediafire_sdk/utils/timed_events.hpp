@@ -93,8 +93,13 @@ public:
             auto event = std::move( data_.begin()->second );
             data_.erase(data_.begin());
 
+#ifdef MINGW32_LIMITED_ERRC
+            std::errc errc_error = std::errc::interrupted;
+#else
+            std::errc errc_error = std::errc::operation_canceled;
+#endif
             io_service_->post( boost::bind( event_processor_, std::move(event),
-                    std::make_error_code(std::errc::operation_canceled)));
+                    std::make_error_code(errc_error)));
         }
 
         data_.clear();

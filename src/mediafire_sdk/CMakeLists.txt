@@ -11,6 +11,9 @@ IF (APPLE)
 ENDIF (APPLE)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+    # We support down to Windows XP
+    add_definitions(-DWINVER=0x0502 -D_WIN32_WINNT=0x0502)
+
     # Path to Windows Sockets
     find_library(WINSOCK_LIBRARY NAMES ws2_32 DOC "Path to WinSock library (WS2_32.lib)")
     if( NOT WINSOCK_LIBRARY STREQUAL "WINSOCK_LIBRARY-NOTFOUND" )
@@ -31,6 +34,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     # PTHREADS
     SET(PTHREADS_INCLUDE_DIR  "" CACHE PATH "Path to pthread includes (Optional).")
     SET(PTHREADS_LIBRARY_DIR  "" CACHE PATH "Path to pthread library (Optional).")
+
+    # MINGW
+    if(MINGW)
+        add_definitions(-DMINGW32_LIMITED_ERRC)
+    endif(MINGW)
 endif()
 
 # Boost asio SSL depends on OpenSSL
