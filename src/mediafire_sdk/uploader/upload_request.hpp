@@ -113,7 +113,7 @@ private:
     boost::optional<std::string> utf8_target_name_;
 
     /** Location to upload the file */
-    detail::UploadTarget upload_target_folder_;
+    boost::optional<detail::UploadTarget> upload_target_folder_;
 
     /** What should happen if filename already exists in folder? */
     OnDuplicateAction on_duplicate_action_;

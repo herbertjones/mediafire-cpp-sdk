@@ -75,7 +75,7 @@ struct UploadConfig
     OnDuplicateAction on_duplicate_action;
     StatusCallback status_callback;
     boost::optional<std::string> cloud_file_name;
-    UploadTarget target_folder;
+    boost::optional<UploadTarget> target_folder;
 };
 
 struct ChunkData
@@ -568,7 +568,13 @@ public:
         return chunk_hashes_;
     }
 
-    UploadTarget TargetFolder() const {return target_folder_;}
+    UploadTarget TargetFolder() const
+    {
+        if (target_folder_)
+            return *target_folder_;
+        else
+            return ParentFolderKey{""};
+    }
 
     uint64_t Filesize() const {return filesize_;}
 
@@ -744,7 +750,7 @@ protected:
 
     boost::optional<std::string> cloud_file_name_;
 
-    UploadTarget target_folder_;
+    boost::optional<UploadTarget> target_folder_;
 
     uint64_t filesize_;
     std::time_t mtime_;
