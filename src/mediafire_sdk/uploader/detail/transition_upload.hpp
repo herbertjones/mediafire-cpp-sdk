@@ -171,11 +171,23 @@ void HandleUploadResponse(
 
     if (response.error_code)
     {
-        // Upload has unique negative values.
-        fsm.ProcessEvent(event::Error{
-            response.error_code,
-            (response.error_string?*response.error_string:"Upload rejected")
-            });
+        // Prefer doupload error if sent
+        int error = 0;
+        if ( mf::api::GetIfExists( response.pt, "response.doupload.result",
+                &error ) )
+        {
+            fsm.ProcessEvent(event::Error{
+                std::error_code( error, upload_response_category() ),
+                "Upload rejected"
+                });
+        }
+        else
+        {
+            fsm.ProcessEvent(event::Error{
+                response.error_code,
+                (response.error_string?*response.error_string:"Upload rejected")
+                });
+        }
     }
     else
     {
@@ -372,11 +384,24 @@ void HandleChunkResponse(
 
     if (response.error_code)
     {
-        // Upload has unique negative values.
-        fsm.ProcessEvent(event::Error{
-            response.error_code,
-            (response.error_string?*response.error_string:"Upload rejected")
-            });
+        // Prefer doupload error
+        int error = 0;
+        if ( mf::api::GetIfExists( response.pt, "response.doupload.result",
+                &error ) )
+        {
+            fsm.ProcessEvent(event::Error{
+                std::error_code( error, upload_response_category() ),
+                "Upload rejected"
+                });
+        }
+        else
+        {
+            // Upload has unique negative values.
+            fsm.ProcessEvent(event::Error{
+                response.error_code,
+                (response.error_string?*response.error_string:"Upload rejected")
+                });
+        }
     }
     else
     {
