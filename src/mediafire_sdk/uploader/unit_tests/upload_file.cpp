@@ -40,17 +40,20 @@ public:
             asio::io_service & io_service,
             int id,
             const int files_expected,
-            int * files_complete
+            int * files_complete,
+            std::map<int, std::string> * summary_map
     ) :
         io_service_(io_service),
         files_expected_(files_expected),
-        files_complete_(files_complete)
+        files_complete_(files_complete),
+        summary_map_(summary_map),
+        id_(id)
     {
         if (files_expected > 0)
         {
             std::ostringstream ss;
-            ss << "[" << id << "] ";
-            id_ = ss.str();
+            ss << "[" << (id+1) << "] ";
+            id_str_ = ss.str();
         }
     }
 
@@ -60,30 +63,31 @@ public:
 
     void operator()(us::Hashing &) const
     {
-        std::cout << id_ << "Hashing file." << std::endl;
+        std::cout << id_str_ << "Hashing file." << std::endl;
     }
 
     void operator()(us::EnqueuedForUpload &) const
     {
     }
 
-    void operator()(us::Uploading &) const
+    void operator()(us::Uploading & status) const
     {
-        std::cout << id_ << "Upload started." << std::endl;
+        std::cout << id_str_ << "Upload started." << std::endl;
     }
 
     void operator()(us::Polling &) const
     {
-        std::cout << id_ << "Polling server for file key." << std::endl;
+        std::cout << id_str_ << "Polling server for file key." << std::endl;
     }
 
     void operator()(us::Error & status) const
     {
         const auto & ec = status.error_code;
-        std::cout << id_ << "Received error: " << ec.message() << std::endl;
-        std::cout << id_ << "Error type: " << ec.category().name() << std::endl;
-        std::cout << id_ << "Error value: " << ec.value() << std::endl;
-        std::cout << id_ << "Description: " << status.description << std::endl;
+        std::cout << id_str_ << "Error: " << ec.message() << std::endl;
+        AddDebug( "Received error: " + ec.message() );
+        AddDebug( "Error type: " + std::string(ec.category().name()));
+        AddDebug( "Error value: " + std::to_string(ec.value()));
+        AddDebug( "Description: " + status.description);
 
         *files_complete_ += 1;
         if (*files_complete_ == files_expected_)
@@ -92,9 +96,10 @@ public:
 
     void operator()(us::Complete & status) const
     {
-        std::cout << id_ << "Upload complete." << std::endl;
-        std::cout << id_ << "New quickkey: " << status.quickkey << std::endl;
-        std::cout << id_ << "Filename: " << status.filename << std::endl;
+        std::cout << id_str_ << "Upload complete." << std::endl;
+        AddDebug( "Upload complete.");
+        AddDebug( "New quickkey: " + status.quickkey);
+        AddDebug( "Filename: " + status.filename);
 
         *files_complete_ += 1;
         if (*files_complete_ == files_expected_)
@@ -102,11 +107,18 @@ public:
     }
 
 private:
+    void AddDebug(std::string str) const
+    {
+        (*summary_map_)[id_] += str + "\n";
+    }
+
     asio::io_service & io_service_;
     const int files_expected_;
     int * files_complete_;
+    std::map<int, std::string> * summary_map_;
 
-    std::string id_;
+    int id_;
+    std::string id_str_;
 };
 
 void ShowUsage(
@@ -184,6 +196,8 @@ int main(int argc, char *argv[])
 
         asio::io_service io_service;
 
+        std::map<int, std::string> summary_map;
+
         {
             auto http_config = mf::http::HttpConfig::Create();
             http_config->SetWorkIoService(&io_service);
@@ -236,18 +250,31 @@ int main(int argc, char *argv[])
                 }
 
                 um.Add(request,
-                    [&io_service, files_to_upload, &files_uploaded, file_id](
+                    [&io_service, files_to_upload, &files_uploaded, file_id,
+                        &summary_map](
                             mf::uploader::UploadStatus status
                         )
                     {
                         boost::apply_visitor(
                             StatusVisitor( io_service, file_id, files_to_upload,
-                                &files_uploaded),
+                                &files_uploaded, &summary_map),
                             status.state); });
             }
 
-
             io_service.run();
+
+            if (files_to_upload > 0)
+            {
+                int file_id = 0;
+                std::cout << std::endl;
+                for (auto & pair : summary_map)
+                {
+                    std::cout << "File " << (file_id+1) << ": " <<
+                        upload_file_path[file_id] << std::endl;
+                    std::cout << pair.second << std::endl;
+                    ++file_id;
+                }
+            }
         }
     }
     catch(std::exception& e)
