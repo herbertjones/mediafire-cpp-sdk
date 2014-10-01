@@ -185,20 +185,22 @@ void UploadManagerImpl::Tick_StartHashings()
 {
     mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
 
-    auto current_count = current_hashings_;
-
-    if ( ! to_hash_.empty()
-        && current_count < max_concurrent_hashings_ )
+    while ( ! to_hash_.empty() && (current_hashings_ +
+            enqueued_to_start_hashings_.size()) < max_concurrent_hashings_ )
     {
-        ++current_count;
-
         auto request = to_hash_.front();
         to_hash_.pop_front();
 
-        // Unlock before calling external
-        lock.unlock();
+        enqueued_to_start_hashings_.insert(request.get());
 
-        request->process_event(event::StartHash{});
+        auto self = shared_from_this();
+
+        // Enqueue start
+        io_service_->post(
+            [this, self, request]()
+            {
+                request->process_event(event::StartHash{});
+            });
     }
 }
 
@@ -213,7 +215,11 @@ void UploadManagerImpl::Tick_StartUploads()
     recursing = true;
 #endif
 
-    auto current_count = current_uploads_;
+    auto CanUploadMore = [this]()
+    {
+        return ( (current_uploads_ + enqueued_to_start_uploads_.size())
+            < max_concurrent_uploads_ );
+    };
 
     if ( ! to_upload_.empty() )
     {
@@ -246,13 +252,14 @@ void UploadManagerImpl::Tick_StartUploads()
             }
             // If retrieving or error and not reached retry timeout, skip.
         }
-        else if ( current_count < max_concurrent_uploads_ )
+        else if ( CanUploadMore() )
         {
             assert( ! action_token_.empty() );
 
-            ++current_count;
+            const auto token = action_token_;
 
-            for (auto it = to_upload_.begin(); it != to_upload_.end(); ++it)
+            for (auto it = to_upload_.begin();
+                it != to_upload_.end() && CanUploadMore();)
             {
                 // Skip duplicate hashes
                 auto request = *it;
@@ -260,17 +267,25 @@ void UploadManagerImpl::Tick_StartUploads()
                     uploading_hashes_.end())
                 {
                     // Remove iterator before process event.
-                    to_upload_.erase(it);
+                    it = to_upload_.erase(it);
 
                     uploading_hashes_.insert(request->Hash());
 
-                    // Unlock before calling external
-                    lock.unlock();
+                    enqueued_to_start_uploads_.insert(request.get());
 
-                    request->process_event(event::StartUpload{action_token_});
+                    auto self = shared_from_this();
+                    io_service_->post(
+                        [this, self, request, token]()
+                        {
+                            request->process_event(event::StartUpload{token});
+                        });
 
                     // Only do one
                     break;
+                }
+                else
+                {
+                    ++it;
                 }
             }
         }
@@ -393,6 +408,11 @@ void UploadManagerImpl::HandleRemoveToUpload(StateMachinePointer request)
 void UploadManagerImpl::HandleComplete(StateMachinePointer request)
 {
     mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+
+    // Clear 
+    enqueued_to_start_hashings_.erase(request.get());
+    enqueued_to_start_uploads_.erase(request.get());
+
     requests_.erase(request);
 
     const auto chunk_data = request->GetChunkData();
@@ -409,10 +429,11 @@ void UploadManagerImpl::HandleComplete(StateMachinePointer request)
     EnqueueTick();
 }
 
-void UploadManagerImpl::IncrementHashingCount(StateMachinePointer)
+void UploadManagerImpl::IncrementHashingCount(StateMachinePointer request)
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     ++current_hashings_;
+    enqueued_to_start_hashings_.erase(request.get());
 }
 
 void UploadManagerImpl::DecrementHashingCount(StateMachinePointer)
@@ -421,10 +442,11 @@ void UploadManagerImpl::DecrementHashingCount(StateMachinePointer)
     --current_hashings_;
 }
 
-void UploadManagerImpl::IncrementUploadingCount(StateMachinePointer)
+void UploadManagerImpl::IncrementUploadingCount(StateMachinePointer request)
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     ++current_uploads_;
+    enqueued_to_start_uploads_.erase(request.get());
 }
 
 void UploadManagerImpl::DecrementUploadingCount(StateMachinePointer)
@@ -432,6 +454,7 @@ void UploadManagerImpl::DecrementUploadingCount(StateMachinePointer)
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     --current_uploads_;
 }
+
 // -- END UploadStateMachineCallbackInterface ----------------------------------
 
 }  // namespace detail

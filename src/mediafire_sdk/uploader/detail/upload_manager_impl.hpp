@@ -67,8 +67,6 @@ private:
 
     std::set<StateMachinePointer> requests_;
 
-    std::deque<StateMachinePointer> ready_for_upload_chunks_;
-
     std::string action_token_;
     std::chrono::time_point<std::chrono::steady_clock> action_token_expires_;
     enum class ActionTokenState
@@ -87,6 +85,8 @@ private:
     uint32_t max_concurrent_hashings_;
     uint32_t max_concurrent_uploads_;
 
+    std::set<UploadStateMachine*> enqueued_to_start_hashings_;
+    std::set<UploadStateMachine*> enqueued_to_start_uploads_;
     uint32_t current_hashings_;
     uint32_t current_uploads_;
 
