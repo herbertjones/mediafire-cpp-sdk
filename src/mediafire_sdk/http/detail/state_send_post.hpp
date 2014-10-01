@@ -68,7 +68,7 @@ void PostViaInterfaceDelayCallback(
         asio::async_write(
             *fsm.get_socket_wrapper(),
             asio::buffer(post_data->Data(), post_data->Size()),
-            [fsmp, race_preventer, start_time, state_data](
+            [fsmp, race_preventer, start_time, state_data, post_data](
                    const boost::system::error_code& ec,
                    std::size_t bytes_transferred
                 )
