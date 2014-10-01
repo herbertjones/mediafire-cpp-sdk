@@ -700,7 +700,8 @@ public:
 
     void SendStatus(const UploadState & state)
     {
-        status_callback_( UploadStatus{ upload_handle_, filepath_, state } );
+        callback_io_service_->dispatch( boost::bind( status_callback_,
+                UploadStatus{ upload_handle_, filepath_, state }));
     }
 
     ChunkData GetChunkData() const
