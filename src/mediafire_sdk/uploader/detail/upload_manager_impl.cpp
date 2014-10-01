@@ -217,8 +217,10 @@ void UploadManagerImpl::Tick_StartUploads()
 
     auto CanUploadMore = [this]()
     {
-        return ( (current_uploads_ + enqueued_to_start_uploads_.size())
-            < max_concurrent_uploads_ );
+        auto size = current_uploads_ + enqueued_to_start_uploads_.size();
+        auto result = ( size < max_concurrent_uploads_ );
+
+        return result;
     };
 
     if ( ! to_upload_.empty() )
@@ -438,6 +440,8 @@ void UploadManagerImpl::IncrementHashingCount(StateMachinePointer request)
 
 void UploadManagerImpl::DecrementHashingCount(StateMachinePointer)
 {
+    EnqueueTick();
+
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     --current_hashings_;
 }
@@ -451,6 +455,8 @@ void UploadManagerImpl::IncrementUploadingCount(StateMachinePointer request)
 
 void UploadManagerImpl::DecrementUploadingCount(StateMachinePointer)
 {
+    EnqueueTick();
+
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
     --current_uploads_;
 }

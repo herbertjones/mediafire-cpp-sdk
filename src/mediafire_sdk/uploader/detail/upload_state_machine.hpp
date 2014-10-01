@@ -228,6 +228,8 @@ public:
             default:
                 assert(!"Unknown count state");
         }
+
+        count_state_ = cs;
     }
 
     // -- States ---------------------------------------------------------------
