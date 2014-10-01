@@ -36,7 +36,23 @@ namespace us = mf::uploader::upload_state;
 class StatusVisitor : public boost::static_visitor<>
 {
 public:
-    StatusVisitor(asio::io_service & io_service) : io_service_(io_service) {}
+    StatusVisitor(
+            asio::io_service & io_service,
+            int id,
+            const int files_expected,
+            int * files_complete
+    ) :
+        io_service_(io_service),
+        files_expected_(files_expected),
+        files_complete_(files_complete)
+    {
+        if (files_expected > 0)
+        {
+            std::ostringstream ss;
+            ss << "[" << id << "] ";
+            id_ = ss.str();
+        }
+    }
 
     void operator()(us::EnqueuedForHashing &) const
     {
@@ -44,7 +60,7 @@ public:
 
     void operator()(us::Hashing &) const
     {
-        std::cout << "Hashing file." << std::endl;
+        std::cout << id_ << "Hashing file." << std::endl;
     }
 
     void operator()(us::EnqueuedForUpload &) const
@@ -53,32 +69,44 @@ public:
 
     void operator()(us::Uploading &) const
     {
-        std::cout << "Upload started." << std::endl;
+        std::cout << id_ << "Upload started." << std::endl;
     }
 
     void operator()(us::Polling &) const
     {
-        std::cout << "Polling server for file key." << std::endl;
+        std::cout << id_ << "Polling server for file key." << std::endl;
     }
 
     void operator()(us::Error & status) const
     {
-        std::cout << "Received error: " << status.error_code.message()
-            << std::endl;
-        std::cout << "Description: " << status.description << std::endl;
-        io_service_.stop();
+        const auto & ec = status.error_code;
+        std::cout << id_ << "Received error: " << ec.message() << std::endl;
+        std::cout << id_ << "Error type: " << ec.category().name() << std::endl;
+        std::cout << id_ << "Error value: " << ec.value() << std::endl;
+        std::cout << id_ << "Description: " << status.description << std::endl;
+
+        *files_complete_ += 1;
+        if (*files_complete_ == files_expected_)
+            io_service_.stop();
     }
 
     void operator()(us::Complete & status) const
     {
-        std::cout << "Upload complete.\nNew quickkey: " << status.quickkey
-            << std::endl;
-        std::cout << "Filename: " << status.filename << std::endl;
-        io_service_.stop();
+        std::cout << id_ << "Upload complete." << std::endl;
+        std::cout << id_ << "New quickkey: " << status.quickkey << std::endl;
+        std::cout << id_ << "Filename: " << status.filename << std::endl;
+
+        *files_complete_ += 1;
+        if (*files_complete_ == files_expected_)
+            io_service_.stop();
     }
 
 private:
     asio::io_service & io_service_;
+    const int files_expected_;
+    int * files_complete_;
+
+    std::string id_;
 };
 
 void ShowUsage(
@@ -89,10 +117,9 @@ void ShowUsage(
     std::cout << "Usage: " << filename << " [options]"
         " -u USERNAME"
         " -p PASSWORD"
-        " FILE\n";
+        " FILES\n";
     std::cout << visible << "\n";
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -101,7 +128,7 @@ int main(int argc, char *argv[])
         std::string folderkey;
         std::string password;
         std::string save_as;
-        std::string upload_file_path;
+        std::vector<std::string> upload_file_path;
         std::string username;
 
         po::options_description visible("Allowed options");
@@ -110,7 +137,7 @@ int main(int argc, char *argv[])
             ("help,h"        ,                                           "Show this message.")
             ("password,p"    , po::value<std::string>(&password)       , "Password for login")
             ("path"          , po::value<std::string>(&directory_path) , "Directory path where to upload file")
-            ("saveas,s"      , po::value<std::string>(&save_as)        , "Upload file with custom name")
+            ("saveas,s"      , po::value<std::string>(&save_as)        , "Upload file with custom name.  If multiple files passed, only the first is renamed.")
             ("username,u"    , po::value<std::string>(&username)       , "Username for login")
             ("replace,r"     ,                                           "Replace file if one exists already with the same name.")
             ("autorename,a"  ,                                           "Rename the file if it exists already.")
@@ -118,18 +145,26 @@ int main(int argc, char *argv[])
 
         po::options_description hidden("Hidden options");
         hidden.add_options()
-            ("upload_file_path", po::value<std::string>(&upload_file_path), "upload_file_path");
+            ("upload_file_path", po::value<std::vector<std::string>>(&upload_file_path), "upload_file_path");
 
         po::positional_options_description p;
-        p.add("upload_file_path", 1);
+        p.add("upload_file_path", -1);
 
         po::options_description cmdline_options;
         cmdline_options.add(visible).add(hidden);
 
         po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).
+        try {
+            po::store(po::command_line_parser(argc, argv).
                 options(cmdline_options).positional(p).run(), vm);
-        po::notify(vm);
+            po::notify(vm);
+        }
+        catch(boost::program_options::error & err)
+        {
+            std::cout << "Error: " << err.what() << std::endl;
+            ShowUsage(argv[0], visible);
+            return 1;
+        }
 
         if (     vm.count("help")
             || ! vm.count("upload_file_path")
@@ -173,35 +208,44 @@ int main(int argc, char *argv[])
 
             mf::uploader::UploadManager um(&stm);
 
-            mf::uploader::UploadRequest request(upload_file_path);
-
-            if (vm.count("folderkey"))
-                request.SetTargetFolderkey(folderkey);
-
-            if (vm.count("path"))
-                request.SetTargetFolderPath(directory_path);
-
-            if (vm.count("saveas"))
-                request.SetTargetFilename(directory_path);
-
-            if (vm.count("replace"))
+            const int files_to_upload = upload_file_path.size();
+            int files_uploaded = 0;
+            for (auto file_id = 0; file_id < files_to_upload; ++file_id)
             {
-                request.SetOnDuplicateAction(
-                    mf::uploader::OnDuplicateAction::Replace);
-            }
+                mf::uploader::UploadRequest request(upload_file_path[file_id]);
 
-            if (vm.count("autorename"))
-            {
-                request.SetOnDuplicateAction(
-                    mf::uploader::OnDuplicateAction::AutoRename);
-            }
+                if (vm.count("folderkey"))
+                    request.SetTargetFolderkey(folderkey);
 
-            um.Add(request,
-                [&io_service](mf::uploader::UploadStatus status)
+                if (vm.count("path"))
+                    request.SetTargetFolderPath(directory_path);
+
+                if (vm.count("saveas") && file_id == 0)
+                    request.SetTargetFilename(save_as);
+
+                if (vm.count("replace"))
                 {
-                    boost::apply_visitor(StatusVisitor(io_service),
-                        status.state);
-                });
+                    request.SetOnDuplicateAction(
+                        mf::uploader::OnDuplicateAction::Replace);
+                }
+
+                if (vm.count("autorename"))
+                {
+                    request.SetOnDuplicateAction(
+                        mf::uploader::OnDuplicateAction::AutoRename);
+                }
+
+                um.Add(request,
+                    [&io_service, files_to_upload, &files_uploaded, file_id](
+                            mf::uploader::UploadStatus status
+                        )
+                    {
+                        boost::apply_visitor(
+                            StatusVisitor( io_service, file_id, files_to_upload,
+                                &files_uploaded),
+                            status.state); });
+            }
+
 
             io_service.run();
         }
