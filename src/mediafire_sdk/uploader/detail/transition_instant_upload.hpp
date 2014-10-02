@@ -23,6 +23,25 @@ namespace upload_transition {
 
 struct DoInstantUpload
 {
+    class TargetSetter : public boost::static_visitor<>
+    {
+    public:
+        TargetSetter( mf::api::upload::instant::Request * request) : request_(request) {}
+
+        void operator()(mf::uploader::detail::ParentFolderKey & variant) const
+        {
+            request_->SetTargetParentFolderkey(variant.key);
+        }
+
+        void operator()(mf::uploader::detail::CloudPath & variant) const
+        {
+            request_->SetTargetPath(variant.path);
+        }
+
+    private:
+        mf::api::upload::instant::Request * request_;
+    };
+
     template <typename Event, typename FSM, typename SourceState, typename TargetState>
     void operator()(
             Event const &,
@@ -53,27 +72,8 @@ struct DoInstantUpload
                 break;
         }
 
-
-        class Visitor : public boost::static_visitor<>
-        {
-        public:
-            Visitor( instant::Request * request) : request_(request) {}
-
-            void operator()(mf::uploader::detail::ParentFolderKey & variant) const
-            {
-                request_->SetTargetParentFolderkey(variant.key);
-            }
-
-            void operator()(mf::uploader::detail::CloudPath & variant) const
-            {
-                request_->SetTargetPath(variant.path);
-            }
-
-        private:
-            instant::Request * request_;
-        };
         UploadTarget target_folder = fsm.TargetFolder();
-        boost::apply_visitor(Visitor(&request), target_folder);
+        boost::apply_visitor(TargetSetter(&request), target_folder);
 
         auto fsmp = fsm.AsFrontShared();
 

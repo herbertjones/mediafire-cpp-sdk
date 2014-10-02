@@ -103,6 +103,28 @@ void HandleCheck(
 
 struct Check
 {
+    class TargetSetter : public boost::static_visitor<>
+    {
+    public:
+        TargetSetter(
+                ::mf::api::upload::check::Request * request
+            ) :
+            request_(request) {}
+
+        void operator()(ParentFolderKey variant) const
+        {
+            request_->SetTargetParentFolderkey(variant.key);
+        }
+
+        void operator()(CloudPath variant) const
+        {
+            request_->SetPath(mf::utils::path_to_utf8(variant.path));
+        }
+
+    private:
+        ::mf::api::upload::check::Request * request_;
+    };
+
     template <typename Event, typename FSM, typename SourceState, typename TargetState>
     void operator()(
             Event const &,
@@ -116,30 +138,8 @@ struct Check
         request.SetFilesize(fsm.Filesize());
 
         // Set target folderpath
-        class Visitor : public boost::static_visitor<>
-        {
-        public:
-            Visitor(
-                    ::mf::api::upload::check::Request * request
-                ) :
-                request_(request) {}
-
-            void operator()(ParentFolderKey variant) const
-            {
-                request_->SetTargetParentFolderkey(variant.key);
-            }
-
-            void operator()(CloudPath variant) const
-            {
-                request_->SetPath(mf::utils::path_to_utf8(variant.path));
-            }
-
-        private:
-            ::mf::api::upload::check::Request * request_;
-        };
-
         auto target = fsm.TargetFolder();
-        boost::apply_visitor(Visitor(&request), target);
+        boost::apply_visitor(TargetSetter(&request), target);
 
         if (fsm.ChunkRanges().size() > 1)
         {
