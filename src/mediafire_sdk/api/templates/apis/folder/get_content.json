@@ -1,6 +1,6 @@
 {
-    "api": "/api/1.0/folder/get_content",
-    "version": "1.0",
+    "api": "/api/1.2/folder/get_content",
+    "version": "1.2",
     "enums": [
     {
         "cpp_name": "ContentType",
@@ -128,6 +128,19 @@
         {
             "cpp_name": "SharedWithUser",
             "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "ChunksRemaining",
+        "members": [
+        {
+            "cpp_name": "MoreChunks",
+            "api_value": "yes"
+        },
+        {
+            "cpp_name": "LastChunk",
+            "api_value": "no"
         }
         ]
     }
@@ -437,6 +450,11 @@
             "cpp_type": "uint32_t",
             "cpp_name": "chunk_number",
             "api_path": "response.folder_content.chunk_number"
+        },
+        {
+            "cpp_type": "ChunksRemaining",
+            "cpp_name": "chunks_remaining",
+            "api_path": "response.folder_content.more_chunks"
         },
         {
             "cpp_type": "File",
