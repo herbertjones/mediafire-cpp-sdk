@@ -26,6 +26,7 @@
 #include "boost/variant/apply_visitor.hpp"
 #include "boost/variant/get.hpp"
 
+#include "mediafire_sdk/utils/string.hpp"
 #include "mediafire_sdk/api/session_maintainer.hpp"
 #include "mediafire_sdk/uploader/upload_manager.hpp"
 
@@ -86,7 +87,7 @@ public:
         std::cout << id_str_ << "Error: " << ec.message() << std::endl;
         AddDebug( "Received error: " + ec.message() );
         AddDebug( "Error type: " + std::string(ec.category().name()));
-        AddDebug( "Error value: " + std::to_string(ec.value()));
+        AddDebug( "Error value: " + mf::utils::to_string(ec.value()));
         AddDebug( "Description: " + status.description);
 
         *files_complete_ += 1;

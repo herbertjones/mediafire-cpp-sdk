@@ -8,7 +8,6 @@
 #pragma once
 
 #include <functional>
-#include <future>
 #include <iostream>
 #include <map>
 #include <string>
@@ -25,6 +24,9 @@
 #include "boost/algorithm/string/predicate.hpp"  // iequals
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
+
+// These is used in lieu of <promise> because MinGW does not support promises.
+#include "boost/thread/future.hpp"
 
 namespace mf {
 namespace api {
@@ -136,7 +138,7 @@ public:
         typedef detail::RequesterImpl<ApiRequest, boost::asio::io_service>
             Impl;
 
-        std::promise<typename ApiRequest::ResponseType> response_promise;
+        boost::promise<typename ApiRequest::ResponseType> response_promise;
         auto future = response_promise.get_future();
 
         std::shared_ptr<Impl> wrapper(
