@@ -1,6 +1,6 @@
 {
-    "api": "/api/1.0/folder/get_content",
-    "version": "2.0",
+    "api": "/api/1.2/folder/get_content",
+    "version": "1.2",
     "enums": [
     {
         "cpp_name": "ContentType",
@@ -454,8 +454,7 @@
         {
             "cpp_type": "ChunksRemaining",
             "cpp_name": "chunks_remaining",
-            "api_path": "response.folder_content.???",
-            "default_value": "MoreChunks"
+            "api_path": "response.folder_content.more_chunks"
         },
         {
             "cpp_type": "File",
