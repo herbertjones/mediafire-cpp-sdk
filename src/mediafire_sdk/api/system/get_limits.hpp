@@ -1,6 +1,6 @@
 /**
- * @file api/system/get_limits.hpp
- * @brief API request: /api/system/get_limits
+ * @file system/get_limits.hpp
+ * @brief API request: system/get_limits
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,14 +8,7 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/headers.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
-
-#include "boost/date_time/posix_time/ptime.hpp"
+#include "get_limits/v0.hpp"
 
 namespace mf {
 namespace api {
@@ -23,104 +16,8 @@ namespace api {
 namespace system {
 /** API action "system/get_limits" */
 namespace get_limits {
-/** API path "/api/system/get_limits" */
-namespace v0 {
 
-/**
- * @class Response
- * @brief Response from API request "system/get_limits"
- */
-class Response : public ResponseBase
-{
-public:
-    /** API response field "response.limits.max_objects" */
-    uint32_t max_objects;
-
-    /** API response field "response.limits.max_keys" */
-    uint32_t max_keys;
-
-    /** API response field "response.limits.max_image_size" */
-    uint64_t max_image_size;
-
-    /** API response field "response.limits.zip_max_filesize" */
-    uint64_t zip_max_filesize;
-
-    /** API response field "response.limits.zip_max_total_filesize" */
-    uint64_t zip_max_total_filesize;
-
-    /** API response field "response.limits.folder_content_chunk_size" */
-    uint32_t folder_content_chunk_size;
-
-    /** API response field "response.limits.folder_depth_limit" */
-    uint32_t folder_depth_limit;
-
-    /** API response field "response.limits.limit_search_results" */
-    uint32_t limit_search_results;
-
-    /** API response field "response.limits.daily_shares_limit" */
-    uint32_t daily_shares_limit;
-
-    /** API response field "response.limits.device_changes_list_limit" */
-    uint32_t device_changes_list_limit;
-};
-
-class Impl;
-
-/**
- * @class Request
- * @brief Make API request "system/get_limits"
- */
-class Request
-{
-public:
-    /**
-     * API request "system/get_limits"
-     */
-    Request();
-
-    // Remaining functions are for use by API library only. --------------------
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef Response ResponseType;
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef std::function< void( const ResponseType & data)> CallbackType;
-
-    /** Requester/SessionMaintainer expected type. */
-    void SetCallback( CallbackType callback_function );
-
-    /** Requester expected method. */
-    void HandleContent(
-            const std::string & url,
-            const mf::http::Headers & headers,
-            const std::string & content
-        );
-
-    /** Requester expected method. */
-    void HandleError(
-            const std::string & url,
-            std::error_code ec,
-            const std::string & error_string
-        );
-
-    /** Requester expected method. */
-    std::string Url(const std::string & hostname) const;
-
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
-private:
-    std::shared_ptr<Impl> impl_;
-};
-}  // namespace v0
-
-// The latest version
+// Default version
 using namespace v0;  // NOLINT
 
 }  // namespace get_limits

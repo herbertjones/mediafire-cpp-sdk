@@ -1,0 +1,71 @@
+{
+    "api": "/api/1.1/billing/change_plan",
+    "version": "1.1",
+    "enums": [
+        {
+            "cpp_name": "InfoOnly",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "subdomain",
+            "api_path": "subdomain"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "company",
+            "api_path": "company"
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "product_id",
+            "api_path": "product_id"
+        },
+        {
+            "cpp_type": "InfoOnly",
+            "cpp_name": "info_only",
+            "api_path": "info_only"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "next_billing",
+            "api_path": "response.nextbilling",
+            "optional": true
+        },
+        {
+            "cpp_type": "InfoOnly",
+            "cpp_name": "info_only",
+            "api_path": "response.info_only"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "new_pid",
+            "api_path": "response.newpid"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "amount",
+            "api_path": "response.amount"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "interval",
+            "api_path": "response.interval"
+        }
+    ]
+}

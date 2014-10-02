@@ -77,9 +77,6 @@ __HPP_POST_DATA_TEMPLATE____HPP_SESSION_TOKEN_TEMPLATE__private:
 };
 }  // namespace __VERSION__
 
-// The latest version
-using namespace __VERSION__;  // NOLINT
-
 }  // namespace __CPPSAFE_NAME__
 __NAMESPACE_END__
 }  // namespace mf

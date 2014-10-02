@@ -53,6 +53,13 @@ class InvalidParameter(Exception):
     def __str__(self):
         return '"' + str(self.key) + '" does not accept : ' + str(self.value) + ' in ' + pretty_json(self.json_obj)
 
+class UnuniqueParameter(Exception):
+    def __init__(self, json_obj, key):
+        self.json_obj = json_obj
+        self.key = key
+    def __str__(self):
+        return 'Duplicate parameter "' + str(self.key) + '" that should be unique to the API type in \n' + pretty_json(self.json_obj)
+
 class RequiredParameter(Exception):
     def __init__(self, json_obj, value):
         self.json_obj = json_obj
@@ -189,6 +196,9 @@ def get_cpp_template():
 def get_hpp_template():
     return read_file("templates/api_template.hpp.txt")
 
+def get_all_hpp_template():
+    return read_file("templates/all_hpp_template.hpp.txt")
+
 def quote(s):
     return '\'' + str(s) + '\''
 
@@ -213,6 +223,12 @@ def read_file(filepath):
 
 def write_contents(contents, filepath):
     '''Write a string to a file.'''
+
+    # Make dir if it doesn't exist
+    try:
+        os.makedirs( os.path.dirname(filepath) )
+    except:
+        pass
 
     try:
         old_contents = read_file(filepath)
@@ -1359,20 +1375,32 @@ def get_additional_hpp_local_includes(api):
 def create_templates(api, target_path):
     '''Create the templates needed for a single api type.'''
 
+    template_data = {}
+
     version_str = get_version_string(api['version'])
+    template_data['version'] = version_str
 
     (path_parts, path_parts_cpp_safe) = get_path_parts(api['api'])
     api_path = '/' + '/'.join(path_parts)
-    #full_path = os.path.dirname(os.path.abspath(target_path)) + '/' + '/'.join(path_parts_cpp_safe[1:])
-    full_path = os.path.join(target_path, '/'.join(path_parts_cpp_safe[1:]))
-    cpp_path = full_path + '.cpp'
-    hpp_path = full_path + '.hpp'
+    relative_path = '/'.join(path_parts_cpp_safe[1:])
+    #full_path = os.path.join(target_path, relative_path)
+    template_data['path_parts_cpp_safe'] = path_parts_cpp_safe
+
+    template_data['domain'] = relative_path
+
+    cpp_path = os.path.join(relative_path, version_str + '.cpp')
+    template_data['cpp'] = cpp_path
+
+    hpp_path = os.path.join(relative_path, version_str + '.hpp')
+    template_data['hpp'] = hpp_path
 
     filename = path_parts_cpp_safe[-1]
     cppsafe_name = path_parts_cpp_safe[-1]
+    template_data['cppsafe_name'] = cppsafe_name
 
     # Create base for namespace
     base_parts = path_parts_cpp_safe[:-1]
+    template_data['base_parts'] = base_parts
 
     relative_pathname = '/'.join(base_parts) + '/' + filename
 
@@ -1414,7 +1442,7 @@ def create_templates(api, target_path):
     replacements['__EXPLICIT__'] = get_explicit(api)
     replacements['__HPP_CTOR_ARGS__'] = get_hpp_ctor_args(api)
     replacements['__HPP_CTOR_DOCUMENTATION__'] = get_hpp_ctor_documentation(api)
-    replacements['__HPP_FILENAME__'] = filename + '.hpp'
+    replacements['__HPP_FILENAME__'] = version_str + '.hpp'
     replacements['__HPP_RELATIVE_FILENAME__'] = relative_pathname + '.hpp'
     replacements['__HPP_OPTIONAL_SETTERS__'] = get_hpp_optional_setters(api)
     replacements['__HPP_POST_DATA_TEMPLATE__'] = get_hpp_post_data_template(api)
@@ -1434,12 +1462,19 @@ def create_templates(api, target_path):
     hpp = get_hpp_template()
 
     cpp = replace_by_dict(cpp, replacements)
-    if write_contents(cpp, cpp_path):
+    if write_contents(cpp, os.path.join(target_path, cpp_path)):
         print cpp_path + ' modified'
 
     hpp = replace_by_dict(hpp, replacements)
-    if write_contents(hpp, hpp_path):
+    if write_contents(hpp, os.path.join(target_path, hpp_path)):
         print hpp_path + ' modified'
+
+    if 'default_version' in api and api['default_version'] == True:
+        template_data['default_version'] = True
+    else:
+        template_data['default_version'] = False
+
+    return template_data
 
 def get_json_file_paths(src_path):
     json_files = []
@@ -1696,6 +1731,7 @@ def api_template_errors(json):
     # Optional fields
     ja.add_field('session_token', permitted_values = [True, False])
     ja.add_field('delivery_method', permitted_values = ['GET','POST'])
+    ja.add_field('default_version', permitted_values = [True, False])
 
     # Optional arrays
     ja.add_array('enums', analyser = api_template_enum_analyser())
@@ -1707,6 +1743,80 @@ def api_template_errors(json):
     ja.add_array('system_hpp_includes')
 
     return ja.run(json)
+
+def generate_cmake_include(target_file, cpp_sources, hpp_sources):
+    """Generate a CMake file to be included in the project to build the
+    templates"""
+
+    cpp_sources.sort()
+    hpp_sources.sort()
+
+    content = '''# This file is auto generated.  Do NOT edit by hand.
+
+set(API_TEMPLATE_GENERATED_SOURCES
+'''
+    for name in cpp_sources:
+        content = content + '    ' + name + "\n"
+
+    content = content + ''')
+
+set(API_TEMPLATE_GENERATED_HEADERS
+'''
+
+    for name in hpp_sources:
+        content = content + '    ' + name + "\n"
+
+    content = content + ''')
+'''
+    if write_contents(content, target_file):
+        print target_file + ' modified'
+
+def common_header_includes(domain, domain_data):
+
+    domain_parts = domain.split('/')
+
+    includes = ''
+    for header in domain_data['headers']:
+        header_parts = header.split('/')
+        to_skip = 0
+        for i in range(len(header_parts)):
+            try:
+                if domain_parts[i] == header_parts[i]:
+                    to_skip = to_skip + 1
+                else:
+                    break
+            except:
+                break
+        relative_path ='/'.join(header_parts[to_skip-1:])
+        includes = includes + '#include "' + relative_path + '"\n'
+
+    return includes
+
+def create_common_headers(target_file, domain, domain_data):
+
+    base_parts = domain_data['base_parts']
+
+    if 'default_version' in domain_data:
+        current_version = domain_data['default_version']
+    else:
+        domain_data['versions'].sort();
+        current_version = domain_data['versions'][-1]
+
+    replacements = {}
+
+    replacements['__API_DOMAIN__'] = domain
+    replacements['__CPPSAFE_NAME__'] = domain_data['cppsafe_name']
+    replacements['__HPP_RELATIVE_FILENAME__'] = domain + '.hpp'
+    replacements['__INCLUDES__'] = common_header_includes(domain, domain_data)
+    replacements['__NAMESPACE_BEGIN__'] = namespace_begin(base_parts)
+    replacements['__NAMESPACE_DOCUMENTATION__'] = get_namespace_documentation(domain_data['path_parts_cpp_safe'])
+    replacements['__NAMESPACE_END__'] = namespace_end(base_parts)
+    replacements['__VERSION__'] = current_version
+
+    hpp = replace_by_dict(get_all_hpp_template(), replacements)
+
+    if write_contents(hpp, target_file):
+        print target_file + ' modified'
 
 def main():
     parser = argparse.ArgumentParser(description='Convert API templates to C++.')
@@ -1741,9 +1851,41 @@ def main():
             for arg in e.args:
                 print('    ' + str(arg))
 
-    for api in json_apis:
-        create_templates(api, args.destination_path)
+    source_files = []
+    header_files = []
 
+    domains = {}
+    default_by_domain = {} # TODO
+
+    for api in json_apis:
+        meta = create_templates(api, args.destination_path)
+        source_files.append(meta['cpp'])
+        header_files.append(meta['hpp'])
+        domain = meta['domain']
+        if domain not in domains:
+            domains[domain] = {}
+            domains[domain]['base_parts'] = meta['base_parts']
+            domains[domain]['cppsafe_name'] = meta['cppsafe_name']
+            domains[domain]['path_parts_cpp_safe'] = meta['path_parts_cpp_safe']
+            domains[domain]['headers'] = []
+            domains[domain]['versions'] = []
+
+        domains[domain]['headers'].append(meta['hpp'])
+        domains[domain]['versions'].append(meta['version'])
+
+        if meta['default_version'] == True:
+            if 'default_version' in domains[domain]:
+                raise UnuniqueParameter(api, 'default_version')
+            domains[domain]['default_version'] = meta['version']
+
+    for domain, domain_data in domains.iteritems():
+        common_hpp = domain + '.hpp'
+        header_files.append(common_hpp)
+        create_common_headers(os.path.join( args.destination_path, common_hpp),
+                domain, domain_data)
+
+    generate_cmake_include( os.path.join(args.destination_path,
+        'GeneratedList.txt') , source_files, header_files)
 
 if __name__ == "__main__":
     main()

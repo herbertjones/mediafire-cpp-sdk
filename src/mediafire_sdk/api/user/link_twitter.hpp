@@ -1,6 +1,6 @@
 /**
- * @file api/user/link_twitter.hpp
- * @brief API request: /api/user/link_twitter
+ * @file user/link_twitter.hpp
+ * @brief API request: user/link_twitter
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,14 +8,7 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/headers.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
-
-#include "boost/date_time/posix_time/ptime.hpp"
+#include "link_twitter/v0.hpp"
 
 namespace mf {
 namespace api {
@@ -23,81 +16,8 @@ namespace api {
 namespace user {
 /** API action "user/link_twitter" */
 namespace link_twitter {
-/** API path "/api/user/link_twitter" */
-namespace v0 {
 
-/**
- * @class Response
- * @brief Response from API request "user/link_twitter"
- */
-class Response : public ResponseBase
-{
-public:
-};
-
-class Impl;
-
-/**
- * @class Request
- * @brief Make API request "user/link_twitter"
- */
-class Request
-{
-public:
-    /**
-     * API request "user/link_twitter"
-     *
-     * @param oauth_token API parameter "tw_oauth_token"
-     * @param oauth_token_secret API parameter "tw_oauth_token_secret"
-     */
-    Request(
-            std::string oauth_token,
-            std::string oauth_token_secret
-        );
-
-    // Remaining functions are for use by API library only. --------------------
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef Response ResponseType;
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef std::function< void( const ResponseType & data)> CallbackType;
-
-    /** Requester/SessionMaintainer expected type. */
-    void SetCallback( CallbackType callback_function );
-
-    /** Requester expected method. */
-    void HandleContent(
-            const std::string & url,
-            const mf::http::Headers & headers,
-            const std::string & content
-        );
-
-    /** Requester expected method. */
-    void HandleError(
-            const std::string & url,
-            std::error_code ec,
-            const std::string & error_string
-        );
-
-    /** Requester expected method. */
-    std::string Url(const std::string & hostname) const;
-
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
-private:
-    std::shared_ptr<Impl> impl_;
-};
-}  // namespace v0
-
-// The latest version
+// Default version
 using namespace v0;  // NOLINT
 
 }  // namespace link_twitter

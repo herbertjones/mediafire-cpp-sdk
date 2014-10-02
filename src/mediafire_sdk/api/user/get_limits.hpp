@@ -1,6 +1,6 @@
 /**
- * @file api/user/get_limits.hpp
- * @brief API request: /api/user/get_limits
+ * @file user/get_limits.hpp
+ * @brief API request: user/get_limits
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,14 +8,7 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/headers.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
-
-#include "boost/date_time/posix_time/ptime.hpp"
+#include "get_limits/v0.hpp"
 
 namespace mf {
 namespace api {
@@ -23,113 +16,8 @@ namespace api {
 namespace user {
 /** API action "user/get_limits" */
 namespace get_limits {
-/** API path "/api/user/get_limits" */
-namespace v0 {
 
-/**
- * @class Response
- * @brief Response from API request "user/get_limits"
- */
-class Response : public ResponseBase
-{
-public:
-    /** API response field "response.storage_base" */
-    uint64_t storage_base;
-
-    /** API response field "response.storage_bonus" */
-    uint64_t storage_bonus;
-
-    /** API response field "response.storage_limit" */
-    uint64_t storage_limit;
-
-    /** API response field "response.storage_used" */
-    uint64_t storage_used;
-
-    /** API response field "response.bandwidth_limit" */
-    uint64_t bandwidth_limit;
-
-    /** API response field "response.bandwidth_used" */
-    uint64_t bandwidth_used;
-
-    /** API response field "response.collaboration_limit" */
-    uint32_t collaboration_limit;
-
-    /** API response field "response.collaboration_today" */
-    uint32_t collaboration_today;
-
-    /** API response field "response.one_time_downloads_limit" */
-    uint32_t one_time_downloads_limit;
-
-    /** API response field "response.one_time_downloads_today" */
-    uint32_t one_time_downloads_today;
-
-    /** API response field "response.streaming_bandwidth_limit" */
-    uint64_t streaming_bandwidth_limit;
-
-    /** API response field "response.streaming_bandwidth_today" */
-    uint64_t streaming_bandwidth_today;
-
-    /** API response field "response.upload_size_limit" */
-    uint64_t upload_size_limit;
-};
-
-class Impl;
-
-/**
- * @class Request
- * @brief Make API request "user/get_limits"
- */
-class Request
-{
-public:
-    /**
-     * API request "user/get_limits"
-     */
-    Request();
-
-    // Remaining functions are for use by API library only. --------------------
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef Response ResponseType;
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef std::function< void( const ResponseType & data)> CallbackType;
-
-    /** Requester/SessionMaintainer expected type. */
-    void SetCallback( CallbackType callback_function );
-
-    /** Requester expected method. */
-    void HandleContent(
-            const std::string & url,
-            const mf::http::Headers & headers,
-            const std::string & content
-        );
-
-    /** Requester expected method. */
-    void HandleError(
-            const std::string & url,
-            std::error_code ec,
-            const std::string & error_string
-        );
-
-    /** Requester expected method. */
-    std::string Url(const std::string & hostname) const;
-
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
-private:
-    std::shared_ptr<Impl> impl_;
-};
-}  // namespace v0
-
-// The latest version
+// Default version
 using namespace v0;  // NOLINT
 
 }  // namespace get_limits

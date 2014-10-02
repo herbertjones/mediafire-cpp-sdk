@@ -1,6 +1,6 @@
 /**
- * @file api/file/move.hpp
- * @brief API request: /api/file/move
+ * @file file/move.hpp
+ * @brief API request: file/move
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,14 +8,7 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/headers.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
-
-#include "boost/date_time/posix_time/ptime.hpp"
+#include "move/v0.hpp"
 
 namespace mf {
 namespace api {
@@ -23,83 +16,8 @@ namespace api {
 namespace file {
 /** API action "file/move" */
 namespace move {
-/** API path "/api/file/move" */
-namespace v0 {
 
-/**
- * @class Response
- * @brief Response from API request "file/move"
- */
-class Response : public ResponseBase
-{
-public:
-    /** API response field "response.device_revision" */
-    uint32_t device_revision;
-};
-
-class Impl;
-
-/**
- * @class Request
- * @brief Make API request "file/move"
- */
-class Request
-{
-public:
-    /**
-     * API request "file/move"
-     *
-     * @param quickkey API parameter "quick_key"
-     * @param target_parent_folderkey API parameter "folder_key"
-     */
-    Request(
-            std::string quickkey,
-            std::string target_parent_folderkey
-        );
-
-    // Remaining functions are for use by API library only. --------------------
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef Response ResponseType;
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef std::function< void( const ResponseType & data)> CallbackType;
-
-    /** Requester/SessionMaintainer expected type. */
-    void SetCallback( CallbackType callback_function );
-
-    /** Requester expected method. */
-    void HandleContent(
-            const std::string & url,
-            const mf::http::Headers & headers,
-            const std::string & content
-        );
-
-    /** Requester expected method. */
-    void HandleError(
-            const std::string & url,
-            std::error_code ec,
-            const std::string & error_string
-        );
-
-    /** Requester expected method. */
-    std::string Url(const std::string & hostname) const;
-
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
-private:
-    std::shared_ptr<Impl> impl_;
-};
-}  // namespace v0
-
-// The latest version
+// Default version
 using namespace v0;  // NOLINT
 
 }  // namespace move

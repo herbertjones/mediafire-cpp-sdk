@@ -14,24 +14,17 @@ if ( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
 endif( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
 
 # -- API by path ---------------
-add_subdirectory(billing)
-add_subdirectory(contact)
-add_subdirectory(device)
-add_subdirectory(file)
-add_subdirectory(folder)
-add_subdirectory(notifications)
-add_subdirectory(system)
-add_subdirectory(upload)
-add_subdirectory(user)
-
 project (mf_api_sdk CXX)
 
 set(API_SOURCES
-    ${API_SOURCES}
-
     detail/session_maintainer_locker.cpp
     detail/session_token_api_base_static.cpp
     detail/tokenless_api_base_static.cpp
+
+    # Non template generated APIs
+    user/get_login_token.cpp
+    user/get_session_token.cpp
+    user/renew_session_token.cpp
 
     app_constants.cpp
     connection_state.cpp
@@ -44,8 +37,6 @@ set(API_SOURCES
     type_helpers.cpp
 )
 set(API_HEADERS
-    ${API_HEADERS}
-
     detail/api_base.hpp
     detail/request_interface.hpp
     detail/requester_impl.hpp
@@ -53,6 +44,11 @@ set(API_HEADERS
     detail/session_maintainer_request.hpp
     detail/session_token_api_base_static.hpp
     detail/tokenless_api_base_static.hpp
+
+    # Non template generated APIs
+    user/get_login_token.hpp
+    user/get_session_token.hpp
+    user/renew_session_token.hpp
 
     app_constants.hpp
     connection_state.hpp
@@ -68,9 +64,13 @@ set(API_HEADERS
     type_helpers.hpp
 )
 
+include(GeneratedList.txt)
+
 add_library(mf_api_sdk STATIC
     ${API_HEADERS}
     ${API_SOURCES}
+    ${API_TEMPLATE_GENERATED_SOURCES}
+    ${API_TEMPLATE_GENERATED_HEADERS}
 )
 
 TARGET_LINK_LIBRARIES(mf_api_sdk

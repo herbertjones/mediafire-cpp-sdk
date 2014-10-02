@@ -1,0 +1,457 @@
+{
+    "api": "/api/1.0/folder/get_content",
+    "version": "1.0",
+    "default_version": false,
+    "enums": [
+    {
+        "cpp_name": "ContentType",
+        "members": [
+        {
+            "cpp_name": "Folders",
+            "api_value": "folders"
+        },
+        {
+            "cpp_name": "Files",
+            "api_value": "files"
+        }
+        ]
+    },
+    {
+        "cpp_name": "OrderBy",
+        "members": [
+        {
+            "cpp_name": "Name",
+            "api_value": "name"
+        },
+        {
+            "cpp_name": "Created",
+            "api_value": "created"
+        },
+        {
+            "cpp_name": "Size",
+            "api_value": "size"
+        },
+        {
+            "cpp_name": "Downloads",
+            "api_value": "downloads"
+        }
+        ]
+    },
+    {
+        "cpp_name": "OrderDirection",
+        "members": [
+        {
+            "cpp_name": "Ascending",
+            "api_value": "asc"
+        },
+        {
+            "cpp_name": "Descending",
+            "api_value": "desc"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Details",
+        "members": [
+        {
+            "cpp_name": "NoDetails",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "PopulateDetails",
+            "api_value": "yes"
+        },
+        {
+            "cpp_name": "ShallowDetails",
+            "api_value": "shallow"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Privacy",
+        "members": [
+        {
+            "cpp_name": "Public",
+            "api_value": "public"
+        },
+        {
+            "cpp_name": "Private",
+            "api_value": "private"
+        }
+        ]
+    },
+    {
+        "cpp_name": "FileDrop",
+        "members": [
+        {
+            "cpp_name": "Disabled",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Enabled",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "PasswordProtected",
+        "members": [
+        {
+            "cpp_name": "Unprotected",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "Protected",
+            "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "SharedByUser",
+        "members": [
+        {
+            "cpp_name": "Unshared",
+            "api_value": ""
+        },
+        {
+            "cpp_name": "Shared",
+            "api_value": "1"
+        }
+        ]
+    },
+    {
+        "cpp_name": "SharedWithUser",
+        "members": [
+        {
+            "cpp_name": "UserIsOwner",
+            "api_value": "no"
+        },
+        {
+            "cpp_name": "SharedWithUser",
+            "api_value": "yes"
+        }
+        ]
+    }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Links",
+            "members": [
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "direct_download",
+                "api_path": "direct_download",
+                "optional": true
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "edit",
+                "api_path": "edit",
+                "optional": true
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "normal_download",
+                "api_path": "normal_download",
+                "optional": true
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "one_time_download",
+                "api_path": "one_time_download",
+                "optional": true
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "view",
+                "api_path": "view",
+                "optional": true
+            }
+            ]
+        },
+        {
+            "cpp_name": "File",
+            "members": [
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "created_datetime",
+                "api_path": "created"
+            },
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "deleted_datetime",
+                "api_path": "delete_date",
+                "default_value": "boost::posix_time::not_a_date_time"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "description",
+                "api_path": "description",
+                "optional": true
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "download_count",
+                "api_path": "downloads"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "filename",
+                "api_path": "filename"
+            },
+            {
+                "cpp_type": "uint64_t",
+                "cpp_name": "filesize",
+                "api_path": "size"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "filetype",
+                "api_path": "filetype"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "flag",
+                "api_path": "flag"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "hash",
+                "api_path": "hash"
+            },
+            {
+                "cpp_type": "Links",
+                "cpp_name": "links",
+                "api_path": "links"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "mimetype",
+                "api_path": "mimetype"
+            },
+            {
+                "cpp_type": "PasswordProtected",
+                "cpp_name": "password_protected",
+                "api_path": "password_protected"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "permissions",
+                "api_path": "permissions.value",
+                "optional": true
+            },
+            {
+                "cpp_type": "Privacy",
+                "cpp_name": "privacy",
+                "api_path": "privacy"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "quickkey",
+                "api_path": "quickkey"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "revision",
+                "api_path": "revision"
+            },
+            {
+                "cpp_type": "SharedByUser",
+                "cpp_name": "shared_by_user",
+                "api_path": "shared_by_user",
+                "default_value": "Unshared"
+            },
+            {
+                "cpp_type": "SharedWithUser",
+                "cpp_name": "shared_with_user",
+                "api_path": "shared",
+                "default_value": "UserIsOwner"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "views",
+                "api_path": "views"
+            }
+            ]
+        },
+        {
+            "cpp_name": "Folder",
+            "members": [
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "created_datetime",
+                "api_path": "created"
+            },
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "deleted_datetime",
+                "api_path": "delete_date",
+                "default_value": "boost::posix_time::not_a_date_time"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "description",
+                "api_path": "description",
+                "optional": true
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "file_count",
+                "api_path": "file_count"
+            },
+            {
+                "cpp_type": "FileDrop",
+                "cpp_name": "filedrop",
+                "api_path": "dropbox_enabled"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "flag",
+                "api_path": "flag"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "folder_count",
+                "api_path": "folder_count"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "folderkey",
+                "api_path": "folderkey"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "name",
+                "api_path": "name"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "permissions",
+                "api_path": "permissions.value",
+                "optional": true
+            },
+            {
+                "cpp_type": "Privacy",
+                "cpp_name": "privacy",
+                "api_path": "privacy"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "revision",
+                "api_path": "revision"
+            },
+            {
+                "cpp_type": "SharedByUser",
+                "cpp_name": "shared_by_user",
+                "api_path": "shared_by_user",
+                "default_value": "Unshared"
+            },
+            {
+                "cpp_type": "SharedWithUser",
+                "cpp_name": "shared_with_user",
+                "api_path": "shared",
+                "default_value": "UserIsOwner"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "tags",
+                "api_path": "tags",
+                "optional": true
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "total_files",
+                "api_path": "total_files",
+                "optional": true
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "total_folders",
+                "api_path": "total_folders",
+                "optional": true
+            },
+            {
+                "cpp_type": "uint64_t",
+                "cpp_name": "total_size",
+                "api_path": "total_size",
+                "optional": true
+            }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folder_key",
+            "api_path": "folder_key"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "chunk_number",
+            "api_path": "chunk"
+        },
+        {
+            "cpp_type": "ContentType",
+            "cpp_name": "content_type",
+            "api_path": "content_type"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_id",
+            "api_path": "device_id"
+        },
+        {
+            "cpp_type": "OrderBy",
+            "cpp_name": "order_by",
+            "api_path": "order_by"
+        },
+        {
+            "cpp_type": "OrderDirection",
+            "cpp_name": "order_direction",
+            "api_path": "order_direction"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filter",
+            "api_path": "filter"
+        },
+        {
+            "cpp_type": "Details",
+            "cpp_name": "details",
+            "api_path": "details"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "chunk_size",
+            "api_path": "response.folder_content.chunk_size"
+        },
+        {
+            "cpp_type": "ContentType",
+            "cpp_name": "content_type",
+            "api_path": "response.folder_content.content_type"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "chunk_number",
+            "api_path": "response.folder_content.chunk_number"
+        },
+        {
+            "cpp_type": "File",
+            "cpp_name": "files",
+            "api_path": "response.folder_content.files",
+            "json_type": "array",
+            "optional": true
+        },
+        {
+            "cpp_type": "Folder",
+            "cpp_name": "folders",
+            "api_path": "response.folder_content.folders",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

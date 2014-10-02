@@ -1,6 +1,6 @@
 /**
- * @file api/user/user_register.hpp
- * @brief API request: /api/user/register
+ * @file user/user_register.hpp
+ * @brief API request: user/user_register
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,14 +8,7 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "mediafire_sdk/http/shared_buffer.hpp"
-#include "mediafire_sdk/http/headers.hpp"
-#include "mediafire_sdk/api/response_base.hpp"
-
-#include "boost/date_time/posix_time/ptime.hpp"
+#include "user_register/v0.hpp"
 
 namespace mf {
 namespace api {
@@ -23,127 +16,8 @@ namespace api {
 namespace user {
 /** API action "user/user_register" */
 namespace user_register {
-/** API path "/api/user/register" */
-namespace v0 {
 
-/**
- * @class Response
- * @brief Response from API request "user/register"
- */
-class Response : public ResponseBase
-{
-public:
-    /** Email associated with the account */
-    std::string email;
-
-    /** Time account was created */
-    boost::posix_time::ptime created_datetime;
-
-    /** Unique id that only changes if user's password has changed.  Available
-     * in other API calls. */
-    std::string pkey;
-
-    /** Temporary password assigned when no password was provided. */
-    boost::optional<std::string> temporary_password;
-};
-
-class Impl;
-
-/**
- * @class Request
- * @brief Make API request "user/register"
- */
-class Request
-{
-public:
-    /**
-     * API request "user/register"
-     *
-     * @param application_id API parameter "application_id"
-     */
-    explicit Request(
-            std::string application_id
-        );
-
-    /**
-     * Optional API parameter "email"
-     *
-     * @param email Set parameter "email" in API request.
-     */
-    void SetEmail(std::string email);
-
-    /**
-     * Optional API parameter "password"
-     *
-     * @param password Set parameter "password" in API request.
-     */
-    void SetPassword(std::string password);
-
-    /**
-     * Optional API parameter "fb_access_token"
-     *
-     * @param fb_access_token Set parameter "fb_access_token" in API request.
-     */
-    void SetFbAccessToken(std::string fb_access_token);
-
-    /**
-     * Optional API parameter "first_name"
-     *
-     * @param first_name Set parameter "first_name" in API request.
-     */
-    void SetFirstName(std::string first_name);
-
-    /**
-     * Optional API parameter "last_name"
-     *
-     * @param last_name Set parameter "last_name" in API request.
-     */
-    void SetLastName(std::string last_name);
-
-    /**
-     * Optional API parameter "display_name"
-     *
-     * @param display_name Set parameter "display_name" in API request.
-     */
-    void SetDisplayName(std::string display_name);
-
-    // Remaining functions are for use by API library only. --------------------
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef Response ResponseType;
-
-    /** Requester/SessionMaintainer expected type. */
-    typedef std::function< void( const ResponseType & data)> CallbackType;
-
-    /** Requester/SessionMaintainer expected type. */
-    void SetCallback( CallbackType callback_function );
-
-    /** Requester expected method. */
-    void HandleContent(
-            const std::string & url,
-            const mf::http::Headers & headers,
-            const std::string & content
-        );
-
-    /** Requester expected method. */
-    void HandleError(
-            const std::string & url,
-            std::error_code ec,
-            const std::string & error_string
-        );
-
-    /** Requester expected method. */
-    std::string Url(const std::string & hostname) const;
-
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-private:
-    std::shared_ptr<Impl> impl_;
-};
-}  // namespace v0
-
-// The latest version
+// Default version
 using namespace v0;  // NOLINT
 
 }  // namespace user_register
