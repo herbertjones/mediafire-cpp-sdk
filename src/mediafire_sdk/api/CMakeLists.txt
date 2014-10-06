@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
+# Uncomment for debug output
+#add_definitions(-DOUTPUT_DEBUG)
+
 add_subdirectory(error)
 
 # For convenience

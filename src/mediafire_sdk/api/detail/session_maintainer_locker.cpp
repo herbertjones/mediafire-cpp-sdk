@@ -7,6 +7,12 @@
 
 #include "mediafire_sdk/utils/variant_comparison.hpp"
 
+#ifdef OUTPUT_DEBUG
+#  define DEBUG_TOKEN_COUNT() DebugOutputTokenCounts()
+#else
+#  define DEBUG_TOKEN_COUNT()
+#endif
+
 namespace mf {
 namespace api {
 namespace detail {
@@ -70,19 +76,15 @@ void SessionMaintainerLocker::SetCredentials(
         const Credentials & credentials
     )
 {
-    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
 
     if ( ! credentials_ ||
         ! mf::utils::AreVariantsEqual( credentials, *credentials_ ) )
     {
         credentials_ = credentials;
 
-        // All session tokens must become invalid.
-        session_tokens_.clear();
-        checked_out_tokens_.clear();
-
-        // We have become initialized.
-        ChangeSessionStateInternal(session_state::Initialized());
+        // Change state to initialized.
+        ChangeSessionStateInternal(session_state::Initialized(), lock);
     }
 }
 
@@ -95,9 +97,14 @@ void SessionMaintainerLocker::AddWaitingRequest( STRequest request )
         STRequestWeak(request) );
 
     if (request->UsesSessionToken())
+    {
         waiting_st_requests_.push_back( request );
+        DEBUG_TOKEN_COUNT();
+    }
     else
+    {
         waiting_non_st_requests_.push_back( request );
+    }
 }
 
 void SessionMaintainerLocker::RemoveInProgressRequest( STRequest request )
@@ -112,9 +119,14 @@ void SessionMaintainerLocker::MoveInProgressToWaiting( STRequest request )
     in_progress_requests_.erase( request );
 
     if (request->UsesSessionToken())
+    {
         waiting_st_requests_.push_back( request );
+        DEBUG_TOKEN_COUNT();
+    }
     else
+    {
         waiting_non_st_requests_.push_back( request );
+    }
 }
 
 void SessionMaintainerLocker::DeleteCheckedOutToken( STRequest request )
@@ -125,6 +137,7 @@ void SessionMaintainerLocker::DeleteCheckedOutToken( STRequest request )
     {
         checked_out_tokens_.erase( it );
     }
+    DEBUG_TOKEN_COUNT();
 }
 
 void SessionMaintainerLocker::MoveInProgressToDelayed(
@@ -165,10 +178,18 @@ SessionMaintainerLocker::NextWaitingSessionTokenRequest()
         STRequest request = waiting_st_requests_.front();
         waiting_st_requests_.pop_front();
 
+        DEBUG_TOKEN_COUNT();
+
         return std::make_pair(std::move(request), std::move(st));
     }
-
-    return boost::none;
+    else
+    {
+#ifdef OUTPUT_DEBUG
+        std::cout << "Returning no waiting requests because:\n";
+        DEBUG_TOKEN_COUNT();
+#endif
+        return boost::none;
+    }
 }
 
 void SessionMaintainerLocker::AddInProgressRequest( STRequest request )
@@ -186,6 +207,7 @@ void SessionMaintainerLocker::AddInProgressRequest(
     in_progress_requests_.insert( request );
     checked_out_tokens_.insert(
         std::make_pair(std::move(request), std::move(token) ) );
+    DEBUG_TOKEN_COUNT();
 }
 
 bool SessionMaintainerLocker::PermitSessionTokenCheckout()
@@ -250,6 +272,7 @@ bool SessionMaintainerLocker::AddSessionToken(
         mf::utils::AreVariantsEqual( old_credentials, *credentials_ ) )
     {
         session_tokens_.push_back( std::move(token) );
+        DEBUG_TOKEN_COUNT();
         return true;
     }
     else
@@ -287,6 +310,8 @@ void SessionMaintainerLocker::ReuseToken(
             }
 
             session_tokens_.push_back( std::move(st) );
+
+            DEBUG_TOKEN_COUNT();
         }
     }
 }
@@ -309,8 +334,8 @@ SessionMaintainerLocker::GetSessionState()
 
 void SessionMaintainerLocker::SetSessionState(api::SessionState state)
 {
-    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
-    ChangeSessionStateInternal(state);
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
+    ChangeSessionStateInternal(state, lock);
 }
 
 api::ConnectionState SessionMaintainerLocker::GetConnectionState()
@@ -332,10 +357,10 @@ bool SessionMaintainerLocker::SetSessionStateSafe(
         uint32_t state_change_count
     )
 {
-    mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
     if (session_state_change_count_ == state_change_count)
     {
-        ChangeSessionStateInternal(state);
+        ChangeSessionStateInternal(state, lock);
         return true;
     }
     return false;
@@ -364,14 +389,57 @@ void SessionMaintainerLocker::StopTimeouts()
     time_out_requests_->Stop();
 }
 
+class SessionMaintainerLocker::NewStateVisitor :
+    public boost::static_visitor<>
+{
+public:
+    // parent_->mutex_ must be locked
+    NewStateVisitor(
+            SessionMaintainerLocker* parent,
+            const mf::utils::unique_lock<mf::utils::mutex>& lock
+        ) :
+        parent_(parent)
+    {   // Empty constructor
+    }
+    void operator()(session_state::Uninitialized) const
+    {   // Clear all tokens and credentials when uninitializing
+        parent_->credentials_ = boost::none;
+        parent_->session_tokens_.clear();
+        parent_->checked_out_tokens_.clear();
+    }
+
+    void operator()(session_state::Initialized) const
+    {   // Clear all tokens on init
+        parent_->session_tokens_.clear();
+        parent_->checked_out_tokens_.clear();
+    }
+
+    void operator()(session_state::CredentialsFailure) const
+    {   // Clear all tokens on error
+        parent_->session_tokens_.clear();
+        parent_->checked_out_tokens_.clear();
+    }
+
+    void operator()(session_state::Running) const
+    {   // Do nothing when finally running
+    }
+private:
+    SessionMaintainerLocker* parent_;
+};
+
 void SessionMaintainerLocker::ChangeSessionStateInternal(
-        api::SessionState state
+        api::SessionState state,
+        const mf::utils::unique_lock<mf::utils::mutex>& lock
     )
 {
-    // No lock on this one since we should already be locked.
+    (void) lock;  // Suppress warnings
+    assert( lock.owns_lock() );
+    assert( lock.mutex() == &mutex_ );
+
     if ( ! mf::utils::AreVariantsEqual( session_state_, state ) )
     {
         session_state_ = state;
+        boost::apply_visitor(NewStateVisitor(this, lock), state);
         ++session_state_change_count_;
         if (session_state_change_callback_)
             callback_ios_->post( boost::bind(
@@ -413,6 +481,8 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
             {
                 waiting_st_requests_.erase(it);
 
+                DEBUG_TOKEN_COUNT();
+
                 // In case of Fail calling mutex
                 lock.unlock();
 
@@ -446,6 +516,21 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
             }
         }
     }
+}
+
+// Only call when mutex_ is locked!
+void SessionMaintainerLocker::DebugOutputTokenCounts()
+{
+    std::cout << "Pending token requests:    "
+        << in_progress_session_token_requests_ << "\n";
+    std::cout << "Stored tokens:             "
+        << session_tokens_.size() << "\n";
+    std::cout << "Checked-out tokens:        "
+        << checked_out_tokens_.size() << "\n";
+    std::cout << "Requests waiting on token: "
+        << waiting_st_requests_.size() << "\n";
+    std::cout << "Max tokens:                "
+        << SessionMaintainer::max_tokens << "\n";
 }
 
 }  // namespace detail

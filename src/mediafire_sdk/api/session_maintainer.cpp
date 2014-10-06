@@ -159,9 +159,6 @@ void SessionMaintainer::SetLoginCredentials(
         const Credentials & credentials
     )
 {
-    // In case there are failures while this is occurring...
-    SetSessionState(session_state::Uninitialized());
-
     locker_->SetCredentials(credentials);
 
     // Credentials updated.  There may be requests ready to send.
@@ -250,8 +247,14 @@ void SessionMaintainer::UpdateStateFromErrorCode(
     }
 }
 
+#ifdef OUTPUT_DEBUG
+#  define ATTEMPT_REQUEST_DEBUG(x) std::cout << "SessionMaintainer::AttemptRequests: " << x;
+#else
+#  define ATTEMPT_REQUEST_DEBUG(x)
+#endif
 void SessionMaintainer::AttemptRequests()
 {
+    ATTEMPT_REQUEST_DEBUG("-- BEGIN --\n")
     // Handle requests that do not use session tokens.
     boost::optional< STRequest > opt_request;
     while ( (opt_request = locker_->NextWaitingNonSessionTokenRequest()) )
@@ -260,13 +263,18 @@ void SessionMaintainer::AttemptRequests()
 
         request->Init(&requester_);
         locker_->AddInProgressRequest(std::move(request));
+        ATTEMPT_REQUEST_DEBUG("Started non-session token request.\n")
     }
 
     // Handle requests that have session tokens.
     boost::optional< std::pair<STRequest, SessionTokenData> > request_pair;
+    ATTEMPT_REQUEST_DEBUG("Session state: "
+        << GetSessionState() << " is running: " << IsRunning(GetSessionState())
+        << "\n")
     while ( IsRunning(GetSessionState())
         && (request_pair = locker_->NextWaitingSessionTokenRequest()) )
     {
+        ATTEMPT_REQUEST_DEBUG("Found waiting session token request.\n")
         SessionTokenData & st = request_pair->second;
         STRequest & request = request_pair->first;
 
@@ -278,6 +286,7 @@ void SessionMaintainer::AttemptRequests()
         request->Init(&requester_);
 
         locker_->AddInProgressRequest(std::move(request), std::move(st));
+        ATTEMPT_REQUEST_DEBUG("Started session token request.\n")
     }
 
     // Request more session tokens for those that need it.
@@ -287,9 +296,17 @@ void SessionMaintainer::AttemptRequests()
         while ( locker_->PermitSessionTokenCheckout() )
         {
             RequestSessionToken(*credentials);
+            ATTEMPT_REQUEST_DEBUG("Requested session token.\n")
         }
     }
+    else
+    {
+        ATTEMPT_REQUEST_DEBUG("No credentials.\n")
+    }
+
+    ATTEMPT_REQUEST_DEBUG("-- END --\n")
 }
+#undef ATTEMPT_REQUEST_DEBUG
 
 void SessionMaintainer::RequestSessionToken(
         const Credentials & credentials
@@ -416,9 +433,19 @@ void SessionMaintainer::HandleSessionTokenResponse(
                     session_state_change_count );
             }
         }
+        else
+        {
+#ifdef OUTPUT_DEBUG
+            std::cout << "SessionMaintainer: Adding session token failed."
+                << std::endl;
+#endif
+        }
 
         AttemptRequests();
     }
+#ifdef OUTPUT_DEBUG
+    std::cout << "SessionMaintainer: " << GetSessionState() << std::endl;
+#endif
 }
 
 void SessionMaintainer::HandleSessionTokenFailureTimeout(

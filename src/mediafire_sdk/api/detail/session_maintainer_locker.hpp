@@ -132,7 +132,8 @@ private:
     WeakTimedEvents::Pointer time_out_requests_;
 
     void ChangeSessionStateInternal(
-            api::SessionState state
+            api::SessionState state,
+            const mf::utils::unique_lock<mf::utils::mutex>& lock
         );
 
     void ChangeConnectionStateInternal(
@@ -142,6 +143,10 @@ private:
     void HandleTimedOutRequest(
             STRequestWeak weak_request
         );
+
+    void DebugOutputTokenCounts();
+
+    class NewStateVisitor;
 };
 
 }  // namespace detail
