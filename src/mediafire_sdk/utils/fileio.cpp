@@ -308,8 +308,12 @@ void FileIO::Seek(
                 return SEEK_CUR;
         }}();
 
-#ifdef _WIN32
+#if defined(_WIN32)
+#  if defined(_MSC_VER)
+    const int res = _fseeki64(file_handle_, offset, origin);
+#  else
     const int res = fseeko64(file_handle_, offset, origin);
+#  endif
 #else
     const int res = fseeko(file_handle_, offset, origin);
 #endif
@@ -330,8 +334,12 @@ void FileIO::Seek(
 
 uint64_t FileIO::Tell()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
+#  if defined(_MSC_VER)
+    uint64_t position = _ftelli64(file_handle_);
+#  else
     uint64_t position = ftello64(file_handle_);
+#  endif
 #else
     uint64_t position = ftello(file_handle_);
 #endif

@@ -15,18 +15,16 @@ namespace detail {
 
 extern const int MaxStepping;
 
-constexpr uint64_t MB(const uint64_t x)
-{
-    return x*1024*1024;
-}
-constexpr uint64_t GB(const uint64_t x)
-{
-    return MB(x)*1024;
-}
-constexpr uint64_t TB(const uint64_t x)
-{
-    return GB(x)*1024;
-}
+template <uint64_t N>
+struct MB_helper : std::integral_constant<uint64_t, N * 1024 * 1024> {};
+template <uint64_t N>
+struct GB_helper : std::integral_constant<uint64_t, MB_helper<N>::value * 1024> {};
+template <uint64_t N>
+struct TB_helper : std::integral_constant<uint64_t, GB_helper<N>::value * 1024> {};
+
+#define MB(x) MB_helper<x>::value
+#define GB(x) GB_helper<x>::value
+#define TB(x) TB_helper<x>::value
 
 uint64_t SteppingMinFileSize(
         const uint32_t stepping

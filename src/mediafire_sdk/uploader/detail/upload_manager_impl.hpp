@@ -68,7 +68,7 @@ private:
     std::set<StateMachinePointer> requests_;
 
     std::string action_token_;
-    std::chrono::time_point<std::chrono::steady_clock> action_token_expires_;
+    std::chrono::steady_clock::time_point action_token_expires_;
     enum class ActionTokenState
     {
         Invalid,

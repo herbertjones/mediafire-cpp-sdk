@@ -46,7 +46,7 @@ public:
     using Pointer = std::shared_ptr<TimedEvents>;
     using Lock = mf::utils::lock_guard<mf::utils::mutex>;
     using UniqueLock = mf::utils::unique_lock<mf::utils::mutex>;
-    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+    using TimePoint = std::chrono::steady_clock::time_point;
 
     /**
      * @param[in] io_service IO service used to execute acions.

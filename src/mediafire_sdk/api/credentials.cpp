@@ -9,20 +9,23 @@
 #include <sstream>
 
 #include "boost/variant/apply_visitor.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
+
+namespace tie_ns = boost;
 
 namespace mf {
 namespace api {
 namespace credentials {
 bool operator==(const Email& lhs, const Email& rhs)
 {
-    return std::tie(lhs.email, lhs.password)
-        == std::tie(rhs.email, rhs.password);
+    return tie_ns::tie(lhs.email, lhs.password)
+        == tie_ns::tie(rhs.email, rhs.password);
 }
 
 bool operator==(const Ekey& lhs, const Ekey& rhs)
 {
-    return std::tie(lhs.ekey, lhs.password)
-        == std::tie(rhs.ekey, rhs.password);
+    return tie_ns::tie(lhs.ekey, lhs.password)
+        == tie_ns::tie(rhs.ekey, rhs.password);
 }
 
 bool operator==(const Facebook& lhs, const Facebook& rhs)

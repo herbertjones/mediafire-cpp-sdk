@@ -79,7 +79,7 @@ public:
 };
 }  // namespace
 
-v0::Request::Request(
+mf::api::user::get_login_token::v0::Request::Request(
         const Credentials & credentials
     ) :
     credentials_(credentials)

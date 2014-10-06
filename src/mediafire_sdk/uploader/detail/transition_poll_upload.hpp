@@ -53,7 +53,7 @@ void HandlePollCompleteResponse(
         {
             fsm.ProcessEvent(event::PollComplete{
                 *response.quickkey,
-                fsm.Filename()
+                fsm.filename()
                 });
         }
     }

@@ -35,8 +35,8 @@ public:
      */
     virtual void RecordIncomingBytes(
             size_t bytes,
-            std::chrono::time_point<std::chrono::steady_clock> start_time,
-            std::chrono::time_point<std::chrono::steady_clock> end_time
+            std::chrono::steady_clock::time_point start_time,
+            std::chrono::steady_clock::time_point end_time
         ) = 0;
 
     /**
@@ -48,8 +48,8 @@ public:
      */
     virtual void RecordOutgoingBytes(
             size_t bytes,
-            std::chrono::time_point<std::chrono::steady_clock> start_time,
-            std::chrono::time_point<std::chrono::steady_clock> end_time
+            std::chrono::steady_clock::time_point start_time,
+            std::chrono::steady_clock::time_point end_time
         ) = 0;
 };
 

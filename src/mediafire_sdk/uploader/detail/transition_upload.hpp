@@ -249,7 +249,7 @@ struct DoSimpleUpload
         // Use JSON
         query_map["response_format"] = "json";
 
-        switch (fsm.OnDuplicateAction())
+        switch (fsm.onDuplicateAction())
         {
             case OnDuplicateAction::Fail:
                 // This is the default, same as "skip" and doesn't need to be
@@ -267,9 +267,9 @@ struct DoSimpleUpload
         }
 
         // Use JSON
-        query_map["mtime"] = AsDateTime(fsm.Mtime());
+        query_map["mtime"] = AsDateTime(fsm.mtime());
 
-        UploadTarget target_folder = fsm.TargetFolder();
+        UploadTarget target_folder = fsm.targetFolder();
         boost::apply_visitor(TargetUrlVisitor(&query_map), target_folder);
 
         /** @todo hjones: Query map overrides */
@@ -289,11 +289,11 @@ struct DoSimpleUpload
 
         // This is not required according to the documentation, but the server
         // is rejecting the upload without it.
-        http_request->SetHeader("x-filename", fsm.Filename());
+        http_request->SetHeader("x-filename", fsm.filename());
 
         { /* x-filesize */
             std::ostringstream ss;
-            ss << fsm.Filesize();
+            ss << fsm.filesize();
             http_request->SetHeader("x-filesize", ss.str());
         }
     }
@@ -322,7 +322,7 @@ struct DoSimpleUpload
 
         // Add data to send as POST.
         auto pipe = std::make_shared<UploadPostDataPipe>(file_io, 0,
-            fsm.Filesize());
+            fsm.filesize());
         auto url = BuildUrl(fsm);
 
         auto fsmp = fsm.AsFrontShared();
@@ -475,7 +475,7 @@ struct DoChunkUpload
         // Use JSON
         query_map["response_format"] = "json";
 
-        switch (fsm.OnDuplicateAction())
+        switch (fsm.onDuplicateAction())
         {
             case OnDuplicateAction::Fail:
                 // This is the default, same as "skip" and doesn't need to be
@@ -493,9 +493,9 @@ struct DoChunkUpload
         }
 
         // Use JSON
-        query_map["mtime"] = AsDateTime(fsm.Mtime());
+        query_map["mtime"] = AsDateTime(fsm.mtime());
 
-        UploadTarget target_folder = fsm.TargetFolder();
+        UploadTarget target_folder = fsm.targetFolder();
         boost::apply_visitor(TargetUrlVisitor(&query_map), target_folder);
 
         /** @todo hjones: Query map overrides */
@@ -513,25 +513,25 @@ struct DoChunkUpload
         assert(http_request);
 
         int begin, end;
-        std::tie(begin, end) = fsm.ChunkRanges()[chunk_id];
+        std::tie(begin, end) = fsm.chunkRanges()[chunk_id];
 
         http_request->SetHeader("Content-Type", "application/octet-stream");
 
         // This is not required according to the documentation, but the server
         // is rejecting the upload without it.
-        http_request->SetHeader("x-filename", fsm.Filename());
+        http_request->SetHeader("x-filename", fsm.filename());
 
         { /* x-filesize */
             std::ostringstream ss;
-            ss << fsm.Filesize();
+            ss << fsm.filesize();
             http_request->SetHeader("x-filesize", ss.str());
         }
 
         /* x-filehash */
-        http_request->SetHeader("x-filehash", fsm.Hash());
+        http_request->SetHeader("x-filehash", fsm.hash());
 
         /** x-unit-hash */
-        http_request->SetHeader("x-unit-hash", fsm.ChunkHashes()[chunk_id]);
+        http_request->SetHeader("x-unit-hash", fsm.chunkHashes()[chunk_id]);
 
         { /* x-unit-id */
             std::ostringstream ss;
@@ -561,7 +561,7 @@ struct DoChunkUpload
         }
 
         int begin, end;
-        std::tie(begin, end) = fsm.ChunkRanges()[chunk_id];
+        std::tie(begin, end) = fsm.chunkRanges()[chunk_id];
 
         file_io->Seek(mf::utils::SeekAnchor::Beginning, begin, &ec);
 

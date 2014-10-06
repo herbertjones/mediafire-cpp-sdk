@@ -17,7 +17,7 @@ namespace detail {
 
 using sclock = std::chrono::steady_clock;
 using Duration = std::chrono::milliseconds;
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+using TimePoint = std::chrono::steady_clock::time_point;
 
 template<typename T>
 Duration AsDuration(const T & t)

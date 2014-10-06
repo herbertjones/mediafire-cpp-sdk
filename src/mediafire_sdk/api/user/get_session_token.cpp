@@ -92,7 +92,7 @@ std::string AsString(const v0::TokenVersion & value)
 }
 }  // namespace
 
-v0::Request::Request(
+mf::api::user::get_session_token::v0::Request::Request(
         const Credentials & credentials
     ) :
     credentials_(credentials),

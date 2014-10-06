@@ -5,6 +5,8 @@
  */
 #include "stepping.hpp"
 
+#include <algorithm>
+
 namespace mf {
 namespace uploader {
 namespace detail {

@@ -265,13 +265,13 @@ void UploadManagerImpl::Tick_StartUploads()
             {
                 // Skip duplicate hashes
                 auto request = *it;
-                if (uploading_hashes_.find(request->Hash()) ==
+                if (uploading_hashes_.find(request->hash()) ==
                     uploading_hashes_.end())
                 {
                     // Remove iterator before process event.
                     it = to_upload_.erase(it);
 
-                    uploading_hashes_.insert(request->Hash());
+                    uploading_hashes_.insert(request->hash());
 
                     enqueued_to_start_uploads_.insert(request.get());
 
@@ -422,7 +422,7 @@ void UploadManagerImpl::HandleComplete(StateMachinePointer request)
     // Remove hashes to allow duplicates
     if ( ! chunk_data.hash.empty() )
     {
-        uploading_hashes_.erase(request->Hash());
+        uploading_hashes_.erase(request->hash());
     }
 
     // Unlock before calling external

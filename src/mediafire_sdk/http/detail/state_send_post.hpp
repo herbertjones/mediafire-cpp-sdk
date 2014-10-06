@@ -40,8 +40,6 @@ public:
 };
 using SendPostDataPointer = std::shared_ptr<SendPostData>;
 
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
-
 template <typename FSM>
 void PostViaInterfaceDelayCallback(
         FSM & fsm,

@@ -132,6 +132,7 @@ class SessionMaintainerRequest :
 {
 public:
     typedef SessionMaintainerRequest<ApiFunctor, IoService> SelfType;
+    typedef typename ApiFunctor::ResponseType ResponseType;
 
     typedef std::shared_ptr< SelfType > Pointer;
     typedef std::weak_ptr< SelfType > WeakPointer;
@@ -188,7 +189,7 @@ public:
                 [this, self]()
                 {
                     // No http request yet.  Must create the response.
-                    typename ApiFunctor::ResponseType response;
+                    ResponseType response;
                     response.error_code = make_error_code(
                         mf::http::http_error::Cancelled );
                     response.error_string = "Cancelled";
@@ -213,7 +214,7 @@ public:
                 [this, self, error_code, error_string]()
                 {
                     // No http request yet.  Must create the response.
-                    typename ApiFunctor::ResponseType response;
+                    ResponseType response;
                     response.error_code = error_code;
                     response.error_string = error_string;
                     completion_callback_(response);

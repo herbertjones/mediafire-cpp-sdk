@@ -52,10 +52,10 @@ struct DoInstantUpload
     {
         namespace instant = mf::api::upload::instant;
 
-        auto request = instant::Request( fsm.Filename(), fsm.Hash(),
-            fsm.Filesize());
+        auto request = instant::Request( fsm.filename(), fsm.hash(),
+            fsm.filesize());
 
-        switch (fsm.OnDuplicateAction())
+        switch (fsm.onDuplicateAction())
         {
             case OnDuplicateAction::Fail:
                 // This is the default, same as "skip" and doesn't need to be
@@ -72,7 +72,7 @@ struct DoInstantUpload
                 break;
         }
 
-        UploadTarget target_folder = fsm.TargetFolder();
+        UploadTarget target_folder = fsm.targetFolder();
         boost::apply_visitor(TargetSetter(&request), target_folder);
 
         auto fsmp = fsm.AsFrontShared();

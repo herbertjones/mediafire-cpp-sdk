@@ -5,7 +5,9 @@ include_directories("..")
 # safe.
 add_definitions(-DBOOST_SPIRIT_THREADSAFE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+IF (CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 IF (APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF (APPLE)
@@ -39,6 +41,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     if(MINGW)
         add_definitions(-DMINGW32_LIMITED_ERRC)
     endif(MINGW)
+
+    if(MSVC)
+        # Static linking against runtime
+        foreach(flag_var
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            if(${flag_var} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+            endif(${flag_var} MATCHES "/MD")
+       endforeach(flag_var)
+    endif()
 endif()
 
 # Boost asio SSL depends on OpenSSL
@@ -73,14 +86,12 @@ find_package(Boost 1.50 REQUIRED
     filesystem
     iostreams
     locale
-    program_options
-    random
     regex
     random
-    serialization
     system
     thread
     unit_test_framework
+    program_options
     ${BOOST_ZLIB_NAME}
     )
 

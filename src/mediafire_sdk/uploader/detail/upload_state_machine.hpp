@@ -521,7 +521,7 @@ public:
         return filepath_;
     }
 
-    std::string Filename() const
+    std::string filename() const
     {
         if (cloud_file_name_)
             return *cloud_file_name_;
@@ -550,25 +550,25 @@ public:
         return session_maintainer_;
     }
 
-    std::string Hash() const
+    std::string hash() const
     {
         assert( ! hash_.empty() );
         return hash_;
     }
 
-    const std::vector<std::pair<uint64_t,uint64_t>> & ChunkRanges() const
+    const std::vector<std::pair<uint64_t,uint64_t>> & chunkRanges() const
     {
         assert( ! chunk_ranges_.empty() );
         return chunk_ranges_;
     }
 
-    const std::vector<std::string> & ChunkHashes() const
+    const std::vector<std::string> & chunkHashes() const
     {
         assert( ! chunk_hashes_.empty() );
         return chunk_hashes_;
     }
 
-    UploadTarget TargetFolder() const
+    UploadTarget targetFolder() const
     {
         if (target_folder_)
             return *target_folder_;
@@ -576,11 +576,11 @@ public:
             return ParentFolderKey{""};
     }
 
-    uint64_t Filesize() const {return filesize_;}
+    uint64_t filesize() const {return filesize_;}
 
-    std::time_t Mtime() const {return mtime_;}
+    std::time_t mtime() const {return mtime_;}
 
-    enum OnDuplicateAction OnDuplicateAction() const {return on_duplicate_action_;}
+    OnDuplicateAction onDuplicateAction() const {return on_duplicate_action_;}
 
     void SetBitmap(const std::vector<uint16_t> & bitmap)
     {
@@ -744,7 +744,7 @@ protected:
 
     std::string action_token_;
 
-    enum OnDuplicateAction on_duplicate_action_;
+    OnDuplicateAction on_duplicate_action_;
 
     StatusCallback status_callback_;
 

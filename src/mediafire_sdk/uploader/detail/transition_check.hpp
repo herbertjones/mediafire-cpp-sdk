@@ -29,7 +29,7 @@ void HandleCheck(
         const mf::api::upload::check::Response & response
     )
 {
-    assert( ! fsm.Filename().empty());
+    assert( ! fsm.filename().empty());
 
     namespace chk = mf::api::upload::check;
 
@@ -40,7 +40,7 @@ void HandleCheck(
     {
         // Filename same and hash same.  We are already done here.
         fsm.ProcessEvent( event::AlreadyUploaded{ *response.duplicate_quickkey,
-            fsm.Filename() });
+            fsm.filename() });
     }
     else if (response.storage_limit_exceeded == chk::StorageLimitExceeded::Yes)
     {
@@ -52,10 +52,10 @@ void HandleCheck(
             } );
     }
     else if (response.file_exists == chk::FilenameInFolder::Yes
-        &&  fsm.OnDuplicateAction() != OnDuplicateAction::Replace
-        && fsm.OnDuplicateAction() != OnDuplicateAction::AutoRename )
+        &&  fsm.onDuplicateAction() != OnDuplicateAction::Replace
+        && fsm.onDuplicateAction() != OnDuplicateAction::AutoRename )
     {
-        switch (fsm.OnDuplicateAction())
+        switch (fsm.onDuplicateAction())
         {
             case OnDuplicateAction::Fail:
                 fsm.ProcessEvent( event::Error{
@@ -71,7 +71,7 @@ void HandleCheck(
     {
         fsm.ProcessEvent( event::InstantUpload{} );
     }
-    else if (fsm.ChunkRanges().size() > 1)
+    else if (fsm.chunkRanges().size() > 1)
     {
         if ( ! response.resumable )
         {
@@ -81,7 +81,7 @@ void HandleCheck(
         else
         {
             const auto & resumable = *response.resumable;
-            if (resumable.number_of_units != fsm.ChunkRanges().size())
+            if (resumable.number_of_units != fsm.chunkRanges().size())
             {
                 assert(!"unit count does not match chunk count");
                 fsm.ProcessEvent( event::NeedsSingleUpload{} );
@@ -133,15 +133,15 @@ struct Check
             TargetState&
         )
     {
-        auto request = ::mf::api::upload::check::Request(fsm.Filename());
-        request.SetHash(fsm.Hash());
-        request.SetFilesize(fsm.Filesize());
+        auto request = ::mf::api::upload::check::Request(fsm.filename());
+        request.SetHash(fsm.hash());
+        request.SetFilesize(fsm.filesize());
 
         // Set target folderpath
-        auto target = fsm.TargetFolder();
+        auto target = fsm.targetFolder();
         boost::apply_visitor(TargetSetter(&request), target);
 
-        if (fsm.ChunkRanges().size() > 1)
+        if (fsm.chunkRanges().size() > 1)
         {
             // If multiple chunks, we should set resumable
             request.SetResumable(::mf::api::upload::check::Resumable::Resumable);
