@@ -14,7 +14,10 @@
 // Avoid excessive debug messages by including headers we don't want debug from
 // before setting OUTPUT_DEBUG
 #include "mediafire_sdk/api/session_maintainer.hpp"
-#define OUTPUT_DEBUG
+
+#ifndef OUTPUT_DEBUG
+#  define OUTPUT_DEBUG
+#endif
 
 #include "mediafire_sdk/api/billing/get_products.hpp"
 #include "mediafire_sdk/api/billing/get_plans.hpp"
@@ -155,6 +158,7 @@ public:
         timeout_timer_(*http_config_->GetWorkIoService()),
         stm_(http_config_, constants::host)
     {
+        stm_.SetLoginCredentials( credentials_ );
     }
 
     ~Fixture()
@@ -171,7 +175,7 @@ public:
     {
         assert(http_config_);
 
-        stm_.SetLoginCredentials( credentials_ );
+        http_config_->GetWorkIoService()->reset();
         http_config_->RunService();
     }
 
@@ -238,11 +242,21 @@ public:
         BOOST_FAIL(str);
     }
 
+    void Fail(const char* errorString)
+    {
+        Fail(std::string(errorString));
+    }
+
     void Success()
     {
         Stop();
 
         std::cout << TestName() << ": Success" << std::endl;
+    }
+
+    void ChangeCredentials(const api::Credentials& credentials)
+    {
+        stm_.SetLoginCredentials(credentials);
     }
 
     void Debug(const boost::property_tree::wptree & pt)
@@ -347,6 +361,118 @@ BOOST_AUTO_TEST_CASE(UserGetInfo)
             else
             {
                 Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SessionMaintainerRestartable)
+{
+    const api::credentials::Email & connection(globals::connection1);
+
+    Call(
+        api::user::get_session_token::Request(globals::connection1),
+        [connection, this](const api::user::get_session_token::Response & response)
+        {
+            Stop();
+
+            if ( response.error_code )
+            {
+                std::ostringstream ss;
+                ss << "User: " << connection.email << std::endl;
+                ss << "Password: " << connection.password << std::endl;
+                ss << "Error: " << response.error_string << std::endl;
+                BOOST_FAIL(ss.str());
+            }
+            else
+            {
+                BOOST_CHECK( ! response.session_token.empty() );
+            }
+        });
+
+    StartWithDefaultTimeout();
+
+    bool actuallyCalled = false;
+    Call(
+        api::user::get_session_token::Request(globals::connection1),
+        [&actuallyCalled, connection, this](const api::user::get_session_token::Response & response)
+        {
+            actuallyCalled = true;
+            Stop();
+
+            if ( response.error_code )
+            {
+                std::ostringstream ss;
+                ss << "User: " << connection.email << std::endl;
+                ss << "Password: " << connection.password << std::endl;
+                ss << "Error: " << response.error_string << std::endl;
+                BOOST_FAIL(ss.str());
+            }
+            else
+            {
+                BOOST_CHECK( ! response.session_token.empty() );
+            }
+        });
+
+    StartWithDefaultTimeout();
+
+    BOOST_CHECK( actuallyCalled );
+}
+
+BOOST_AUTO_TEST_CASE(CredentialsChangeOverSessionMaintainerLive)
+{
+    const api::credentials::Email & connection1(globals::connection1);
+    const api::credentials::Email & connection2(globals::connection2);
+
+    // Start with default credentials
+    Call(
+        api::user::get_info::Request(),
+        [&](const api::user::get_info::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                BOOST_CHECK_EQUAL( response.email, connection1.email );
+            }
+        });
+
+    StartWithDefaultTimeout();
+
+    // Call again with default credentials
+    ChangeCredentials(connection1);
+    Call(
+        api::user::get_info::Request(),
+        [&](const api::user::get_info::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                BOOST_CHECK_EQUAL( response.email, connection1.email );
+            }
+        });
+
+    StartWithDefaultTimeout();
+
+    // Call with new credentials
+    ChangeCredentials(connection2);
+    Call(
+        api::user::get_info::Request(),
+        [&](const api::user::get_info::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                BOOST_CHECK_EQUAL( response.email, connection2.email );
             }
         });
 
