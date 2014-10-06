@@ -5,9 +5,9 @@ include_directories("..")
 # safe.
 add_definitions(-DBOOST_SPIRIT_THREADSAFE)
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
+IF (NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+ENDIF (NOT MSVC)
 IF (APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF (APPLE)
