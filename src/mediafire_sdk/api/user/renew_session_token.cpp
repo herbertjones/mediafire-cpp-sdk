@@ -54,9 +54,9 @@ void v0::Request::HandleContent(
 #   ifdef OUTPUT_DEBUG // Debug code
     std::cout << "Got content:\n" << content << std::endl;
 
-    std::ostringstream ss;
+    std::wostringstream ss;
     boost::property_tree::write_json( ss, response.pt );
-    std::cout << "Got JSON:\n" << ss.str() << std::endl;
+    std::cout << "Got JSON:\n" << mf::utils::wide_to_bytes(ss.str()) << std::endl;
 #   endif
 
     if ( ! response.error_code )
