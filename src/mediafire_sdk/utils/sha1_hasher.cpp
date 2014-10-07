@@ -17,8 +17,10 @@ mf::utils::Sha1Hasher::Sha1Hasher()
 
 // SHA1_* functions are deprecated on OS X 10.7+. It works for now but I don't
 // want to be flooded with warnings, so I just left one in. -ZCM
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 void mf::utils::Sha1Hasher::Update(mf::FileSize size, void const * const bytes)
 {
@@ -59,4 +61,6 @@ std::string mf::utils::HashSha1(std::string str)
     return hasher.Digest();
 }
 
-#pragma clang diagnostic pop
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif

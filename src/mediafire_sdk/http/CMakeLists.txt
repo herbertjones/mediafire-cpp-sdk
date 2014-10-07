@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project (mf_http_sdk CXX)
 
+# Uncomment for debug output
+#add_definitions(-DOUTPUT_DEBUG)
+
 add_subdirectory(error)
 
 set(HTTP_LIBRARY_SOURCES

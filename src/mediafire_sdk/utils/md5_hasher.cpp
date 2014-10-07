@@ -17,8 +17,10 @@ mf::utils::Md5Hasher::Md5Hasher()
 
 // MD5_* functions are deprecated on OS X 10.7+. It works for now but I don't
 // want to be flooded with warnings, so I just left one in. -ZCM
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 void mf::utils::Md5Hasher::Update(mf::FileSize size, void const * const bytes)
 {
@@ -59,4 +61,6 @@ std::string mf::utils::HashMd5(std::string str)
     return hasher.Digest();
 }
 
-#pragma clang diagnostic pop
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif

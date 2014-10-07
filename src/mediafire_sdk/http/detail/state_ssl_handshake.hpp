@@ -31,9 +31,8 @@ bool IsSelfSignedError(int error)
 }
 
 #define CASE(X) case X: error_msg=#X; break;
-void fprint_openssl_error(FILE* file, int error)
+std::string openssl_error_string(int error)
 {
-    fprintf(file, "Error: ");
     std::string error_msg;
     switch (error)
     {
@@ -64,7 +63,7 @@ void fprint_openssl_error(FILE* file, int error)
         default:
             error_msg = "Unknown error: " + mf::utils::to_string(error);
     }
-    fprintf(file, "%s\n", error_msg.c_str());
+    return error_msg;
 }
 #undef CASE
 
@@ -73,12 +72,14 @@ class DebugCertificateVerifier
 public:
     DebugCertificateVerifier(
             std::string hostname,
-            asio::ssl::verify_mode verify_mode
+            asio::ssl::verify_mode verify_mode,
+            std::shared_ptr<std::string> error_output
         ) :
         hostname_(std::move(hostname)),
-        verify_mode_(verify_mode)
+        verify_mode_(verify_mode),
+        error_output_(std::move(error_output))
     {
-        // Empty
+        assert( error_output_ != nullptr );
     }
 
     bool operator()(bool preVerified, boost::asio::ssl::verify_context& ctx)
@@ -87,7 +88,7 @@ public:
 
 #ifdef OUTPUT_DEBUG
         X509* cert = x509_ctx->cert;
-        fprintf(stdout, "Validating Certificate issued by:\n");
+        fprintf(stdout, "Validating certificate issued by:\n");
         X509_NAME_print_ex_fp(
                 stdout,
                 cert->cert_info->issuer,
@@ -108,6 +109,11 @@ public:
         bool returnValue =
             boost::asio::ssl::rfc2818_verification(hostname_)(preVerified, ctx);
 
+        int current_error = X509_STORE_CTX_get_error(x509_ctx);
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
         if ( verify_mode_ == asio::ssl::verify_none
             && IsSelfSignedError(X509_STORE_CTX_get_error(x509_ctx)) )
         {
@@ -115,12 +121,28 @@ public:
             // so we should not lose other errors here by returning true.
             returnValue = true;
         }
-        else if ( X509_STORE_CTX_get_error(x509_ctx) != 0 )
+        else if ( current_error != 0 )
         {
-            fprintf(stdout, "Verification failed!\n");
             X509* failed_cert = X509_STORE_CTX_get_current_cert(x509_ctx);
+            *error_output_ += openssl_error_string(current_error);
+#ifdef OUTPUT_DEBUG
+            fprintf(stdout, "Error: %s\n", openssl_error_string(current_error).c_str());
+#endif
             if ( failed_cert != nullptr )
             {
+                std::unique_ptr<BIO,decltype(&BIO_free)>
+                    mem_buf(BIO_new(BIO_s_mem()),&BIO_free);
+                X509_NAME_print_ex(
+                        mem_buf.get(),
+                        failed_cert->cert_info->subject,
+                        0,
+                        XN_FLAG_ONELINE
+                    );
+                BUF_MEM* mem_buf_data;
+                BIO_get_mem_ptr(mem_buf.get(), &mem_buf_data);
+                std::string mem_string(mem_buf_data->data, mem_buf_data->length);
+                *error_output_ += "At certificate: " + mem_string;
+#ifdef OUTPUT_DEBUG
                 fprintf(stdout, "At certificate:\n");
                 X509_NAME_print_ex_fp(
                         stdout,
@@ -129,16 +151,21 @@ public:
                         XN_FLAG_RFC2253
                     );
                 fprintf(stdout, "\n");
+#endif
             }
-            fprint_openssl_error(stdout, X509_STORE_CTX_get_error(x509_ctx));
         }
 
+#ifdef OUTPUT_DEBUG
+        if ( ! returnValue )
+            fprintf(stdout, "Certification validation failed!\n");
+#endif
         return returnValue;
     }
 
 private:
     std::string hostname_;
     asio::ssl::verify_mode verify_mode_;
+    std::shared_ptr<std::string> error_output_;
 };
 
 }  // anonymous namespace
@@ -159,7 +186,8 @@ void HandleHandshake(
         FSM  & fsm,
         SslConnectDataPointer state_data,
         RacePreventer race_preventer,
-        const boost::system::error_code& err
+        const boost::system::error_code& err,
+        const std::shared_ptr<std::string> verify_error_string
     )
 {
     using mf::http::http_error;
@@ -182,6 +210,8 @@ void HandleHandshake(
         std::stringstream ss;
         ss << "Failure in SSL handshake.";
         ss << " Error: " << err.message();
+        if ( ! verify_error_string->empty() )
+            ss << " Verify error: " << verify_error_string;
         fsm.ProcessEvent(
             ErrorEvent{
                 make_error_code(
@@ -213,8 +243,14 @@ public:
         ssl_socket->set_verify_mode(fsm.get_ssl_verify_mode());
 
         // Properly walk the certificate chain.
+        std::shared_ptr<std::string> verify_error_string =
+            std::make_shared<std::string>();
         ssl_socket->set_verify_callback(
-                DebugCertificateVerifier(url->host(), fsm.get_ssl_verify_mode())
+                DebugCertificateVerifier(
+                    url->host(),
+                    fsm.get_ssl_verify_mode(),
+                    verify_error_string
+                )
             );
 
         // Must prime timeout for async actions.
@@ -224,11 +260,12 @@ public:
 
         ssl_socket->async_handshake(
             boost::asio::ssl::stream_base::client,
-            [fsmp, state_data, race_preventer](
+            [fsmp, state_data, race_preventer, verify_error_string](
                     const boost::system::error_code& ec
                 )
             {
-                HandleHandshake(*fsmp, state_data, race_preventer, ec);
+                HandleHandshake(*fsmp, state_data, race_preventer, ec,
+                    verify_error_string);
             });
 
     }
@@ -247,3 +284,7 @@ private:
 }  // namespace detail
 }  // namespace http
 }  // namespace mf
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif

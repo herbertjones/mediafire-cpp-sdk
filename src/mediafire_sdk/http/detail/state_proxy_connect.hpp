@@ -59,8 +59,6 @@ void HandleProxyHeaderRead(
 
     fsm.ClearAsyncTimeout();  // Must stop timeout timer.
 
-    const bool is_ssl = fsm.get_is_ssl();
-
     if (fsm.get_bw_analyser())
     {
         fsm.get_bw_analyser()->RecordIncomingBytes( bytes_transferred,
