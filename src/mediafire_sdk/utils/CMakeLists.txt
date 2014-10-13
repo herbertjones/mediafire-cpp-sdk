@@ -29,6 +29,7 @@ set(UTILS_HEADERS
 
     base64.hpp
     fileio.hpp
+    forward_declarations/asio.hpp
     io_service_connection-inl.hpp
     io_service_connection.hpp
     io_service_connection_helper.hpp
@@ -45,8 +46,13 @@ set(UTILS_HEADERS
     url_encode.hpp
     variant_comparison.hpp
 )
+foreach( file ${UTILS_HEADERS} )
+    get_filename_component( dir ${file} DIRECTORY )
+    install(FILES ${file} DESTINATION include/mediafire_sdk/utils/${dir} )
+endforeach()
 
 add_library(mf_sdk_utils STATIC
     ${UTILS_HEADERS}
     ${UTILS_SOURCES}
 )
+install(TARGETS mf_sdk_utils DESTINATION lib)

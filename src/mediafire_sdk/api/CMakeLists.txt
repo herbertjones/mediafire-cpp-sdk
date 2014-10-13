@@ -57,6 +57,10 @@ set(API_HEADERS
     connection_state.hpp
     credentials.hpp
     error.hpp
+    error/codes/api_code.hpp
+    error/codes/http_status.hpp
+    error/codes/result_code.hpp
+    error/conditions/generic.hpp
     ptree_helpers.hpp
     requester.hpp
     response_base.hpp
@@ -64,8 +68,33 @@ set(API_HEADERS
     session_state.hpp
     session_token_api_base.hpp
     tokenless_api_base.hpp
+    types.hpp
     type_helpers.hpp
 )
+set(GENERATED_API_DIRECTORIES
+    billing
+    contact
+    device
+    file
+    folder
+    notifications
+    system
+    templates
+    upload
+    user
+)
+foreach( dir ${GENERATED_API_DIRECTORIES} )
+    file(GLOB_RECURSE contained_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${dir}/*.hpp)
+    set(GENERATED_API_HEADERS ${GENERATED_API_HEADERS} ${contained_files})
+endforeach()
+set(FULL_API_HEADERS
+    ${API_HEADERS}
+    ${GENERATED_API_HEADERS}
+)
+foreach( file ${FULL_API_HEADERS} )
+    get_filename_component( dir ${file} DIRECTORY )
+    install(FILES ${file} DESTINATION include/mediafire_sdk/api/${dir} )
+endforeach()
 
 include(GeneratedList.txt)
 
@@ -75,6 +104,7 @@ add_library(mf_api_sdk STATIC
     ${API_TEMPLATE_GENERATED_SOURCES}
     ${API_TEMPLATE_GENERATED_HEADERS}
 )
+install(TARGETS mf_api_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_api_sdk
     ${MFD_API_APP_CONSTANTS_LIBRARY}

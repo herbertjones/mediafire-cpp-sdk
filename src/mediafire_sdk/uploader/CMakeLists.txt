@@ -43,6 +43,10 @@ set(MF_UPLOADER_HEADERS
     upload_request.hpp
     upload_status.hpp
 )
+foreach ( file ${MF_UPLOADER_HEADERS} )
+    get_filename_component( dir ${file} DIRECTORY )
+    install( FILES ${file} DESTINATION include/mediafire_sdk/uploader/${dir} )
+endforeach()
 
 add_definitions(
     -DBOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
@@ -55,6 +59,7 @@ add_library(mf_uploader_sdk STATIC
     ${MF_UPLOADER_HEADERS}
     ${MF_UPLOADER_SOURCES}
 )
+install(TARGETS mf_uploader_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_uploader_sdk
     ${MFD_API_APP_CONSTANTS_LIBRARY}
