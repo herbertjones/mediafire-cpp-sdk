@@ -111,6 +111,8 @@ private:
         size_(size),
         buffer_(new uint8_t[size_+1])
     {
+        assert( size < std::numeric_limits<std::ptrdiff_t>::max() - 1);
+        
         // Buffer has canary
         buffer_[size_] = 0;
     }
