@@ -110,9 +110,7 @@ A few includes:
 
 ```cpp
 #include "boost/asio.hpp"
-#include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/ssl/impl/src.hpp"  // Define once in program
 
 #include "mediafire_sdk/api/session_maintainer.hpp"
 #include "mediafire_sdk/api/user/get_info.hpp"
@@ -163,9 +161,7 @@ Includes:
 
 ```cpp
 #include "boost/asio.hpp"
-#include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/ssl/impl/src.hpp"  // Define once in program
 #include "boost/variant/get.hpp"
 
 #include "mediafire_sdk/api/session_maintainer.hpp"
@@ -256,9 +252,7 @@ A few includes:
 
 ```cpp
 #include "boost/asio.hpp"
-#include "boost/asio/impl/src.hpp"  // Define once in program
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/ssl/impl/src.hpp"  // Define once in program
 
 #include "mediafire_sdk/http/http_request.hpp"
 ```
