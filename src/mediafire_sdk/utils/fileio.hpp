@@ -88,6 +88,8 @@ public:
      * position. This function will attempt to read buffer_size bytes, but may
      * read less if an error occurs or the end-of-file is reached.
      *
+     * @warning You can not read more than 4GB at a time on Windows.
+     *
      * @param[in] buffer A pointer to the buffer where read file content will
      *                   be placed. Must be at least buffer_size bytes long.
      * @param[in] buffer_size The number of bytes to attempt to read.
@@ -106,6 +108,8 @@ public:
      * Reads a contiguous block from the file beginning at the current stream
      * position. The function will attempt to read either desired_bytes or until
      * the end of the stream.
+     *
+     * @warning You can not read more than 4GB at a time on Windows.
      *
      * @param[in] desired_bytes The maximum number of bytes that will be read
      *                          from the stream. Set to skDefaultReadSize for
@@ -135,6 +139,8 @@ public:
     /**
      * Writes the content of a buffer to the file at the current stream
      * position. May write less than desired if an error occurs.
+     *
+     * @warning You can not write more than 4GB at a time on Windows.
      *
      * @param[in] buffer The buffer holding the content to write to the file.
      *                   Must be a least buffer_size bytes long.
