@@ -12,7 +12,7 @@ set(API_ERROR_SOURCES
     conditions/generic.cpp
 )
 
-add_library(api_error STATIC
+add_library(api_error OBJECT
     ${API_ERROR_HEADERS}
     ${API_ERROR_SOURCES}
 )

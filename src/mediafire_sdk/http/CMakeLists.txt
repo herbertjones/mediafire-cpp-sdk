@@ -39,7 +39,6 @@ set(HTTP_LIBRARY_HEADERS
     bandwidth_analyser_interface.hpp
     buffer_interface.hpp
     error.hpp
-    error/error_impl.hpp
     headers.hpp
     http_config.hpp
     http_request.hpp
@@ -48,7 +47,7 @@ set(HTTP_LIBRARY_HEADERS
     shared_buffer.hpp
     url.hpp
     )
-foreach( file ${HTTP_LIBRARY_HEADERS} )
+foreach( file ${HTTP_LIBRARY_HEADERS} ${HTTP_LIB_ERROR_HEADERS} )
     get_filename_component( dir ${file} DIRECTORY )
     install(FILES ${file} DESTINATION include/mediafire_sdk/http/${dir} )
 endforeach()
@@ -63,13 +62,13 @@ add_definitions(
 add_library(mf_http_sdk STATIC
     ${HTTP_LIBRARY_HEADERS}
     ${HTTP_LIBRARY_SOURCES}
+    $<TARGET_OBJECTS:http_error>
     )
 install(TARGETS mf_http_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_http_sdk
     ${WINSOCK_LIBRARY}
     ${MSWSOCK_LIBRARY}
-    http_error
     mf_sdk_utils
     ${Boost_LIBRARIES}
     ${OPENSSL_LIBRARIES}

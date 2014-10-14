@@ -57,10 +57,6 @@ set(API_HEADERS
     connection_state.hpp
     credentials.hpp
     error.hpp
-    error/codes/api_code.hpp
-    error/codes/http_status.hpp
-    error/codes/result_code.hpp
-    error/conditions/generic.hpp
     ptree_helpers.hpp
     requester.hpp
     response_base.hpp
@@ -90,6 +86,7 @@ endforeach()
 set(FULL_API_HEADERS
     ${API_HEADERS}
     ${GENERATED_API_HEADERS}
+    ${API_ERROR_HEADERS}
 )
 foreach( file ${FULL_API_HEADERS} )
     get_filename_component( dir ${file} DIRECTORY )
@@ -103,12 +100,12 @@ add_library(mf_api_sdk STATIC
     ${API_SOURCES}
     ${API_TEMPLATE_GENERATED_SOURCES}
     ${API_TEMPLATE_GENERATED_HEADERS}
+    $<TARGET_OBJECTS:api_error>
 )
 install(TARGETS mf_api_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_api_sdk
     ${MFD_API_APP_CONSTANTS_LIBRARY}
-    api_error
     mf_sdk_utils
     mf_http_sdk
 )

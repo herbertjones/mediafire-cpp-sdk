@@ -45,7 +45,6 @@ add_library(session_token_server STATIC
 
 TARGET_LINK_LIBRARIES(session_token_server
     ${MFD_API_APP_CONSTANTS_LIBRARY}
-    api_error
     mf_sdk_utils
     ${OPENSSL_LIBRARIES}
     ${PTHREAD_LIBRARY}

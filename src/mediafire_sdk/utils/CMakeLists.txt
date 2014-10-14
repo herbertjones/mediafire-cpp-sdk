@@ -25,7 +25,6 @@ set(UTILS_SOURCES
     ${OS_DIR}/thread_id_impl.cpp
 )
 set(UTILS_HEADERS
-    error/codes/fileio.hpp
 
     base64.hpp
     fileio.hpp

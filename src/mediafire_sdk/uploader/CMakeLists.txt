@@ -63,7 +63,6 @@ install(TARGETS mf_uploader_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_uploader_sdk
     ${MFD_API_APP_CONSTANTS_LIBRARY}
-    api_error
     mf_sdk_utils
     mf_http_sdk
     mf_api_sdk
