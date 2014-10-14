@@ -43,6 +43,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     endif(MINGW)
 
     if(MSVC)
+        # Asio uses a lot of deprecated functions internall
+        add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+        
         # Static linking against runtime
         option(USE_MSVC_STATIC_RUNTIME "Use MSVC static runtime switch /MT" OFF)
         if( USE_MSVC_STATIC_RUNTIME )
