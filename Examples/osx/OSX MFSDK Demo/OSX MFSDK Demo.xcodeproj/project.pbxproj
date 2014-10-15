@@ -1,0 +1,446 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		63257F8919EBA248003CD002 /* MFMainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 63257F8719EBA248003CD002 /* MFMainViewController.mm */; };
+		63257F8A19EBA248003CD002 /* MFMainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 63257F8819EBA248003CD002 /* MFMainViewController.xib */; };
+		6344F05019EB8B340093B7D6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6344F04F19EB8B340093B7D6 /* Cocoa.framework */; };
+		6344F05A19EB8B340093B7D6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6344F05819EB8B340093B7D6 /* InfoPlist.strings */; };
+		6344F05C19EB8B340093B7D6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6344F05B19EB8B340093B7D6 /* main.m */; };
+		6344F06019EB8B340093B7D6 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 6344F05E19EB8B340093B7D6 /* Credits.rtf */; };
+		6344F06319EB8B340093B7D6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6344F06219EB8B340093B7D6 /* AppDelegate.m */; };
+		6344F06619EB8B340093B7D6 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6344F06419EB8B340093B7D6 /* MainMenu.xib */; };
+		6344F06819EB8B340093B7D6 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6344F06719EB8B340093B7D6 /* Images.xcassets */; };
+		636A64CA19EBD6240009FDAF /* MFApiBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 636A64C819EBD6240009FDAF /* MFApiBridge.mm */; };
+		63FEB9FA19EC9271008C6ACF /* MfApiBridgeImpl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63FEB9F819EC9271008C6ACF /* MfApiBridgeImpl.cpp */; };
+		63FEB9FE19EC9B74008C6ACF /* libssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FEB9FB19EC99F3008C6ACF /* libssl.dylib */; };
+		63FEBA0019EC9B8D008C6ACF /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FEB9FF19EC9B8D008C6ACF /* libcrypto.dylib */; };
+		63FEBA0219EC9BA3008C6ACF /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FEBA0119EC9BA3008C6ACF /* libz.dylib */; };
+		63FEBA8819EDE00D008C6ACF /* MfApiBridgeHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63FEBA8619EDE00D008C6ACF /* MfApiBridgeHelper.cpp */; };
+		63FEBA8C19EDF692008C6ACF /* MfApiBridgeTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63FEBA8A19EDF692008C6ACF /* MfApiBridgeTypes.cpp */; };
+		63FEBAB919EF16CC008C6ACF /* Readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 63FEBAB819EF16CC008C6ACF /* Readme.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		63257F8619EBA248003CD002 /* MFMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MFMainViewController.h; sourceTree = "<group>"; };
+		63257F8719EBA248003CD002 /* MFMainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MFMainViewController.mm; sourceTree = "<group>"; };
+		63257F8819EBA248003CD002 /* MFMainViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MFMainViewController.xib; sourceTree = "<group>"; };
+		6344F04C19EB8B340093B7D6 /* OSX MFSDK Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OSX MFSDK Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6344F04F19EB8B340093B7D6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		6344F05219EB8B340093B7D6 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		6344F05319EB8B340093B7D6 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		6344F05419EB8B340093B7D6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		6344F05719EB8B340093B7D6 /* OSX MFSDK Demo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "OSX MFSDK Demo-Info.plist"; sourceTree = "<group>"; };
+		6344F05919EB8B340093B7D6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6344F05B19EB8B340093B7D6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6344F05D19EB8B340093B7D6 /* OSX MFSDK Demo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OSX MFSDK Demo-Prefix.pch"; sourceTree = "<group>"; };
+		6344F05F19EB8B340093B7D6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		6344F06119EB8B340093B7D6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		6344F06219EB8B340093B7D6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		6344F06519EB8B340093B7D6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		6344F06719EB8B340093B7D6 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		6344F06E19EB8B350093B7D6 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		636A64C819EBD6240009FDAF /* MFApiBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MFApiBridge.mm; sourceTree = "<group>"; };
+		636A64C919EBD6240009FDAF /* MFApiBridge.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MFApiBridge.hpp; sourceTree = "<group>"; };
+		63FEB9F819EC9271008C6ACF /* MfApiBridgeImpl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MfApiBridgeImpl.cpp; sourceTree = "<group>"; };
+		63FEB9F919EC9271008C6ACF /* MfApiBridgeImpl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MfApiBridgeImpl.hpp; sourceTree = "<group>"; };
+		63FEB9FB19EC99F3008C6ACF /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = usr/lib/libssl.dylib; sourceTree = SDKROOT; };
+		63FEB9FF19EC9B8D008C6ACF /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
+		63FEBA0119EC9BA3008C6ACF /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		63FEBA8619EDE00D008C6ACF /* MfApiBridgeHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MfApiBridgeHelper.cpp; sourceTree = "<group>"; };
+		63FEBA8719EDE00D008C6ACF /* MfApiBridgeHelper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MfApiBridgeHelper.hpp; sourceTree = "<group>"; };
+		63FEBA8A19EDF692008C6ACF /* MfApiBridgeTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MfApiBridgeTypes.cpp; sourceTree = "<group>"; };
+		63FEBA8B19EDF692008C6ACF /* MfApiBridgeTypes.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MfApiBridgeTypes.hpp; sourceTree = "<group>"; };
+		63FEBAB819EF16CC008C6ACF /* Readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Readme.txt; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6344F04919EB8B340093B7D6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63FEBA0219EC9BA3008C6ACF /* libz.dylib in Frameworks */,
+				63FEBA0019EC9B8D008C6ACF /* libcrypto.dylib in Frameworks */,
+				63FEB9FE19EC9B74008C6ACF /* libssl.dylib in Frameworks */,
+				6344F05019EB8B340093B7D6 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6344F04319EB8B340093B7D6 = {
+			isa = PBXGroup;
+			children = (
+				63FEBAB819EF16CC008C6ACF /* Readme.txt */,
+				6344F05519EB8B340093B7D6 /* OSX MFSDK Demo */,
+				6344F04E19EB8B340093B7D6 /* Frameworks */,
+				6344F04D19EB8B340093B7D6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6344F04D19EB8B340093B7D6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6344F04C19EB8B340093B7D6 /* OSX MFSDK Demo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6344F04E19EB8B340093B7D6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				63FEBA0119EC9BA3008C6ACF /* libz.dylib */,
+				63FEB9FF19EC9B8D008C6ACF /* libcrypto.dylib */,
+				63FEB9FB19EC99F3008C6ACF /* libssl.dylib */,
+				6344F04F19EB8B340093B7D6 /* Cocoa.framework */,
+				6344F06E19EB8B350093B7D6 /* XCTest.framework */,
+				6344F05119EB8B340093B7D6 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6344F05119EB8B340093B7D6 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6344F05219EB8B340093B7D6 /* AppKit.framework */,
+				6344F05319EB8B340093B7D6 /* CoreData.framework */,
+				6344F05419EB8B340093B7D6 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		6344F05519EB8B340093B7D6 /* OSX MFSDK Demo */ = {
+			isa = PBXGroup;
+			children = (
+				63257F8619EBA248003CD002 /* MFMainViewController.h */,
+				63257F8719EBA248003CD002 /* MFMainViewController.mm */,
+				63257F8819EBA248003CD002 /* MFMainViewController.xib */,
+				6344F06119EB8B340093B7D6 /* AppDelegate.h */,
+				6344F06219EB8B340093B7D6 /* AppDelegate.m */,
+				6344F06419EB8B340093B7D6 /* MainMenu.xib */,
+				6344F06719EB8B340093B7D6 /* Images.xcassets */,
+				6344F05619EB8B340093B7D6 /* Supporting Files */,
+				636A64C819EBD6240009FDAF /* MFApiBridge.mm */,
+				636A64C919EBD6240009FDAF /* MFApiBridge.hpp */,
+				63FEB9F819EC9271008C6ACF /* MfApiBridgeImpl.cpp */,
+				63FEB9F919EC9271008C6ACF /* MfApiBridgeImpl.hpp */,
+				63FEBA8619EDE00D008C6ACF /* MfApiBridgeHelper.cpp */,
+				63FEBA8719EDE00D008C6ACF /* MfApiBridgeHelper.hpp */,
+				63FEBA8A19EDF692008C6ACF /* MfApiBridgeTypes.cpp */,
+				63FEBA8B19EDF692008C6ACF /* MfApiBridgeTypes.hpp */,
+			);
+			path = "OSX MFSDK Demo";
+			sourceTree = "<group>";
+		};
+		6344F05619EB8B340093B7D6 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				6344F05719EB8B340093B7D6 /* OSX MFSDK Demo-Info.plist */,
+				6344F05819EB8B340093B7D6 /* InfoPlist.strings */,
+				6344F05B19EB8B340093B7D6 /* main.m */,
+				6344F05D19EB8B340093B7D6 /* OSX MFSDK Demo-Prefix.pch */,
+				6344F05E19EB8B340093B7D6 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6344F04B19EB8B340093B7D6 /* OSX MFSDK Demo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6344F07D19EB8B350093B7D6 /* Build configuration list for PBXNativeTarget "OSX MFSDK Demo" */;
+			buildPhases = (
+				6344F04819EB8B340093B7D6 /* Sources */,
+				6344F04919EB8B340093B7D6 /* Frameworks */,
+				6344F04A19EB8B340093B7D6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "OSX MFSDK Demo";
+			productName = "OSX MFSDK Demo";
+			productReference = 6344F04C19EB8B340093B7D6 /* OSX MFSDK Demo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6344F04419EB8B340093B7D6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = MediaFire;
+			};
+			buildConfigurationList = 6344F04719EB8B340093B7D6 /* Build configuration list for PBXProject "OSX MFSDK Demo" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6344F04319EB8B340093B7D6;
+			productRefGroup = 6344F04D19EB8B340093B7D6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6344F04B19EB8B340093B7D6 /* OSX MFSDK Demo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6344F04A19EB8B340093B7D6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63FEBAB919EF16CC008C6ACF /* Readme.txt in Resources */,
+				6344F05A19EB8B340093B7D6 /* InfoPlist.strings in Resources */,
+				63257F8A19EBA248003CD002 /* MFMainViewController.xib in Resources */,
+				6344F06819EB8B340093B7D6 /* Images.xcassets in Resources */,
+				6344F06019EB8B340093B7D6 /* Credits.rtf in Resources */,
+				6344F06619EB8B340093B7D6 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6344F04819EB8B340093B7D6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6344F06319EB8B340093B7D6 /* AppDelegate.m in Sources */,
+				63257F8919EBA248003CD002 /* MFMainViewController.mm in Sources */,
+				63FEB9FA19EC9271008C6ACF /* MfApiBridgeImpl.cpp in Sources */,
+				6344F05C19EB8B340093B7D6 /* main.m in Sources */,
+				63FEBA8C19EDF692008C6ACF /* MfApiBridgeTypes.cpp in Sources */,
+				63FEBA8819EDE00D008C6ACF /* MfApiBridgeHelper.cpp in Sources */,
+				636A64CA19EBD6240009FDAF /* MFApiBridge.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		6344F05819EB8B340093B7D6 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6344F05919EB8B340093B7D6 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		6344F05E19EB8B340093B7D6 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6344F05F19EB8B340093B7D6 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		6344F06419EB8B340093B7D6 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6344F06519EB8B340093B7D6 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6344F07B19EB8B350093B7D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BOOST_INSTALL_PREFIX = /usr/local;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_MODULES_AUTOLINK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"${MFSDK_INSTALL_PREFIX}/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"${MFSDK_INSTALL_PREFIX}/lib",
+					"${BOOST_INSTALL_PREFIX}/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MFSDK_INSTALL_PREFIX = /usr/local;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-isystem",
+					"${BOOST_INSTALL_PREFIX}/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lmf_uploader_sdk",
+					"-lmf_sdk_utils",
+					"-lmf_http_sdk",
+					"-lmf_api_sdk",
+					"-lboost_system",
+					"-lboost_program_options",
+					"-lboost_thread",
+					"-lboost_regex",
+					"-lboost_locale",
+					"-lboost_date_time",
+					"-lboost_iostreams",
+					"-lboost_filesystem",
+					"-lboost_chrono",
+				);
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6344F07C19EB8B350093B7D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BOOST_INSTALL_PREFIX = /usr/local;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_MODULES_AUTOLINK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"${MFSDK_INSTALL_PREFIX}/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"${MFSDK_INSTALL_PREFIX}/lib",
+					"${BOOST_INSTALL_PREFIX}/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MFSDK_INSTALL_PREFIX = /usr/local;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-isystem",
+					"${BOOST_INSTALL_PREFIX}/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lmf_uploader_sdk",
+					"-lmf_sdk_utils",
+					"-lmf_http_sdk",
+					"-lmf_api_sdk",
+					"-lboost_system",
+					"-lboost_program_options",
+					"-lboost_thread",
+					"-lboost_regex",
+					"-lboost_locale",
+					"-lboost_date_time",
+					"-lboost_iostreams",
+					"-lboost_filesystem",
+					"-lboost_chrono",
+				);
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		6344F07E19EB8B350093B7D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OSX MFSDK Demo/OSX MFSDK Demo-Prefix.pch";
+				INFOPLIST_FILE = "OSX MFSDK Demo/OSX MFSDK Demo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		6344F07F19EB8B350093B7D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OSX MFSDK Demo/OSX MFSDK Demo-Prefix.pch";
+				INFOPLIST_FILE = "OSX MFSDK Demo/OSX MFSDK Demo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6344F04719EB8B340093B7D6 /* Build configuration list for PBXProject "OSX MFSDK Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6344F07B19EB8B350093B7D6 /* Debug */,
+				6344F07C19EB8B350093B7D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6344F07D19EB8B350093B7D6 /* Build configuration list for PBXNativeTarget "OSX MFSDK Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6344F07E19EB8B350093B7D6 /* Debug */,
+				6344F07F19EB8B350093B7D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6344F04419EB8B340093B7D6 /* Project object */;
+}
