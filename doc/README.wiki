@@ -23,8 +23,8 @@ Then browse the documentation at <tt>html/index.html</tt>.
 
 == Getting Started ==
 
-* [[C++ SDK Requirements|Requirements]]
-* [[C++ SDK Project Integration|Project Integration]]
-* [[C++ SDK Basic Usage|Basic Usage]]
-* [[C++ SDK API Templates|API Templates]]
+* [[C++ SDK Requirements.wiki|Requirements]]
+* [[C++ SDK Project Integration.wiki|Project Integration]]
+* [[C++ SDK Basic Usage.wiki|Basic Usage]]
+* [[C++ SDK API Templates.wiki|API Templates]]
 
