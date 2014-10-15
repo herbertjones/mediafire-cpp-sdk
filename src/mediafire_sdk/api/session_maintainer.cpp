@@ -374,7 +374,7 @@ void SessionMaintainer::HandleSessionTokenResponse(
         );
 
         // If username or password is incorrect, stop.
-        if (response.error_code == result_code::CredentialsInvalid)
+        if ( IsInvalidCredentialsError(response.error_code) )
         {
             if (IsInitialized(session_state) || IsRunning(session_state))
             {

@@ -23,10 +23,12 @@ namespace api {
  * /response/error field. */
 enum class result_code
 {
-    SessionTokenInvalid      = 105,
-    CredentialsInvalid       = 107,
-    SignatureInvalid         = 127,
-    AsyncOperationInProgress = 208,
+    SessionTokenInvalid           = 105,
+    CredentialsInvalid            = 107,
+    SignatureInvalid              = 127,
+    ParametersInvalid             = 129,
+    AsyncOperationInProgress      = 208,
+    FacebookAuthenticationFailure = 220,
 };
 
 /**

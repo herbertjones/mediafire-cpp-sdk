@@ -29,5 +29,15 @@ namespace api {
  */
 bool IsInvalidSessionTokenError(std::error_code error);
 
+/**
+ * @brief Returns whether an error returned from the API should invalidate the
+ *        credentials used to acquire session tokens.
+ *
+ * This is used to determine when to force a user to provide new credentials.
+ *
+ * @param[in] error The error to check.
+ */
+bool IsInvalidCredentialsError(std::error_code error);
+
 }  // End namespace api
 }  // namespace mf
