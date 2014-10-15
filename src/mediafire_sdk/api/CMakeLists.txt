@@ -6,15 +6,15 @@ cmake_minimum_required(VERSION 2.8)
 add_subdirectory(error)
 
 # For convenience
-set(DMF_API_APP_ID "" CACHE STRING "The app ID assigned to you by MediaFire. Can be left blank if MDF_API_OVERRIDE_APP_ID is defined in the build environment.")
-if ( NOT "${MDF_API_APP_ID}" STREQUAL "" )
-    add_definitions(-DMDF_API_APP_ID="${MDF_API_APP_ID}")
-endif( NOT "${MDF_API_APP_ID}" STREQUAL "" )
+set(DMF_API_APP_ID "" CACHE STRING "The app ID assigned to you by MediaFire. Can be left blank if MFAPI_OVERRIDE_APP_ID is defined in the build environment.")
+if ( NOT "${MFAPI_APP_ID}" STREQUAL "" )
+    add_definitions(-DMFAPI_APP_ID="${MFAPI_APP_ID}")
+endif( NOT "${MFAPI_APP_ID}" STREQUAL "" )
 
-set(DMF_API_APP_ID "" CACHE STRING "The app key assigned to you by MediaFire. Can be left blank if MDF_API_OVERRIDE_APP_KEY is defined in the build environment.")
-if ( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
-    add_definitions(-DMDF_API_APP_KEY="${MDF_API_APP_KEY}")
-endif( NOT "${MDF_API_APP_KEY}" STREQUAL "" )
+set(DMF_API_APP_ID "" CACHE STRING "The app key assigned to you by MediaFire. Can be left blank if MFAPI_OVERRIDE_APP_KEY is defined in the build environment.")
+if ( NOT "${MFAPI_APP_KEY}" STREQUAL "" )
+    add_definitions(-DMFAPI_APP_KEY="${MFAPI_APP_KEY}")
+endif( NOT "${MFAPI_APP_KEY}" STREQUAL "" )
 
 # -- API by path ---------------
 project (mf_api_sdk CXX)
@@ -105,7 +105,7 @@ add_library(mf_api_sdk STATIC
 install(TARGETS mf_api_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_api_sdk
-    ${MFD_API_APP_CONSTANTS_LIBRARY}
+    ${MFAPI_APP_CONSTANTS_LIBRARY}
     mf_sdk_utils
     mf_http_sdk
 )

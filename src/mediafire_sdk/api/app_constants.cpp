@@ -20,21 +20,21 @@ namespace app_constants {
  *
  * We allow overriding the value or the variable altogether.
  */
-#ifndef MDF_API_OVERRIDE_APP_ID
-#   ifdef MDF_API_APP_ID
-        char const * const kAppId = MDF_API_APP_ID;
+#ifndef MFAPI_OVERRIDE_APP_ID
+#   ifdef MFAPI_APP_ID
+        char const * const kAppId = MFAPI_APP_ID;
 #   else
 #       error "You must supply an APP ID for the SDK to function."
 #   endif
 #endif
 
-#ifndef MDF_API_OVERRIDE_BUILD_SIGNATURE
+#ifndef MFAPI_OVERRIDE_BUILD_SIGNATURE
 std::string BuildSignature(
         const std::string & token
     )
 {
-#ifdef MDF_API_APP_KEY
-    const char kAppKey[] = MDF_API_APP_KEY;
+#ifdef MFAPI_APP_KEY
+    const char kAppKey[] = MFAPI_APP_KEY;
 #else
     const char kAppKey[] = "";
 #endif

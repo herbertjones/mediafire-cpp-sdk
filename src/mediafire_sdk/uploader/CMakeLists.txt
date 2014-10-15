@@ -62,7 +62,7 @@ add_library(mf_uploader_sdk STATIC
 install(TARGETS mf_uploader_sdk DESTINATION lib)
 
 TARGET_LINK_LIBRARIES(mf_uploader_sdk
-    ${MFD_API_APP_CONSTANTS_LIBRARY}
+    ${MFAPI_APP_CONSTANTS_LIBRARY}
     mf_sdk_utils
     mf_http_sdk
     mf_api_sdk

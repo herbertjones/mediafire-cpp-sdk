@@ -71,20 +71,20 @@ SET(TEST_USER_2_PASSWORD "password" CACHE STRING "User 2 password")
 
 ```cmake
 # We supply the app id variable app_constants::kAppId
-add_definitions(-DMDF_API_OVERRIDE_APP_ID)
+add_definitions(-DMFAPI_OVERRIDE_APP_ID)
 
 # We supply the function app_constants::BuildSignature
-add_definitions(-DMDF_API_OVERRIDE_BUILD_SIGNATURE)
+add_definitions(-DMFAPI_OVERRIDE_BUILD_SIGNATURE)
 
 # We supply those functions in a library we name our_app_constants
-set(MFD_API_APP_CONSTANTS_LIBRARY our_app_constants)
+set(MFAPI_APP_CONSTANTS_LIBRARY our_app_constants)
 
 # We don't use the internal app_constants::kAppId in the SDK
-#add_definitions(-DMDF_API_APP_ID=My_app_id)
+#add_definitions(-DMFAPI_APP_ID=My_app_id)
 
 # We don't supply an application key for use in app_constants::BuildSignature
 # inside the SDK.
-#add_definitions(-DMDF_API_APP_KEY=My_app_key)
+#add_definitions(-DMFAPI_APP_KEY=My_app_key)
 
 include_directories("api_sdk/src")
 add_subdirectory("api_sdk/src" "${PROJECT_BINARY_DIR}/api_sdk")
