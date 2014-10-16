@@ -437,6 +437,7 @@ BOOST_AUTO_TEST_CASE(CredentialsChangeOverSessionMaintainerLive)
             else
             {
                 BOOST_CHECK_EQUAL( response.email, connection1.email );
+                Stop();
             }
         });
 
@@ -455,6 +456,7 @@ BOOST_AUTO_TEST_CASE(CredentialsChangeOverSessionMaintainerLive)
             else
             {
                 BOOST_CHECK_EQUAL( response.email, connection1.email );
+                Stop();
             }
         });
 
@@ -473,6 +475,7 @@ BOOST_AUTO_TEST_CASE(CredentialsChangeOverSessionMaintainerLive)
             else
             {
                 BOOST_CHECK_EQUAL( response.email, connection2.email );
+                Stop();
             }
         });
 

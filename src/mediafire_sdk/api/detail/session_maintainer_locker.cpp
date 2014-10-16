@@ -8,7 +8,12 @@
 #include "mediafire_sdk/utils/variant_comparison.hpp"
 
 #ifdef OUTPUT_DEBUG
-#  define DEBUG_TOKEN_COUNT() DebugOutputTokenCounts()
+#  include "boost/current_function.hpp"
+#  define DEBUG_TOKEN_COUNT() \
+        do { \
+            std::cout << BOOST_CURRENT_FUNCTION << "\n"; \
+            DebugOutputTokenCounts(); \
+        } while ( false )
 #else
 #  define DEBUG_TOKEN_COUNT()
 #endif
