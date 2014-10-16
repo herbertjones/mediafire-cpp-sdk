@@ -86,7 +86,6 @@ endforeach()
 set(FULL_API_HEADERS
     ${API_HEADERS}
     ${GENERATED_API_HEADERS}
-    ${API_ERROR_HEADERS}
 )
 foreach( file ${FULL_API_HEADERS} )
     get_filename_component( dir ${file} DIRECTORY )

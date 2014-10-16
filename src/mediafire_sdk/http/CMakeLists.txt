@@ -47,7 +47,7 @@ set(HTTP_LIBRARY_HEADERS
     shared_buffer.hpp
     url.hpp
     )
-foreach( file ${HTTP_LIBRARY_HEADERS} ${HTTP_LIB_ERROR_HEADERS} )
+foreach( file ${HTTP_LIBRARY_HEADERS} )
     get_filename_component( dir ${file} DIRECTORY )
     install(FILES ${file} DESTINATION include/mediafire_sdk/http/${dir} )
 endforeach()

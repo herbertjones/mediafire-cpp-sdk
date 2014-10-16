@@ -16,3 +16,8 @@ add_library(api_error OBJECT
     ${API_ERROR_HEADERS}
     ${API_ERROR_SOURCES}
 )
+
+foreach( file ${API_ERROR_HEADERS} )
+    get_filename_component( dir ${file} DIRECTORY )
+    install(FILES ${file} DESTINATION include/mediafire_sdk/api/error/${dir} )
+endforeach()
