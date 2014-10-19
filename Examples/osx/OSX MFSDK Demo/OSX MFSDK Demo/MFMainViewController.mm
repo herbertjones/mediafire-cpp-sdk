@@ -128,7 +128,7 @@
                 [self.fileTable noteNumberOfRowsChanged];
                 if ( moreChunks )
                 {
-                    [self requestFolderChunk:(moreChunks+1)];
+                    [self requestFolderChunk:(chunk+1)];
                 }
                 else
                 {
@@ -153,7 +153,7 @@
                 [self.contentResults addObjectsFromArray:files];
                 [self.fileTable noteNumberOfRowsChanged];
                 if ( moreChunks )
-                    [self requestFileChunk:(moreChunks+1)];
+                    [self requestFileChunk:(chunk+1)];
             },
             ^(int code, NSString* msg) {
                 NSLog(@"Failed to get myfiles content: %d: %@", code, msg);
