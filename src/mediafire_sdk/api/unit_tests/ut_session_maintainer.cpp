@@ -632,7 +632,7 @@ BOOST_AUTO_TEST_CASE(FolderGetContentFolders)
     handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
-    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+    handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -696,7 +696,7 @@ BOOST_AUTO_TEST_CASE(FolderGetContentFiles)
     handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
-    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+    handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -762,7 +762,7 @@ BOOST_AUTO_TEST_CASE(RepeatedTokenVerify)
     handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
-    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+    handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -861,7 +861,7 @@ BOOST_AUTO_TEST_CASE(RepeatedParallelTokenVerify)
     handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
-    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+    handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -1036,7 +1036,7 @@ BOOST_AUTO_TEST_CASE(TimeoutSeconds)
     handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
 
     TimeoutServer rcc_responder(&io_service, 10);
-    handlers["/api/1.0/folder/get_content.php"] = PHBind(&rcc_responder);
+    handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,

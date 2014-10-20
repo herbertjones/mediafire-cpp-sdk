@@ -78,7 +78,8 @@
                     "folder_count": "0",
                     "dropbox_enabled": "no"
                 }
-            ]
+            ],
+            "more_chunks": "no"
         },
         "result": "Success",
         "new_key": "yes",

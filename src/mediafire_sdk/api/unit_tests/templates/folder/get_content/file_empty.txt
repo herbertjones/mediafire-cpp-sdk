@@ -6,6 +6,7 @@
             "content_type": "files",
             "chunk_number": "1",
             "files": [],
+            "more_chunks": "no"
         },
         "result": "Success",
         "new_key": "yes",

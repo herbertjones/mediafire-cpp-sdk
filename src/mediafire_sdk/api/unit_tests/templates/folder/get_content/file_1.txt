@@ -141,7 +141,8 @@
                         "normal_download": "http://sandbox.mediafire.com/download/fl6kmh4wh8vgm67/1401815580_4.dat"
                     }
                 }
-            ]
+            ],
+            "more_chunks": "no"
         },
         "result": "Success",
         "new_key": "yes",

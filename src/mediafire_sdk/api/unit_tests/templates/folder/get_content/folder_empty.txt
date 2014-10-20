@@ -6,6 +6,7 @@
             "content_type": "folders",
             "chunk_number": "1",
             "folders": [],
+            "more_chunks": "no"
         },
         "result": "Success",
         "new_key": "yes",
