@@ -872,11 +872,13 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
     ret = ret + '''
         for ( auto & it : branch )
         {
-            boost::optional<''' + t + '''> result =
-                it.second.get_value_optional<''' + t + '''>();
-            if ( result )
+            ''' + t + ''' result;
+            if ( GetIfExists(
+                    ''' + pt + ''',
+                    "",
+                    &result ) )
             {
-                ''' + ob + '''->''' + n + '''.push_back(*result);
+                ''' + ob + '''->''' + n + '''.push_back(result);
             }
             else
             {'''

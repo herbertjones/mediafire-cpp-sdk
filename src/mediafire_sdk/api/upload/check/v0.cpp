@@ -97,11 +97,13 @@ bool ResumableDataFromPropertyBranch(
         }
         for ( auto & it : branch )
         {
-            boost::optional<uint16_t> result =
-                it.second.get_value_optional<uint16_t>();
-            if ( result )
+            uint16_t result;
+            if ( GetIfExists(
+                    pt,
+                    "",
+                    &result ) )
             {
-                value->words.push_back(*result);
+                value->words.push_back(result);
             }
             else
             {

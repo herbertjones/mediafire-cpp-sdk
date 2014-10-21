@@ -267,11 +267,13 @@ void Impl::ParseResponse( Response * response )
         response->bitmap_words.reserve( branch.size() );
         for ( auto & it : branch )
         {
-            boost::optional<uint16_t> result =
-                it.second.get_value_optional<uint16_t>();
-            if ( result )
+            uint16_t result;
+            if ( GetIfExists(
+                    response->pt,
+                    "",
+                    &result ) )
             {
-                response->bitmap_words.push_back(*result);
+                response->bitmap_words.push_back(result);
             }
             else
             {
