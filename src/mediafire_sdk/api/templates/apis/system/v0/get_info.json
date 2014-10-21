@@ -1,0 +1,101 @@
+{
+    "api": "/api/system/get_info",
+    "version": "0",
+    "return_structs": [
+        {
+            "cpp_name": "ImageSize",
+            "members": [
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "width",
+                "api_path": "width"
+            },
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "height",
+                "api_path": "height"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "thumbnail_designation",
+                "api_path": "thumbnail"
+            }
+            ]
+        },
+        {
+            "cpp_name": "TermsOfService",
+            "members": [
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "revision",
+                "api_path": "revision"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "terms",
+                "api_path": "terms"
+            },
+            {
+                "cpp_type": "boost::posix_time::ptime",
+                "cpp_name": "date",
+                "api_path": "date"
+            }
+            ]
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "current_api_version",
+            "api_path": "response.current_api_version"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "timezone",
+            "api_path": "response.timezone"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "timezone_offset",
+            "api_path": "response.timezone_offset"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "viewable_extensions",
+            "api_path": "response.viewable.extensions",
+            "json_type": "array"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "editable_extensions",
+            "api_path": "response.editable.extensions",
+            "json_type": "array"
+        },
+        {
+            "cpp_type": "ImageSize",
+            "cpp_name": "image_sizes",
+            "api_path": "response.image_sizes",
+            "json_type": "array"
+        },
+        {
+            "cpp_type": "TermsOfService",
+            "cpp_name": "terms_of_service",
+            "api_path": "response.terms_of_service"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "max_keys",
+            "api_path": "response.max_keys"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "max_objects",
+            "api_path": "response.max_objects"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "max_image_size",
+            "api_path": "response.max_image_size"
+        }
+    ]
+}

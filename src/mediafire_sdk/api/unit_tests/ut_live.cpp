@@ -47,6 +47,7 @@
 #include "mediafire_sdk/api/system/get_limits.hpp"
 #include "mediafire_sdk/api/system/get_status.hpp"
 #include "mediafire_sdk/api/system/get_version.hpp"
+#include "mediafire_sdk/api/system/get_info.hpp"
 
 #include "mediafire_sdk/api/user/get_action_token.hpp"
 #include "mediafire_sdk/api/user/get_info.hpp"
@@ -541,6 +542,25 @@ BOOST_AUTO_TEST_CASE(SystemGetStatus)
 }
 
 BOOST_AUTO_TEST_CASE(SystemGetVersion)
+{
+    Call(
+        api::system::get_version::Request(),
+        [&](const api::system::get_version::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SystemGetInfo)
 {
     Call(
         api::system::get_version::Request(),
