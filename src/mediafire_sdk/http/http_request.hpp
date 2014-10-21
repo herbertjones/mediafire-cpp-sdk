@@ -61,6 +61,8 @@ public:
         std::string content;
     };
 
+    using FunctionCallback = std::function<void(CallbackResponse)>;
+
     /**
      * @typedef HeaderContainer
      * @brief Headers to be used in request.
@@ -132,7 +134,7 @@ public:
      */
     static Pointer Create(
             HttpConfig::ConstPointer config,
-            std::function<void(CallbackResponse)> callback,
+            FunctionCallback callback,
             boost::asio::io_service * callback_ios,
             const std::string & url
         );
