@@ -36,6 +36,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     notifications/peek_cache/v0.cpp
     system/get_limits/v0.cpp
     system/get_status/v0.cpp
+    system/get_version/v0.cpp
     upload/check/v0.cpp
     upload/instant/v0.cpp
     upload/poll_upload/v0.cpp
@@ -121,6 +122,8 @@ set(API_TEMPLATE_GENERATED_HEADERS
     system/get_limits/v0.hpp
     system/get_status.hpp
     system/get_status/v0.hpp
+    system/get_version.hpp
+    system/get_version/v0.hpp
     upload/check.hpp
     upload/check/v0.hpp
     upload/instant.hpp

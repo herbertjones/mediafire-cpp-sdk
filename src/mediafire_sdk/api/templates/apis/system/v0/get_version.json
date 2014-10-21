@@ -1,0 +1,11 @@
+{
+    "api": "/api/system/get_version",
+    "version": "0",
+    "return_params": [
+    {
+        "cpp_type": "std::string",
+        "cpp_name": "current_api_version",
+        "api_path": "response.current_api_version"
+    }
+    ]
+}
