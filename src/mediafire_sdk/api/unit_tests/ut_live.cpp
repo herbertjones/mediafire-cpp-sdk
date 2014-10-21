@@ -50,6 +50,7 @@
 #include "mediafire_sdk/api/system/get_info.hpp"
 #include "mediafire_sdk/api/system/get_editable_media.hpp"
 #include "mediafire_sdk/api/system/get_supported_media.hpp"
+#include "mediafire_sdk/api/system/get_mime_types.hpp"
 
 #include "mediafire_sdk/api/user/get_action_token.hpp"
 #include "mediafire_sdk/api/user/get_info.hpp"
@@ -605,6 +606,25 @@ BOOST_AUTO_TEST_CASE(SystemGetEditableMedia)
     Call(
         api::system::get_editable_media::Request(),
         [&](const api::system::get_editable_media::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SystemGetMimeTypes)
+{
+    Call(
+        api::system::get_mime_types::Request(),
+        [&](const api::system::get_mime_types::Response & response)
         {
             if ( response.error_code )
             {

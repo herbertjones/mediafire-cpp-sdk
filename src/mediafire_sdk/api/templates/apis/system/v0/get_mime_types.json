@@ -1,0 +1,136 @@
+{
+    "api": "/api/system/get_mime_types",
+    "version": "0",
+    "enums": [
+        {
+            "cpp_name": "Category",
+            "members": [
+            {
+                "cpp_name": "Unknown",
+                "api_value": "unknown"
+            },
+            {
+                "cpp_name": "Image",
+                "api_value": "image"
+            },
+            {
+                "cpp_name": "Video",
+                "api_value": "video"
+            },
+            {
+                "cpp_name": "Audio",
+                "api_value": "audio"
+            },
+            {
+                "cpp_name": "Document",
+                "api_value": "document"
+            },
+            {
+                "cpp_name": "Application",
+                "api_value": "application"
+            },
+            {
+                "cpp_name": "Archive",
+                "api_value": "archive"
+            },
+            {
+                "cpp_name": "Data",
+                "api_value": "data"
+            },
+            {
+                "cpp_name": "Development",
+                "api_value": "development"
+            },
+            {
+                "cpp_name": "Spreadsheet",
+                "api_value": "spreadsheet"
+            },
+            {
+                "cpp_name": "Presentation",
+                "api_value": "presentation"
+            }
+            ]
+        },
+        {
+            "cpp_name": "ViewSystem",
+            "members": [
+            {
+                "cpp_name": "None",
+                "api_value": "0"
+            },
+            {
+                "cpp_name": "Pdf2html",
+                "api_value": "1"
+            },
+            {
+                "cpp_name": "Pdf_js",
+                "api_value": "2"
+            },
+            {
+                "cpp_name": "Zoho",
+                "api_value": "3"
+            }
+            ]
+        },
+        {
+            "cpp_name": "EditSystem",
+            "members": [
+            {
+                "cpp_name": "None",
+                "api_value": "0"
+            },
+            {
+                "cpp_name": "Ace",
+                "api_value": "1"
+            },
+            {
+                "cpp_name": "Zoho",
+                "api_value": "2"
+            }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "MimeType",
+            "members": [
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "mimetype",
+                "api_path": "mimetype"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "extension",
+                "api_path": "extension"
+            },
+            {
+                "cpp_type": "Category",
+                "cpp_name": "category",
+                "api_path": "type",
+                "optional": true
+            },
+            {
+                "cpp_type": "ViewSystem",
+                "cpp_name": "view_system",
+                "api_path": "view",
+                "optional": true
+            },
+            {
+                "cpp_type": "EditSystem",
+                "cpp_name": "edit_system",
+                "api_path": "edit",
+                "optional": true
+            }
+            ]
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "MimeType",
+            "cpp_name": "mimetypes",
+            "api_path": "response.mime_types",
+            "json_type": "array"
+        }
+    ]
+}
