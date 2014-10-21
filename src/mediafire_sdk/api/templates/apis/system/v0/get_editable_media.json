@@ -1,0 +1,12 @@
+{
+    "api": "/api/system/get_editable_media",
+    "version": "0",
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "editable_extensions",
+            "api_path": "response.editable.extensions",
+            "json_type": "array"
+        }
+    ]
+}

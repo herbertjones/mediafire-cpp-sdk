@@ -48,6 +48,8 @@
 #include "mediafire_sdk/api/system/get_status.hpp"
 #include "mediafire_sdk/api/system/get_version.hpp"
 #include "mediafire_sdk/api/system/get_info.hpp"
+#include "mediafire_sdk/api/system/get_editable_media.hpp"
+#include "mediafire_sdk/api/system/get_supported_media.hpp"
 
 #include "mediafire_sdk/api/user/get_action_token.hpp"
 #include "mediafire_sdk/api/user/get_info.hpp"
@@ -565,6 +567,44 @@ BOOST_AUTO_TEST_CASE(SystemGetInfo)
     Call(
         api::system::get_info::Request(),
         [&](const api::system::get_info::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SystemGetSupportedMedia)
+{
+    Call(
+        api::system::get_supported_media::Request(),
+        [&](const api::system::get_supported_media::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SystemGetEditableMedia)
+{
+    Call(
+        api::system::get_editable_media::Request(),
+        [&](const api::system::get_editable_media::Response & response)
         {
             if ( response.error_code )
             {

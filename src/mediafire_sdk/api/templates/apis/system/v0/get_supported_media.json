@@ -1,0 +1,12 @@
+{
+    "api": "/api/system/get_supported_media",
+    "version": "0",
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "viewable_extensions",
+            "api_path": "response.viewable.extensions",
+            "json_type": "array"
+        }
+    ]
+}
