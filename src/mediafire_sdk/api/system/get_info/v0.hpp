@@ -62,7 +62,7 @@ public:
     std::string timezone;
 
     /** API response field "response.timezone_offset" */
-    uint32_t timezone_offset;
+    int32_t timezone_offset;
 
     /** API response field "response.viewable.extensions" */
     std::vector<std::string> viewable_extensions;

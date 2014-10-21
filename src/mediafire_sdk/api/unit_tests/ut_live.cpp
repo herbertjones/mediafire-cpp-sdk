@@ -563,8 +563,8 @@ BOOST_AUTO_TEST_CASE(SystemGetVersion)
 BOOST_AUTO_TEST_CASE(SystemGetInfo)
 {
     Call(
-        api::system::get_version::Request(),
-        [&](const api::system::get_version::Response & response)
+        api::system::get_info::Request(),
+        [&](const api::system::get_info::Response & response)
         {
             if ( response.error_code )
             {

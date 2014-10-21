@@ -38,6 +38,7 @@ bool ShareFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
 
     // create_content_parse_single required
     if ( ! GetIfExists(

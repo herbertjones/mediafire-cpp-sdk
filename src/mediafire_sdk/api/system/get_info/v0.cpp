@@ -38,6 +38,7 @@ bool ImageSizeFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
 
     // create_content_parse_single required
     if ( ! GetIfExists(
@@ -85,6 +86,7 @@ bool TermsOfServiceFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
 
     // create_content_parse_single required
     if ( ! GetIfExists(
@@ -207,14 +209,13 @@ void Impl::ParseResponse( Response * response )
         {
             return_error(
                 mf::api::api_code::ContentInvalidData,
-                "invalid value in response.viewable.extensions");
+                "missing value in response.viewable.extensions");
         }
         for ( auto & it : branch )
         {
             std::string result;
-            if ( GetIfExists(
+            if ( GetValueIfExists(
                     response->pt,
-                    "",
                     &result ) )
             {
                 response->viewable_extensions.push_back(result);
@@ -245,14 +246,13 @@ void Impl::ParseResponse( Response * response )
         {
             return_error(
                 mf::api::api_code::ContentInvalidData,
-                "invalid value in response.editable.extensions");
+                "missing value in response.editable.extensions");
         }
         for ( auto & it : branch )
         {
             std::string result;
-            if ( GetIfExists(
+            if ( GetValueIfExists(
                     response->pt,
-                    "",
                     &result ) )
             {
                 response->editable_extensions.push_back(result);

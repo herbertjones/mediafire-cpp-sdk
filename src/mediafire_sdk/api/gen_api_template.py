@@ -866,16 +866,15 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
         {
             return_error(
                 mf::api::api_code::ContentInvalidData,
-                "invalid value in ''' + r + '''");
+                "missing value in ''' + r + '''");
         }'''
 
     ret = ret + '''
         for ( auto & it : branch )
         {
             ''' + t + ''' result;
-            if ( GetIfExists(
+            if ( GetValueIfExists(
                     ''' + pt + ''',
-                    "",
                     &result ) )
             {
                 ''' + ob + '''->''' + n + '''.push_back(result);
@@ -1105,6 +1104,7 @@ def get_data_type_struct_extractor(api, name, param_list):
     lines.append(I(1) + '}')
 
     lines.append(I(1) + 'using mf::api::GetIfExists;')
+    lines.append(I(1) + 'using mf::api::GetValueIfExists;')
 
     top = '\n'.join(lines) + '\n'
 

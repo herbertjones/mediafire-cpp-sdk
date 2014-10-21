@@ -57,6 +57,7 @@ bool FileFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->share_link_enabled = ShareLinkEnabled::LinkDisabled;
 
     // create_content_parse_single required
@@ -225,6 +226,7 @@ bool FolderFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->share_link_enabled = ShareLinkEnabled::LinkDisabled;
 
     // create_content_parse_single required

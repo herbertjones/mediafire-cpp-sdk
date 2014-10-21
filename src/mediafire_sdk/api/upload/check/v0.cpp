@@ -49,6 +49,7 @@ bool ResumableDataFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->all_units_ready = AllUnitsReady::No;
 
     // create_content_parse_single required
@@ -93,14 +94,13 @@ bool ResumableDataFromPropertyBranch(
         {
             return_error(
                 mf::api::api_code::ContentInvalidData,
-                "invalid value in bitmap.words");
+                "missing value in bitmap.words");
         }
         for ( auto & it : branch )
         {
             uint16_t result;
-            if ( GetIfExists(
+            if ( GetValueIfExists(
                     pt,
-                    "",
                     &result ) )
             {
                 value->words.push_back(result);

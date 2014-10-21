@@ -44,6 +44,7 @@ bool GetIfExists(
     }
     return false;
 }
+
 /**
  * @brief Set the passed in variable if the specified property exists.
  *
@@ -136,6 +137,39 @@ bool GetIfExistsArrayFront(
 bool GetIfExistsArrayFront(
         const boost::property_tree::wptree & pt,
         std::string property_path,
+        std::string * to_set
+    );
+
+/**
+ * @brief Set the passed in variable if the specified ptree has a value
+ * convertible to T.
+ *
+ * @param[in] pt Property tree with possible value.
+ *
+ * @tparam T The type to convert the ptree to.
+ *
+ * @param[out] to_set Variable to set with expected property data.
+ *
+ * @return true if set occurred.
+ */
+template<typename T>
+bool GetValueIfExists(
+        const boost::property_tree::wptree & pt,
+        T * to_set
+    )
+{
+    boost::optional<T> result = pt.get_value_optional<T>();
+    if ( result )
+    {
+        *to_set = *result;
+        return true;
+    }
+    return false;
+}
+
+template <>
+bool GetValueIfExists<std::string>(
+        const boost::property_tree::wptree & pt,
         std::string * to_set
     );
 

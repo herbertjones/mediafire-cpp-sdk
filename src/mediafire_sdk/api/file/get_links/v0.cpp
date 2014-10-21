@@ -59,6 +59,7 @@ bool LinksFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
 
     // create_content_parse_single optional no default
     {

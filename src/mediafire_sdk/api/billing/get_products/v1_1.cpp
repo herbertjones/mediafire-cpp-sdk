@@ -65,6 +65,7 @@ bool ProductFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->is_recurring = Recurring::NonRecurring;
     value->recurring_units = 0;
     value->trial = Trial::NoTrial;

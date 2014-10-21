@@ -38,6 +38,7 @@ bool NotificationFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->timestamp = boost::posix_time::not_a_date_time;
     value->viewable = Viewable::Hidden;
 

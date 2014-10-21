@@ -38,6 +38,7 @@ bool FileFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->created_datetime = boost::posix_time::not_a_date_time;
 
     // create_content_parse_single required
@@ -95,6 +96,7 @@ bool FolderFromPropertyBranch(
         return false;                                                          \
     }
     using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
     value->created_datetime = boost::posix_time::not_a_date_time;
 
     // create_content_parse_single required

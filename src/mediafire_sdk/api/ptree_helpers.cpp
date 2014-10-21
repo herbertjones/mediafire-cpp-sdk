@@ -114,6 +114,21 @@ bool api::GetIfExistsArrayFront(
     return false;
 }
 
+template <>
+bool api::GetValueIfExists<std::string>(
+        const boost::property_tree::wptree & pt,
+        std::string * to_set
+    )
+{
+    boost::optional<std::wstring> result = pt.get_value_optional<std::wstring>();
+    if ( result )
+    {
+        *to_set = mf::utils::wide_to_bytes(*result);
+        return true;
+    }
+    return false;
+}
+
 bool api::PropertyHasValue(
         const boost::property_tree::wptree & pt,
         std::string property_path,
