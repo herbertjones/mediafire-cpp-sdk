@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "mediafire_sdk/http/shared_buffer.hpp"
 #include "mediafire_sdk/http/headers.hpp"
 #include "mediafire_sdk/api/response_base.hpp"
 
@@ -106,15 +105,6 @@ public:
     /** Requester expected method. */
     std::string Url(const std::string & hostname) const;
 
-    /** Requester optional method. */
-    mf::http::SharedBuffer::Pointer GetPostData();
-
-    /** SessionMaintainer expected method. */
-    void SetSessionToken(
-            std::string session_token,
-            std::string time,
-            int secret_key
-        );
 private:
     std::shared_ptr<Impl> impl_;
 };

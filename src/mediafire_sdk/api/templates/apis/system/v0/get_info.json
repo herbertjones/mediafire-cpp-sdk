@@ -1,6 +1,7 @@
 {
     "api": "/api/system/get_info",
     "version": "0",
+    "session_token": false,
     "return_structs": [
         {
             "cpp_name": "ImageSize",

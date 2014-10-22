@@ -13,7 +13,7 @@
 #include "mediafire_sdk/api/error.hpp"
 #include "mediafire_sdk/api/ptree_helpers.hpp"
 #include "mediafire_sdk/utils/string.hpp"
-#include "mediafire_sdk/api/session_token_api_base.hpp"
+#include "mediafire_sdk/api/tokenless_api_base.hpp"
 
 #include "boost/property_tree/json_parser.hpp"
 
@@ -132,7 +132,7 @@ const std::string api_path("/api/system/get_info");
 
 // Impl ------------------------------------------------------------------------
 
-class Impl : public SessionTokenApiBase<Response>
+class Impl : public TokenlessApiBase<Response>
 {
 public:
     Impl();
@@ -144,11 +144,9 @@ public:
 
     virtual void ParseResponse( Response * response ) override;
 
-    mf::http::SharedBuffer::Pointer GetPostData();
-
     mf::api::RequestMethod GetRequestMethod() const
     {
-        return mf::api::RequestMethod::Post;
+        return mf::api::RequestMethod::Get;
     }
 };
 
@@ -358,16 +356,6 @@ void Impl::ParseResponse( Response * response )
 #   undef return_error
 }
 
-mf::http::SharedBuffer::Pointer Impl::GetPostData()
-{
-    std::map<std::string, std::string> parts;
-
-
-    std::string post_data = MakePost(api_path + ".php", parts);
-    AddDebugText(" POST data: " + post_data + "\n");
-    return mf::http::SharedBuffer::Create(post_data);
-}
-
 // Request ---------------------------------------------------------------------
 
 Request::Request() :
@@ -401,20 +389,6 @@ void Request::HandleError(
 std::string Request::Url(const std::string & hostname) const
 {
     return impl_->Url(hostname);
-}
-
-void Request::SetSessionToken(
-        std::string session_token,
-        std::string time,
-        int secret_key
-    )
-{
-    impl_->SetSessionToken(session_token, time, secret_key);
-}
-
-mf::http::SharedBuffer::Pointer Request::GetPostData()
-{
-    return impl_->GetPostData();
 }
 
 }  // namespace v0

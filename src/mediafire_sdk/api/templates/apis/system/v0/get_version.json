@@ -1,6 +1,7 @@
 {
     "api": "/api/system/get_version",
     "version": "0",
+    "session_token": false,
     "return_params": [
     {
         "cpp_type": "std::string",
