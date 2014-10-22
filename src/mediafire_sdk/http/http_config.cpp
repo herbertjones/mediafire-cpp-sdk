@@ -5,6 +5,7 @@
  */
 #include "http_config.hpp"
 
+#include "boost/algorithm/string/predicate.hpp"
 #include "boost/asio.hpp"
 #include "boost/asio/ssl.hpp"
 
@@ -173,6 +174,22 @@ void HttpConfig::SetSslContext(std::shared_ptr<boost::asio::ssl::context> ctx)
     assert(ctx.get() != nullptr);
 
     ssl_ctx_ = ctx;
+}
+
+void HttpConfig::AddDefaultHeader(
+        std::string key,
+        std::string value
+    )
+{
+    for (auto & pair : default_headers_)
+    {
+        if (boost::iequals(pair.first, key))
+        {
+            pair.second = value;
+            return;
+        }
+    }
+    default_headers_.emplace_back(key, value);
 }
 
 }  // namespace http

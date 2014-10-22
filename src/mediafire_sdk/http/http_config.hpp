@@ -283,6 +283,16 @@ public:
     void SetDefaultHeaders(HeaderContainer headers) {default_headers_=headers;}
 
     /**
+     * @brief Add a header to be used in all requests.
+     *
+     * You should set "User-Agent" here or by setting the default headers.
+     *
+     * @param[in] key Header key name
+     * @param[in] value Header value
+     */
+    void AddDefaultHeader(std::string key, std::string value);
+
+    /**
      * @brief Set the percentage of the bandwidth we should consume at most.
      *
      * This is a simple QOS setting, which only affects POST uploads and
