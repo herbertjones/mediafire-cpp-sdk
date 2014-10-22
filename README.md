@@ -53,18 +53,22 @@ SET(TEST_USER_2_PASSWORD "password" CACHE STRING "User 2 password")
 
 ### CMake variables
 
-* FD_API_APP_CONSTANTS_LIBRARY
+* MFAPI_APP_CONSTANTS_LIBRARY
   * If supplying your own kAppId or BuildSignature, you will need to pass the library name to link against in the SDK.
+* MFAPI_APP_ID
+  * Convenience variable for MFAPI_APP_ID define.
+* MFAPI_APP_KEY
+  * Convenience variable for MFAPI_APP_KEY define.
 
 ### Defines
 
-* DF_API_OVERRIDE_APP_ID
+* MFAPI_OVERRIDE_APP_ID
   * Define if supplying your own app_constants::kAppId.
-* DF_API_OVERRIDE_BUILD_SIGNATURE
+* MFAPI_OVERRIDE_BUILD_SIGNATURE
   * Define if supplying your own app_constants::BuildSignature.
-* DF_API_APP_ID
+* MFAPI_APP_ID
   * Set the application ID.
-* DF_API_APP_KEY
+* MFAPI_APP_KEY
   * Set the application key.
 
 ### Example
