@@ -626,10 +626,6 @@ BOOST_AUTO_TEST_CASE(SystemGetEditableMedia)
             {
                 Fail(response);
             }
-            else if ( response.mimetypes.empty() )
-            {
-                Fail("Empty mime type list.");
-            }
             else
             {
                 Success();
@@ -648,6 +644,10 @@ BOOST_AUTO_TEST_CASE(SystemGetMimeTypes)
             if ( response.error_code )
             {
                 Fail(response);
+            }
+            else if ( response.mimetypes.empty() )
+            {
+                Fail("Empty mime type list.");
             }
             else
             {
