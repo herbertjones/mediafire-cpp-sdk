@@ -121,7 +121,7 @@ bool api::GetValueIfExists<std::string>(
     )
 {
     boost::optional<std::wstring> result = pt.get_value_optional<std::wstring>();
-    if ( result )
+    if ( result && ! result->empty() )
     {
         *to_set = mf::utils::wide_to_bytes(*result);
         return true;
