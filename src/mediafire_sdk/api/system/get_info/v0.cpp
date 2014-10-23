@@ -213,7 +213,7 @@ void Impl::ParseResponse( Response * response )
         {
             std::string result;
             if ( GetValueIfExists(
-                    response->pt,
+                    it.second,
                     &result ) )
             {
                 response->viewable_extensions.push_back(result);
@@ -250,7 +250,7 @@ void Impl::ParseResponse( Response * response )
         {
             std::string result;
             if ( GetValueIfExists(
-                    response->pt,
+                    it.second,
                     &result ) )
             {
                 response->editable_extensions.push_back(result);

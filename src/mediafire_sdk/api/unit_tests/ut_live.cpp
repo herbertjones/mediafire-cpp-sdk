@@ -575,7 +575,22 @@ BOOST_AUTO_TEST_CASE(SystemGetInfo)
             }
             else
             {
-                Success();
+                bool non_empty = false;
+                for (auto & str : response.viewable_extensions)
+                {
+                    if (!str.empty())
+                    non_empty = true;
+                }
+                if (non_empty)
+                {
+                    Success();
+                }
+                else
+                {
+                    std::cout << "Only empty items in viewable_extensions!"
+                        << std::endl;
+                    Fail(response);
+                }
             }
         });
 

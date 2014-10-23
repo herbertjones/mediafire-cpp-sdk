@@ -874,7 +874,7 @@ def create_content_parse_array(api, ob, t, n, r, dt, optional, pt):
         {
             ''' + t + ''' result;
             if ( GetValueIfExists(
-                    ''' + pt + ''',
+                    it.second,
                     &result ) )
             {
                 ''' + ob + '''->''' + n + '''.push_back(result);
@@ -1776,6 +1776,9 @@ set(API_TEMPLATE_GENERATED_HEADERS
 def common_header_includes(domain, domain_data):
 
     domain_parts = domain.split('/')
+
+    # This looks nicer when sorted
+    domain_data['headers'].sort();
 
     includes = ''
     for header in domain_data['headers']:

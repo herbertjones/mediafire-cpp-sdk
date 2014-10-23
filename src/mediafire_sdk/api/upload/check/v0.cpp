@@ -100,7 +100,7 @@ bool ResumableDataFromPropertyBranch(
         {
             uint16_t result;
             if ( GetValueIfExists(
-                    pt,
+                    it.second,
                     &result ) )
             {
                 value->words.push_back(result);

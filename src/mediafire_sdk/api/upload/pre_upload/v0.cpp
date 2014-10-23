@@ -269,7 +269,7 @@ void Impl::ParseResponse( Response * response )
         {
             uint16_t result;
             if ( GetValueIfExists(
-                    response->pt,
+                    it.second,
                     &result ) )
             {
                 response->bitmap_words.push_back(result);
