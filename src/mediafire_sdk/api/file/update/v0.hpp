@@ -42,7 +42,7 @@ class Response : public ResponseBase
 {
 public:
     /** API response field "response.device_revision" */
-    uint32_t device_revision;
+    boost::optional<uint32_t> device_revision;
 };
 
 class Impl;

@@ -1139,14 +1139,14 @@ BOOST_AUTO_TEST_CASE(RenameFolder)
         request,
         [&](const api::folder::update::Response & response)
         {
-            if ( response.error_code )
+            if ( response.error_code || ! response.device_revision )
             {
                 Fail(response);
             }
             else
             {
                 Success();
-                globals::known_revision = response.device_revision;
+                globals::known_revision = *response.device_revision;
             }
         });
 

@@ -84,14 +84,17 @@ void Impl::ParseResponse( Response * response )
         return;                                                                \
     }
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
-            response->pt,
-            "response.device_revision",
-            &response->device_revision ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"response.device_revision\"");
+    // create_content_parse_single optional no default
+    {
+        uint32_t optarg;
+        if ( GetIfExists(
+                response->pt,
+                "response.device_revision",
+                &optarg) )
+        {
+            response->device_revision = optarg;
+        }
+    }
 
 #   undef return_error
 }

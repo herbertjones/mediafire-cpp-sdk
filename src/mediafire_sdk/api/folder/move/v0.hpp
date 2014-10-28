@@ -48,7 +48,7 @@ public:
     Asynchronous asynchronous;
 
     /** API response field "response.device_revision" */
-    uint32_t device_revision;
+    boost::optional<uint32_t> device_revision;
 };
 
 class Impl;
