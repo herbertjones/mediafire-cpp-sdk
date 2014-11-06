@@ -90,14 +90,17 @@ void Impl::ParseResponse( Response * response )
             mf::api::api_code::ContentInvalidData,
             "missing \"response.doupload.result\"");
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
-            response->pt,
-            "response.doupload.status",
-            &response->status ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"response.doupload.status\"");
+    // create_content_parse_single optional no default
+    {
+        int32_t optarg;
+        if ( GetIfExists(
+                response->pt,
+                "response.doupload.status",
+                &optarg) )
+        {
+            response->status = optarg;
+        }
+    }
 
     // create_content_parse_single optional with default
     GetIfExists(

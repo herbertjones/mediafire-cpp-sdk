@@ -40,7 +40,7 @@ public:
     int32_t result;
 
     /** API response field "response.doupload.status" */
-    int32_t status;
+    boost::optional<int32_t> status;
 
     /** API response field "response.doupload.fileerror" */
     int32_t fileerror;

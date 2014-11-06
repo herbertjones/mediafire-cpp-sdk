@@ -102,7 +102,7 @@ void HandlePollResponse(
             "Poll upload file error received"
             });
     }
-    else if( response.status == 99 )
+    else if( response.status && *response.status == 99 )
     {
         HandlePollCompleteResponse(fsm, response);
     }

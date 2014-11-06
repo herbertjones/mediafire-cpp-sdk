@@ -17,7 +17,8 @@
         {
             "cpp_type": "int32_t",
             "cpp_name": "status",
-            "api_path": "response.doupload.status"
+            "api_path": "response.doupload.status",
+            "optional": true
         },
         {
             "cpp_type": "int32_t",
