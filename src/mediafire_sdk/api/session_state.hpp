@@ -35,6 +35,19 @@ struct CredentialsFailure
     /** Response data if more data required. */
     api::user::get_session_token::Response session_token_response;
 };
+/** Cannot obtain session token. We retry a few times before changing to
+ *  this state and continue to retry while in it. This state is just an
+ *  advisory and will only be emitted if there is a prolonged error on
+ *  startup.
+ */
+struct ProlongedError
+{
+    /** Error that triggered this state. */
+    std::error_code error_code;
+
+    /** Response data if more data required. */
+    api::user::get_session_token::Response session_token_response;
+};
 /** Credentials used and tokens successfully acquired. */
 struct Running
 {
@@ -73,6 +86,16 @@ bool operator==(const Initialized& lhs, const Initialized& rhs);
 bool operator==(const CredentialsFailure& lhs, const CredentialsFailure& rhs);
 
 /**
+ * @brief Compare two ProlongedErrors.
+ *
+ * @param[in] lhs Left side
+ * @param[in] rhs Right side
+ *
+ * @return True if equal.
+ */
+bool operator==(const ProlongedError& lhs, const ProlongedError& rhs);
+
+/**
  * @brief Compare two Running.
  *
  * @param[in] lhs Left side
@@ -89,6 +112,7 @@ typedef boost::variant
     < session_state::Uninitialized
     , session_state::Initialized
     , session_state::CredentialsFailure
+    , session_state::ProlongedError
     , session_state::Running
     > SessionState;
 

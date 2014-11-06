@@ -29,6 +29,15 @@ bool operator==(const CredentialsFailure& lhs, const CredentialsFailure& rhs)
         == std::tie(rhs.pkey, rhs.error_code);
 }
 
+bool operator==(const ProlongedError& lhs, const ProlongedError& rhs)
+{
+    // Only the parts we care about determine if the session token response is
+    // different than another.
+
+    return std::tie(lhs.error_code)
+        == std::tie(rhs.error_code);
+}
+
 bool operator==(const Running& lhs, const Running& rhs)
 {
     const api::user::get_session_token::Response & l =

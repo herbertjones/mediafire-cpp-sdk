@@ -34,7 +34,8 @@ SessionMaintainerLocker::SessionMaintainerLocker(
     delayed_requests_(TimedEvents::Create( work_ios, event_processor)),
     in_progress_session_token_requests_(0),
     time_out_requests_(WeakTimedEvents::Create( work_ios,
-            CreateTimeoutProcessor()))
+            CreateTimeoutProcessor())),
+    failure_count_(0)
 {
 }
 
@@ -425,6 +426,10 @@ public:
         parent_->checked_out_tokens_.clear();
     }
 
+    void operator()(session_state::ProlongedError) const
+    {   // This is just an adviosry state and should not affect behavior
+    }
+
     void operator()(session_state::Running) const
     {   // Do nothing when finally running
     }
@@ -522,6 +527,22 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
         }
     }
 }
+
+void SessionMaintainerLocker::IncrementFailureCount()
+{
+    failure_count_.fetch_add(1, boost::memory_order_release);
+}
+
+uint32_t SessionMaintainerLocker::GetFailureCount()
+{
+    return failure_count_.load(boost::memory_order_consume);
+}
+
+void SessionMaintainerLocker::ResetFailureCount()
+{
+    failure_count_.store(0, boost::memory_order_release);
+}
+
 
 // Only call when mutex_ is locked!
 void SessionMaintainerLocker::DebugOutputTokenCounts()

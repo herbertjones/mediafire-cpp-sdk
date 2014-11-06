@@ -36,6 +36,8 @@ namespace {
 namespace session_state = mf::api::session_state;
 using mf::api::SessionState;
 
+const uint32_t skProlongedFailureThreshold = 10;
+
 #ifdef OUTPUT_DEBUG // Debug code
 std::ostream& operator<<(
         std::ostream& out,
@@ -60,6 +62,11 @@ std::ostream& operator<<(
             return "session_state::CredentialsFailure";
         }
 
+        std::string operator()(session_state::ProlongedError) const
+        {
+            return "session_state::ProlongedError";
+        }
+
         std::string operator()(session_state::Running) const
         {
             return "session_state::Running";
@@ -71,9 +78,21 @@ std::ostream& operator<<(
 }
 #endif
 
+bool IsUninitialized(const SessionState & state)
+{
+    return (boost::get<session_state::Uninitialized>(&state));
+}
 bool IsInitialized(const SessionState & state)
 {
     return (boost::get<session_state::Initialized>(&state));
+}
+bool IsCredentialsError(const SessionState & state)
+{
+    return (boost::get<session_state::CredentialsFailure>(&state));
+}
+bool IsProlongedError(const SessionState & state)
+{
+    return (boost::get<session_state::ProlongedError>(&state));
 }
 bool IsRunning(const SessionState & state)
 {
@@ -366,17 +385,20 @@ void SessionMaintainer::HandleSessionTokenResponse(
                 session_token_failure_wait_timeout_ms) );
 
         session_token_failure_timer_.async_wait(
-            boost::bind(
-                &SessionMaintainer::HandleSessionTokenFailureTimeout,
-                this,
-                boost::asio::placeholders::error
-            )
-        );
+                boost::bind(
+                    &SessionMaintainer::HandleSessionTokenFailureTimeout,
+                    this,
+                    boost::asio::placeholders::error
+                )
+            );
+
+        // Increment failure count
+        locker_->IncrementFailureCount();
 
         // If username or password is incorrect, stop.
         if ( IsInvalidCredentialsError(response.error_code) )
         {
-            if (IsInitialized(session_state) || IsRunning(session_state))
+            if ( ! IsUninitialized(session_state) && ! IsCredentialsError(session_state) )
             {
                 // State is valid.
 
@@ -405,6 +427,26 @@ void SessionMaintainer::HandleSessionTokenResponse(
                 }
             }
         }
+        else
+        {   // Non-credential error
+            if ( locker_->GetFailureCount() >= skProlongedFailureThreshold )
+            {
+                // Can only proceed to ProlongedError from Initialized, but will
+                // continue to re-emit ProlongedError as long as we keep getting
+                // errors. The locker will only emit a state change if the
+                // actual error changes.
+                if ( IsInitialized(session_state) || IsProlongedError(session_state) )
+                {
+                    session_state::ProlongedError new_state;
+                    new_state.session_token_response = response;
+                    new_state.error_code = response.error_code;
+                    locker_->SetSessionStateSafe(
+                        new_state,
+                        session_state_change_count
+                        );
+                }
+            }
+        }
     }
     else
     {
@@ -415,6 +457,8 @@ void SessionMaintainer::HandleSessionTokenResponse(
             << std::endl;
 #       endif
 
+        locker_->ResetFailureCount();
+
         SessionTokenData st = {
             response.session_token,
             response.pkey,
@@ -424,7 +468,7 @@ void SessionMaintainer::HandleSessionTokenResponse(
         if ( locker_->AddSessionToken(std::move(st), old_credentials) )
         {
             // Fix state if we are just starting.
-            if (IsInitialized(session_state))
+            if (IsInitialized(session_state) || IsProlongedError(session_state))
             {
                 session_state::Running new_state = {response};
 

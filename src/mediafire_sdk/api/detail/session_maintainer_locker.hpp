@@ -96,6 +96,10 @@ public:
 
     void StopTimeouts();
 
+    void IncrementFailureCount();
+    uint32_t GetFailureCount();
+    void ResetFailureCount();
+
 private:
     boost::asio::io_service * callback_ios_;
 
@@ -130,6 +134,8 @@ private:
     std::size_t in_progress_session_token_requests_;
 
     WeakTimedEvents::Pointer time_out_requests_;
+
+    boost::atomic<uint32_t> failure_count_;
 
     void ChangeSessionStateInternal(
             api::SessionState state,
