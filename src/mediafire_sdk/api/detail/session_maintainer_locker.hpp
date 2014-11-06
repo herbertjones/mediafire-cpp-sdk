@@ -5,6 +5,7 @@
  * @copyright Copyright 2014 Mediafire
  */
 #pragma once
+#include <boost/atomic.hpp>
 
 #include "mediafire_sdk/api/connection_state.hpp"
 #include "mediafire_sdk/api/credentials.hpp"
