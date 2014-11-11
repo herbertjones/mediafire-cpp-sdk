@@ -674,12 +674,12 @@ BOOST_AUTO_TEST_CASE(FolderGetContentLive)
 
             if ( response.error_code )
             {
-                std::ostringstream ss;
-                ss << "Error: " << response.error_string << std::endl;
-                BOOST_FAIL(ss.str());
+                Fail(response);
             }
             else
-                std::cout << "Success!" << std::endl;
+            {
+                Success();
+            }
         });
 
     StartWithDefaultTimeout();
