@@ -183,6 +183,7 @@ std::error_condition CategoryImpl::default_error_condition(
         case 239: return api::errc::ShareResourceLimit;
         case 240: return api::errc::ResourceGrantPermissionFailure;
         case 241: return api::errc::ServiceUnrecognized;
+        case 243: return api::errc::AccountTemporarilyLocked;
         default: return std::error_condition(ev, *this);
     }
 }

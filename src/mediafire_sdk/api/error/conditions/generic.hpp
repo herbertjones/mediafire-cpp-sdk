@@ -137,6 +137,7 @@ enum class errc
     UploadKeyInvalid,
     UrlInvalid,
     UserInvalid,
+    AccountTemporarilyLocked,
 };
 
 /**

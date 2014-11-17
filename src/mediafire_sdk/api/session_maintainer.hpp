@@ -53,6 +53,19 @@ public:
         max_in_progress_token_requests = 4,
         max_tokens = 10,
         session_token_failure_wait_timeout_ms = 2500,
+
+        /**
+         * Time to wait between session token requests during credential
+         * failure. We have to throttle attempts to prevent locking account.
+         */
+        session_token_credential_failure_wait_timeout_ms = 60000,
+
+        /**
+         * Time to wait between requests when account is locked. We have to
+         * give it time or we will constantly reset the locked out timer and
+         * the user will never be able to log in.
+         */
+         session_token_account_locked_wait_timeout_ms = 600000,
     };
 
     /** Signature for session state change callbacks */
@@ -256,6 +269,14 @@ private:
     void AttemptRequests();
     void RequestSessionToken(
             const Credentials & credentials
+        );
+    enum class BadCredentialBehavior
+    {
+        Force,
+        NoForce,
+    };
+    void RequestNeededSessionTokens(
+            BadCredentialBehavior badCredentialBehavior
         );
 
     void HandleSessionTokenResponse(

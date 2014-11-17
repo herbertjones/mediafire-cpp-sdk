@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "boost/current_function.hpp"
 #include "boost/variant/apply_visitor.hpp"
 #include "boost/variant/get.hpp"
 
@@ -308,24 +309,51 @@ void SessionMaintainer::AttemptRequests()
         ATTEMPT_REQUEST_DEBUG("Started session token request.\n")
     }
 
-    // Request more session tokens for those that need it.
-    const boost::optional<Credentials> credentials( locker_->GetCredenials() );
-    if (credentials)
-    {
-        while ( locker_->PermitSessionTokenCheckout() )
-        {
-            RequestSessionToken(*credentials);
-            ATTEMPT_REQUEST_DEBUG("Requested session token.\n")
-        }
-    }
-    else
-    {
-        ATTEMPT_REQUEST_DEBUG("No credentials.\n")
-    }
+    // Request session tokens if needed. Do not force the request or we could
+    // get locked out of the account.
+    RequestNeededSessionTokens(BadCredentialBehavior::NoForce);
 
     ATTEMPT_REQUEST_DEBUG("-- END --\n")
 }
 #undef ATTEMPT_REQUEST_DEBUG
+
+/// Requests as many session tokens as allowed by the SessionTokenLocker.
+void SessionMaintainer::RequestNeededSessionTokens(
+        BadCredentialBehavior badCredentialBehavior
+    )
+{
+    bool haveBadCredentials = IsCredentialsError(GetSessionState());
+    if ( ! haveBadCredentials ||
+            badCredentialBehavior == BadCredentialBehavior::Force )
+    {
+        const boost::optional<Credentials> credentials( locker_->GetCredenials() );
+        if (credentials)
+        {
+            if ( haveBadCredentials )
+            {   // Request only one token
+                RequestSessionToken(*credentials);
+            }
+            else
+            {   // Request as many tokens as we need
+                while ( locker_->PermitSessionTokenCheckout() )
+                {
+                    RequestSessionToken(*credentials);
+#ifdef OUTPUT_DEBUG
+                    std::cout << BOOST_CURRENT_FUNCTION << ": Requested session token.\n";
+#endif
+                }
+            }
+        }
+        else
+        {
+#ifdef OUTPUT_DEBUG
+            std::cout << BOOST_CURRENT_FUNCTION << ": No credentials.\n")
+#endif
+        }
+    }
+    // else We can safely do nothing when the state is CredentialsFailure
+    //      because we know that we will keep retrying.
+}
 
 void SessionMaintainer::RequestSessionToken(
         const Credentials & credentials
@@ -376,31 +404,22 @@ void SessionMaintainer::HandleSessionTokenResponse(
     {
 #       ifdef OUTPUT_DEBUG // Debug code
         std::cout << "SessionMaintainer: Session token request failed: "
-            << response.error_code.message() << std::endl;
+            << response.error_code.message() << "\n"
+            << response.debug << std::endl;
 #       endif
-
-        // Fail and set timeout before retry.
-        session_token_failure_timer_.expires_from_now(
-            boost::posix_time::milliseconds(
-                session_token_failure_wait_timeout_ms) );
-
-        session_token_failure_timer_.async_wait(
-                boost::bind(
-                    &SessionMaintainer::HandleSessionTokenFailureTimeout,
-                    this,
-                    boost::asio::placeholders::error
-                )
-            );
 
         // Increment failure count
         locker_->IncrementFailureCount();
 
-        // If username or password is incorrect, stop.
         if ( IsInvalidCredentialsError(response.error_code) )
         {
+            // Fail and set timeout before retry.
+            session_token_failure_timer_.expires_from_now(
+                boost::posix_time::milliseconds(
+                    session_token_credential_failure_wait_timeout_ms) );
+
             if ( ! IsUninitialized(session_state) && ! IsCredentialsError(session_state) )
-            {
-                // State is valid.
+            {   // State is valid.
 
                 const boost::optional<Credentials> credentials(
                     locker_->GetCredenials() );
@@ -429,7 +448,18 @@ void SessionMaintainer::HandleSessionTokenResponse(
         }
         else
         {   // Non-credential error
-            if ( locker_->GetFailureCount() >= skProlongedFailureThreshold )
+            bool accountIsLocked = ( response.error_code == errc::AccountTemporarilyLocked );
+
+            uint32_t wait_time = ( accountIsLocked ?
+                    session_token_account_locked_wait_timeout_ms :
+                    session_token_failure_wait_timeout_ms
+                );
+
+            // Fail and set timeout before retry.
+            session_token_failure_timer_.expires_from_now(
+                boost::posix_time::milliseconds(wait_time) );
+
+            if ( locker_->GetFailureCount() >= skProlongedFailureThreshold || accountIsLocked )
             {
                 // Can only proceed to ProlongedError from Initialized, but will
                 // continue to re-emit ProlongedError as long as we keep getting
@@ -447,6 +477,14 @@ void SessionMaintainer::HandleSessionTokenResponse(
                 }
             }
         }
+
+        session_token_failure_timer_.async_wait(
+                boost::bind(
+                    &SessionMaintainer::HandleSessionTokenFailureTimeout,
+                    this,
+                    boost::asio::placeholders::error
+                )
+            );
     }
     else
     {
@@ -499,6 +537,7 @@ void SessionMaintainer::HandleSessionTokenFailureTimeout(
     if (!err)
     {
         AttemptRequests();
+        RequestNeededSessionTokens(BadCredentialBehavior::Force);
     }
 }
 

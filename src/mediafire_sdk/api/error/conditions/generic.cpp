@@ -288,6 +288,8 @@ std::string ApiConditionImpl::message(int ev) const
             return "url invalid";
         case errc::UserInvalid:
             return "user invalid";
+        case errc::AccountTemporarilyLocked:
+            return "account temporarily locked";
         default:
         {
             assert(!"Unimplemented condition");
