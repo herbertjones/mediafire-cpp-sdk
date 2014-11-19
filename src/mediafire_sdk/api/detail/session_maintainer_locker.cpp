@@ -277,6 +277,15 @@ bool SessionMaintainerLocker::AddSessionToken(
     if ( credentials_ &&
         mf::utils::AreVariantsEqual( old_credentials, *credentials_ ) )
     {
+        // Check to ensure we aren't inserting more than one of these
+        assert(
+            std::find_if(
+                std::begin(session_tokens_),
+                std::end(session_tokens_),
+                [&token](const SessionTokenData & it)
+                {
+                    return it.session_token == token.session_token;
+                }) == std::end(session_tokens_));
         session_tokens_.push_back( std::move(token) );
         DEBUG_TOKEN_COUNT();
         return true;
@@ -315,6 +324,15 @@ void SessionMaintainerLocker::ReuseToken(
                 st.secret_key = static_cast<int>(next_key);
             }
 
+            // Check to ensure we aren't inserting more than one of these
+            assert(
+                std::find_if(
+                    std::begin(session_tokens_),
+                    std::end(session_tokens_),
+                    [&st](const SessionTokenData & it)
+                    {
+                        return it.session_token == st.session_token;
+                    }) == std::end(session_tokens_));
             session_tokens_.push_back( std::move(st) );
 
             DEBUG_TOKEN_COUNT();
