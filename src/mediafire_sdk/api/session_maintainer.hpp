@@ -264,7 +264,7 @@ private:
             detail::STRequest request,
             ResponseBase * response);
 
-    void UpdateStateFromErrorCode(const std::error_code &);
+    void UpdateConnectionStateFromErrorCode(const std::error_code &);
 
     void AttemptRequests();
     void RequestSessionToken(

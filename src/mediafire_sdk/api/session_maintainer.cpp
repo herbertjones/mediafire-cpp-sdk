@@ -230,10 +230,10 @@ void SessionMaintainer::HandleCompletionNotification(
         ResponseBase * response
     )
 {
-    UpdateStateFromErrorCode(response->error_code);
+    UpdateConnectionStateFromErrorCode(response->error_code);
 }
 
-void SessionMaintainer::UpdateStateFromErrorCode(
+void SessionMaintainer::UpdateConnectionStateFromErrorCode(
         const std::error_code & ec
     )
 {
@@ -398,7 +398,7 @@ void SessionMaintainer::HandleSessionTokenResponse(
     std::tie(session_state, session_state_change_count) =
         locker_->GetSessionState();
 
-    UpdateStateFromErrorCode(response.error_code);
+    UpdateConnectionStateFromErrorCode(response.error_code);
 
     if ( response.error_code )
     {
