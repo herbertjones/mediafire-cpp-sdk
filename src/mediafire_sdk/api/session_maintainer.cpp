@@ -505,8 +505,9 @@ void SessionMaintainer::HandleSessionTokenResponse(
 
         if ( locker_->AddSessionToken(std::move(st), old_credentials) )
         {
-            // Fix state if we are just starting.
-            if (IsInitialized(session_state) || IsProlongedError(session_state))
+            // Always move to running if we have a good session token and we are
+            // not uninitialized.
+            if ( !IsUninitialized(session_state) && !IsRunning(session_state) )
             {
                 session_state::Running new_state = {response};
 
