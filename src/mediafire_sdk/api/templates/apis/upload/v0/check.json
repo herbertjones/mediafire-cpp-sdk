@@ -158,10 +158,22 @@
                 "api_path": "unit_size"
             },
             {
+                "cpp_type": "uint32_t",
+                "cpp_name": "bitmap_count",
+                "api_path": "bitmap.count",
+                "optional": true
+            },
+            {
                 "cpp_type": "uint16_t",
                 "cpp_name": "words",
                 "api_path": "bitmap.words",
                 "json_type": "array"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "upload_key",
+                "api_path": "upload_key",
+                "optional": true
             }
             ]
         }

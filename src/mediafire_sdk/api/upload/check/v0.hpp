@@ -137,8 +137,14 @@ public:
         /** API response field "unit_size" */
         uint64_t unit_size;
 
+        /** API response field "bitmap.count" */
+        boost::optional<uint32_t> bitmap_count;
+
         /** API response field "bitmap.words" */
         std::vector<uint16_t> words;
+
+        /** API response field "upload_key" */
+        boost::optional<std::string> upload_key;
     };
     /** API response field "response.hash_exists" */
     HashAlreadyInSystem hash_exists;

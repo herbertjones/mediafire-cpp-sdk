@@ -85,6 +85,18 @@ bool ResumableDataFromPropertyBranch(
             mf::api::api_code::ContentInvalidData,
             "missing \"unit_size\"");
 
+    // create_content_parse_single optional no default
+    {
+        uint32_t optarg;
+        if ( GetIfExists(
+                pt,
+                "bitmap.count",
+                &optarg) )
+        {
+            value->bitmap_count = optarg;
+        }
+    }
+
     // create_content_parse_array TArray
     try {
         const boost::property_tree::wptree & branch =
@@ -120,6 +132,18 @@ bool ResumableDataFromPropertyBranch(
         return_error(
             mf::api::api_code::ContentInvalidData,
             "missing \"bitmap.words\"");
+    }
+
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                pt,
+                "upload_key",
+                &optarg) )
+        {
+            value->upload_key = optarg;
+        }
     }
 
     // get_data_type_struct_extractor conclusion
