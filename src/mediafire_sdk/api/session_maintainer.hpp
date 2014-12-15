@@ -14,10 +14,13 @@
 #include <string>
 #include <vector>
 
+#include "boost/asio/steady_timer.hpp"
+
 #include "mediafire_sdk/api/connection_state.hpp"
 #include "mediafire_sdk/api/credentials.hpp"
 #include "mediafire_sdk/api/detail/session_maintainer_request.hpp"
 #include "mediafire_sdk/api/session_state.hpp"
+#include "mediafire_sdk/api/system/get_status.hpp"
 #include "mediafire_sdk/api/user/get_session_token.hpp"
 
 namespace mf {
@@ -53,6 +56,7 @@ public:
         max_in_progress_token_requests = 4,
         max_tokens = 10,
         session_token_failure_wait_timeout_ms = 2500,
+        connection_state_recheck_timeout_ms = 5000,
 
         /**
          * Time to wait between session token requests during credential
@@ -233,6 +237,7 @@ private:
 
     mf::http::HttpConfig::ConstPointer http_config_;
     boost::asio::deadline_timer session_token_failure_timer_;
+    boost::asio::steady_timer connection_state_recheck_timer_;
 
     Requester requester_;
 
@@ -267,6 +272,7 @@ private:
     void UpdateConnectionStateFromErrorCode(const std::error_code &);
 
     void AttemptRequests();
+    void AttemptConnection();
     void RequestSessionToken(
             const Credentials & credentials
         );
@@ -284,9 +290,16 @@ private:
             const Credentials & credentials
         );
 
+    void HandleCheckConnectionStatusResponse(
+            const api::system::get_status::Response& response
+        );
+
     void HandleDelayedRequestTimeout( detail::STRequest );
 
     void HandleSessionTokenFailureTimeout(
+            const boost::system::error_code & err
+        );
+    void HandleConnectionStateRecheckTimeout(
             const boost::system::error_code & err
         );
 

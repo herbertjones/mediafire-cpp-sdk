@@ -7,6 +7,7 @@
 #include "session_maintainer.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <deque>
 #include <map>
 #include <queue>
@@ -36,6 +37,9 @@ using mf::api::detail::SessionMaintainerRequest;
 namespace {
 namespace session_state = mf::api::session_state;
 using mf::api::SessionState;
+
+namespace connection_state = mf::api::connection_state;
+using mf::api::ConnectionState;
 
 const uint32_t skProlongedFailureThreshold = 10;
 
@@ -99,6 +103,15 @@ bool IsRunning(const SessionState & state)
 {
     return (boost::get<session_state::Running>(&state));
 }
+
+bool IsConnected(const ConnectionState & state)
+{
+    return (boost::get<connection_state::Connected>(&state));
+}
+bool IsUnconnected(const ConnectionState & state)
+{
+    return (boost::get<connection_state::Unconnected>(&state));
+}
 }  // namespace
 
 namespace mf {
@@ -128,6 +141,7 @@ SessionMaintainer::SessionMaintainer(
             })),
     http_config_(http_config),
     session_token_failure_timer_(*http_config_->GetWorkIoService()),
+    connection_state_recheck_timer_(*http_config_->GetWorkIoService()),
     requester_(http_config_, hostname),
     timeout_seconds_(60),
     is_running_(std::make_shared<Running>(Running::Yes))
@@ -255,6 +269,17 @@ void SessionMaintainer::UpdateConnectionStateFromErrorCode(
             connection_state::Unconnected new_state = {ec};
 
             SetConnectionState(new_state);
+
+            // State is disconnected, so schedule a state check later
+            connection_state_recheck_timer_.expires_from_now(
+                std::chrono::milliseconds(connection_state_recheck_timeout_ms));
+            connection_state_recheck_timer_.async_wait(
+                    boost::bind(
+                        &SessionMaintainer::HandleConnectionStateRecheckTimeout,
+                        this,
+                        boost::asio::placeholders::error
+                    )
+                );
         }
         else
         {
@@ -275,6 +300,14 @@ void SessionMaintainer::UpdateConnectionStateFromErrorCode(
 void SessionMaintainer::AttemptRequests()
 {
     ATTEMPT_REQUEST_DEBUG("-- BEGIN --\n")
+
+    // If disconnected, just attempt to reconnect
+    if ( IsUnconnected(GetConnectionState()) )
+    {
+        AttemptConnection();
+        return;
+    }
+
     // Handle requests that do not use session tokens.
     boost::optional< STRequest > opt_request;
     while ( (opt_request = locker_->NextWaitingNonSessionTokenRequest()) )
@@ -316,6 +349,35 @@ void SessionMaintainer::AttemptRequests()
     ATTEMPT_REQUEST_DEBUG("-- END --\n")
 }
 #undef ATTEMPT_REQUEST_DEBUG
+
+void SessionMaintainer::AttemptConnection()
+{
+    auto running_ptr = is_running_;
+
+    hl::HttpRequest::Pointer http_request =
+        requester_.Call(
+            system::get_status::Request(),
+            [this, running_ptr](
+                    const system::get_status::Response & response
+                )
+            {
+                if (*running_ptr == Running::Yes)
+                    HandleCheckConnectionStatusResponse(response);
+            },
+            RequestStarted::No
+        );
+    http_request->Start();
+}
+
+void SessionMaintainer::HandleCheckConnectionStatusResponse(
+        const system::get_status::Response& response
+    )
+{
+    UpdateConnectionStateFromErrorCode(response.error_code);
+    if ( IsConnected(GetConnectionState()) )
+        AttemptRequests();
+    // else Connection still down- Keep waiting
+}
 
 /// Requests as many session tokens as allowed by the SessionTokenLocker.
 void SessionMaintainer::RequestNeededSessionTokens(
@@ -380,7 +442,12 @@ void SessionMaintainer::RequestSessionToken(
         );
 
     // The timeout for these can be shorter.
-    http_request->SetTimeout(15);
+    /// @note The following line was commented out because a shorter timeout for
+    ///       session tokens will cause us to alternate between network down
+    ///       and invalid credentials if the credentials are bad but the
+    ///       network is also slow. I don't see any harm in leaving this timeout
+    ///       the same as all others. -ZCM
+    //http_request->SetTimeout(15);
 
     http_request->Start();
 }
@@ -539,6 +606,16 @@ void SessionMaintainer::HandleSessionTokenFailureTimeout(
     {
         AttemptRequests();
         RequestNeededSessionTokens(BadCredentialBehavior::Force);
+    }
+}
+
+void SessionMaintainer::HandleConnectionStateRecheckTimeout(
+        const boost::system::error_code & err
+    )
+{
+    if ( !err )
+    {
+        AttemptRequests();
     }
 }
 
