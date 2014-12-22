@@ -1,6 +1,6 @@
 /**
  * @file api/upload/check.hpp
- * @brief API request: /api/upload/check
+ * @brief API request: /api/1.2/upload/check
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace upload {
 /** API action "upload/check" */
 namespace check {
-/** API path "/api/upload/check" */
-namespace v0 {
+/** API path "/api/1.2/upload/check" */
+namespace v1_2 {
 
 enum class Resumable
 {
@@ -142,6 +142,9 @@ public:
 
         /** API response field "bitmap.words" */
         std::vector<uint16_t> words;
+
+        /** API response field "upload_key" */
+        boost::optional<std::string> upload_key;
     };
     /** API response field "response.hash_exists" */
     HashAlreadyInSystem hash_exists;
@@ -277,7 +280,7 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v0
+}  // namespace v1_2
 
 }  // namespace check
 }  // namespace upload

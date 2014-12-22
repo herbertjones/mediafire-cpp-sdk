@@ -42,6 +42,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     system/get_supported_media/v0.cpp
     system/get_version/v0.cpp
     upload/check/v0.cpp
+    upload/check/v1_2.cpp
     upload/instant/v0.cpp
     upload/poll_upload/v0.cpp
     upload/pre_upload/v0.cpp
@@ -138,6 +139,7 @@ set(API_TEMPLATE_GENERATED_HEADERS
     system/get_version/v0.hpp
     upload/check.hpp
     upload/check/v0.hpp
+    upload/check/v1_2.hpp
     upload/instant.hpp
     upload/instant/v0.hpp
     upload/poll_upload.hpp

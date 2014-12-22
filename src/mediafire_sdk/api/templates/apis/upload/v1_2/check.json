@@ -1,7 +1,7 @@
 {
-    "api": "/api/upload/check",
-    "version": "0",
-    "default_version": false,
+    "api": "/api/1.2/upload/check",
+    "version": "1.2",
+    "default_version": true,
     "enums": [
         {
             "cpp_name": "Resumable",
@@ -169,6 +169,12 @@
                 "cpp_name": "words",
                 "api_path": "bitmap.words",
                 "json_type": "array"
+            },
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "upload_key",
+                "api_path": "upload_key",
+                "optional": true
             }
             ]
         }

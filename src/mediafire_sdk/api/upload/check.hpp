@@ -9,6 +9,7 @@
 #pragma once
 
 #include "check/v0.hpp"
+#include "check/v1_2.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace upload {
 namespace check {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_2;  // NOLINT
 
 }  // namespace check
 }  // namespace upload
