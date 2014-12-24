@@ -93,14 +93,45 @@ add_test(ut_multithread
 )
 
 # --- live -------------------------------------------------
-add_executable(ut_live
-    ut_live.cpp)
+set(UT_LIVE_SOURCES
+    ut_live.cpp
+)
 
-target_link_libraries(ut_live
+set(UT_LIVE_HEADERS
+    ut_live.hpp
+)
+
+add_library(ut_live STATIC
+    ${UT_LIVE_HEADERS}
+    ${UT_LIVE_SOURCES}
+)
+
+TARGET_LINK_LIBRARIES(ut_live
     mf_api_sdk
     session_token_server
     ut_expect_server
 )
+
+add_executable(ut_live_general ut_live_general.cpp)
+target_link_libraries(ut_live_general ut_live)
+
+add_executable(ut_live_billing ut_live_billing.cpp)
+target_link_libraries(ut_live_billing ut_live)
+
+add_executable(ut_live_device ut_live_device.cpp)
+target_link_libraries(ut_live_device ut_live)
+
+add_executable(ut_live_user ut_live_user.cpp)
+target_link_libraries(ut_live_user ut_live)
+
+add_executable(ut_live_notifications ut_live_notifications.cpp)
+target_link_libraries(ut_live_notifications ut_live)
+
+add_executable(ut_live_system ut_live_system.cpp)
+target_link_libraries(ut_live_system ut_live)
+
+add_executable(ut_live_folder ut_live_folder.cpp)
+target_link_libraries(ut_live_folder ut_live)
 
 # Don't run these automatically.
 #add_test(ut_live
