@@ -4,6 +4,7 @@
  *
  * @copyright Copyright 2014 Mediafire
  */
+#include <fstream>
 
 #include "ut_live.hpp"
 
@@ -11,16 +12,25 @@
 #  define OUTPUT_DEBUG
 #endif
 
+
 #include "mediafire_sdk/api/device/get_changes.hpp"
 #include "mediafire_sdk/api/device/get_status.hpp"
 
+#include "mediafire_sdk/api/file/configure_one_time_key.hpp"
 #include "mediafire_sdk/api/file/copy.hpp"
 #include "mediafire_sdk/api/file/create.hpp"
+#include "mediafire_sdk/api/file/create_snapshot.hpp"
 #include "mediafire_sdk/api/file/file_delete.hpp"
 #include "mediafire_sdk/api/file/get_info.hpp"
 #include "mediafire_sdk/api/file/get_links.hpp"
+#include "mediafire_sdk/api/file/get_versions.hpp"
 #include "mediafire_sdk/api/file/move.hpp"
+#include "mediafire_sdk/api/file/one_time_key.hpp"
+#include "mediafire_sdk/api/file/purge.hpp"
+#include "mediafire_sdk/api/file/recently_modified.hpp"
+#include "mediafire_sdk/api/file/restore.hpp"
 #include "mediafire_sdk/api/file/update.hpp"
+#include "mediafire_sdk/api/file/update_file.hpp"
 
 #include "mediafire_sdk/api/folder/copy.hpp"
 #include "mediafire_sdk/api/folder/create.hpp"
@@ -45,6 +55,13 @@
 #include "mediafire_sdk/api/unit_tests/session_token_test_server.hpp"
 #include "mediafire_sdk/api/unit_tests/api_ut_helpers.hpp"
 
+// File upload includes START
+#include "mediafire_sdk/api/session_maintainer.hpp"
+#include "mediafire_sdk/uploader/upload_manager.hpp"
+#include "mediafire_sdk/uploader/upload_status.hpp"
+#include "boost/variant/get.hpp"
+// File upload includes END
+
 #ifdef BOOST_ASIO_SEPARATE_COMPILATION
 #include "boost/asio/impl/src.hpp"      // Define once in program
 #include "boost/asio/ssl/impl/src.hpp"  // Define once in program
@@ -56,7 +73,8 @@
 namespace posix_time = boost::posix_time;
 namespace api = mf::api;
 
-namespace globals {
+namespace globals
+{
 using namespace ut::globals;
 
 std::string test_folderkey;
@@ -82,7 +100,86 @@ bool has_updated_files = false;
 bool has_updated_folders = false;
 bool has_deleted_files = false;
 bool has_deleted_folders = false;
+
+namespace upload
+{
+std::string random_file_name;
+std::string quickkey_1;
+std::string quickkey_2;
+uint32_t snapshot_old_revision;
+}  // namespace upload
+namespace one_time_key
+{
+std::string download_token;
+}  // namespace one_time_key
 }  // namespace globals
+
+std::string RandomFilename()
+{
+    static std::string chars(
+            "abcdefghijklmnopqrstuvwxyz"
+            "1234567890");
+
+    int name_size = 8;
+
+    static boost::random::random_device rng;
+    static boost::random::uniform_int_distribution<> index_dist(
+            0, chars.size() - 1);
+
+    std::string data;
+    data.reserve(name_size);
+
+    for (std::size_t i = 0; i < name_size; ++i)
+    {
+        data.push_back(chars[index_dist(rng)]);
+    }
+
+    data += ".dat";
+
+    return data;
+}
+
+// File of random data that deletes itself when it is destroyed
+class RandomFile
+{
+public:
+    RandomFile(uint32_t size) : size_(size), name_(RandomFilename())
+    {
+        using std::ios;
+
+        std::ofstream file_handle;
+
+        file_handle.open(name_.c_str(), ios::binary | ios::out);
+        if (file_handle.is_open() && file_handle.good())
+        {
+            static std::string chars(
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "1234567890"
+                    "!@#$%^&*()"
+                    "`~-_=+[{]{\\|;:'\",<.>/? ");
+
+            static boost::random::random_device rng;
+            static boost::random::uniform_int_distribution<> index_dist(
+                    0, chars.size() - 1);
+
+            for (std::size_t i = 0; i < size_; ++i)
+                file_handle.put(chars[index_dist(rng)]);
+        }
+    }
+
+    ~RandomFile()
+    {
+        boost::system::error_code ec;
+        boost::filesystem::remove(name_, ec);
+    }
+
+    const std::string & Name() const { return name_; }
+
+private:
+    uint32_t size_;
+    std::string name_;
+};
 
 BOOST_FIXTURE_TEST_SUITE( s, ut::Fixture )
 
@@ -200,14 +297,16 @@ BOOST_AUTO_TEST_CASE(CreateFile)
 
                 globals::test_quickkey = response.quickkey;
 
-                BOOST_CHECK( ! response.quickkey.empty() );
+                BOOST_CHECK(!response.quickkey.empty());
+                BOOST_CHECK(response.created_datetime
+                            != boost::date_time::not_a_date_time);
             }
         });
 
     StartWithDefaultTimeout();
 }
 
-BOOST_AUTO_TEST_CASE(CopyFile)
+BOOST_AUTO_TEST_CASE(CopyFile1)
 {
     api::file::copy::Request request(globals::test_quickkey);
 
@@ -230,6 +329,245 @@ BOOST_AUTO_TEST_CASE(CopyFile)
                 Debug( response.quickkey );
 
                 BOOST_CHECK( ! response.quickkey.empty() );
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(UploadRandomFile)
+{
+    auto random_file = RandomFile(1024 * 1024 * 1);
+
+    globals::upload::random_file_name = random_file.Name();
+
+    mf::uploader::UploadManager um(&stm_);
+
+    mf::uploader::UploadRequest request(globals::upload::random_file_name);
+
+    request.SetTargetFolderkey(globals::test_folderkey);
+
+    // You may want to change the name for a different test
+    // request.SetTargetFilename(save_as);
+
+    // Add the file to upload.
+    um.Add(request, [this](mf::uploader::UploadStatus status)
+           {
+        if (auto error
+            = boost::get<mf::uploader::upload_state::Error>(&status.state))
+        {
+            const auto & ec = error->error_code;
+            std::ostringstream ss;
+            ss << "Received error: " + ec.message() << "\n";
+            ss << "Error type: " + std::string(ec.category().name()) << "\n";
+            ss << "Error value: " + mf::utils::to_string(ec.value()) << "\n";
+            ss << "Description: " + error->description << "\n";
+
+            Fail(ss.str());
+        }
+        else if (auto success
+                 = boost::get<mf::uploader::upload_state::Complete>(
+                         &status.state))
+        {
+            globals::upload::quickkey_1 = success->quickkey;
+            Success();
+        }
+    });
+
+    StartWithTimeout(posix_time::seconds(60));
+}
+
+BOOST_AUTO_TEST_CASE(CopyFile2)
+{
+    api::file::copy::Request request(globals::upload::quickkey_1);
+
+    request.SetTargetParentFolderkey(globals::test_folderkey);
+
+    Call(
+        request,
+        [&](const api::file::copy::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+
+                globals::test_quickkey2 = response.quickkey;
+
+                Debug( response.quickkey );
+
+                BOOST_CHECK( ! response.quickkey.empty() );
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(CreateSnapshot)
+{
+    api::file::create_snapshot::Request request(globals::upload::quickkey_1);
+
+    Call(
+        request,
+        [&](const api::file::create_snapshot::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+
+                globals::upload::snapshot_old_revision = response.old_revision;
+
+                std::cout << "Snapshot old revision: " << response.old_revision
+                          << std::endl;
+                std::cout << "Snapshot new revision: " << response.new_revision
+                          << std::endl;
+                std::cout << "Device new revision: " << response.device_revision
+                          << std::endl;
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(RestoreFile)
+{
+    api::file::restore::Request request(
+        globals::upload::quickkey_1,
+        globals::upload::snapshot_old_revision
+        );
+
+    Call(
+        request,
+        [&](const api::file::restore::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(GetFileVersions)
+{
+    api::file::get_versions::Request request(globals::upload::quickkey_1);
+
+    Call(
+        request,
+        [&](const api::file::get_versions::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                // There should be at least one version.
+                if (response.file_versions.size() > 0)
+                {
+                    Success();
+                }
+                else
+                {
+                    Fail("There should be at least one file version.");
+                }
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(RecentlyModified)
+{
+    api::file::recently_modified::Request request(globals::upload::quickkey_1);
+
+    Call(
+        request,
+        [&](const api::file::recently_modified::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                // There should be at least one version.
+                if (response.quickkeys.size() > 0)
+                {
+                    Success();
+                }
+                else
+                {
+                    Fail("There should be at least one change.");
+                }
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(OneTimeKey)
+{
+    api::file::one_time_key::Request request;
+
+    request.SetQuickkey(globals::upload::quickkey_1);
+
+    Call(
+        request,
+        [&](const api::file::one_time_key::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                globals::one_time_key::download_token = response.token;
+                // There should be at least one version.
+                if (response.download_link)
+                {
+                    Success();
+                }
+                else
+                {
+                    Fail("Download link unavailable!");
+                }
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(ConfigureOneTimeKey)
+{
+    api::file::configure_one_time_key::Request request(
+        globals::one_time_key::download_token);
+
+    request.SetDurationMinutes(10);
+
+    Call(
+        request,
+        [&](const api::file::configure_one_time_key::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                Success();
             }
         });
 
@@ -463,11 +801,89 @@ BOOST_AUTO_TEST_CASE(ConfirmCopyMove)
             {
                 Success();
 
+                //std::cout << "files: " << response.total_files << std::endl;
+                //std::cout << "folders: " << response.total_folders << std::endl;
+
                 BOOST_CHECK(
-                    response.total_files && *response.total_files == 2
+                    response.total_files && *response.total_files == 6
                     && response.total_folders && *response.total_folders == 1
                     );
             }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(PurgeFile)
+{
+    std::vector<std::string> quickkeys = {globals::test_quickkey};
+    Call(
+        api::file::purge::Request(quickkeys),
+        [&](const api::file::purge::Response & response)
+        {
+            if ( response.error_code )
+                Fail(response);
+            else
+                Success();
+        });
+
+    StartWithDefaultTimeout();
+}
+
+// Create a second file for replacing the first one.
+BOOST_AUTO_TEST_CASE(UploadRandomFile2)
+{
+    auto random_file = RandomFile(1024 * 1024/2 * 3);
+
+    mf::uploader::UploadManager um(&stm_);
+
+    mf::uploader::UploadRequest request(random_file.Name());
+
+    request.SetTargetFolderkey(globals::test_folderkey);
+
+    // You may want to change the name for a different test
+    // request.SetTargetFilename(save_as);
+
+    // Add the file to upload.
+    um.Add(request, [this](mf::uploader::UploadStatus status)
+           {
+        if (auto error
+            = boost::get<mf::uploader::upload_state::Error>(&status.state))
+        {
+            const auto & ec = error->error_code;
+            std::ostringstream ss;
+            ss << "Received error: " + ec.message() << "\n";
+            ss << "Error type: " + std::string(ec.category().name()) << "\n";
+            ss << "Error value: " + mf::utils::to_string(ec.value()) << "\n";
+            ss << "Description: " + error->description << "\n";
+
+            Fail(ss.str());
+        }
+        else if (auto success
+                 = boost::get<mf::uploader::upload_state::Complete>(
+                         &status.state))
+        {
+            globals::upload::quickkey_2 = success->quickkey;
+            Success();
+        }
+    });
+
+    StartWithTimeout(posix_time::seconds(60));
+}
+
+BOOST_AUTO_TEST_CASE(UpdateFile)
+{
+    Call(
+        api::file::update_file::Request(
+            globals::upload::quickkey_1,
+            globals::upload::quickkey_2
+            ),
+        [&](const api::file::update_file::Response & response)
+        {
+            if ( response.error_code )
+                Fail(response);
+            else
+                Success();
         });
 
     StartWithDefaultTimeout();

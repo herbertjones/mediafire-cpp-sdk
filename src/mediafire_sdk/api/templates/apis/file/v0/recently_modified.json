@@ -1,0 +1,27 @@
+{
+    "api": "/api/file/recently_modified",
+    "version": "0",
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "number_of_files",
+            "api_path": "number_of_files"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkeys",
+            "api_path": "response.quickkeys",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

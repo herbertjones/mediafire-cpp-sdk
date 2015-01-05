@@ -1,0 +1,24 @@
+{
+    "api": "/api/file/update_file",
+    "version": "0",
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "from_quickkey",
+            "api_path": "from_quickkey"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "to_quickkey",
+            "api_path": "to_quickkey"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision",
+            "optional": true
+        }
+    ]
+}

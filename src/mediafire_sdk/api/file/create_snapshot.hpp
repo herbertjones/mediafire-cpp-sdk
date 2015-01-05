@@ -1,6 +1,6 @@
 /**
- * @file file/create.hpp
- * @brief API request: file/create
+ * @file file/create_snapshot.hpp
+ * @brief API request: file/create_snapshot
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,20 +8,19 @@
  */
 #pragma once
 
-#include "create/v0.hpp"
-#include "create/v1_2.hpp"
+#include "create_snapshot/v0.hpp"
 
 namespace mf {
 namespace api {
 /** API action path "file" */
 namespace file {
-/** API action "file/create" */
-namespace create {
+/** API action "file/create_snapshot" */
+namespace create_snapshot {
 
 // Default version
-using namespace v1_2;  // NOLINT
+using namespace v0;  // NOLINT
 
-}  // namespace create
+}  // namespace create_snapshot
 }  // namespace file
 }  // namespace api
 }  // namespace mf

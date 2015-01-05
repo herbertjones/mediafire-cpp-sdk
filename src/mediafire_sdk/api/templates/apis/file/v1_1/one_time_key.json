@@ -1,0 +1,152 @@
+{
+    "api": "/api/1.1/file/one_time_key",
+    "version": "1.1",
+    "enums": [
+        {
+            "cpp_name": "NofifyOwnerByEmail",
+            "members": [
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                },
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                }
+            ]
+        },
+        {
+            "cpp_name": "BurnAfterUse",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        },
+        {
+            "cpp_name": "GetCountsOnly",
+            "members": [
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                },
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Links",
+            "members": [
+            {
+                "cpp_type": "std::string",
+                "cpp_name": "direct_download",
+                "api_path": "direct_download",
+                "optional": true
+            }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key",
+            "description": "Single file key(quickkey) to associate with new one-time download key."
+        },
+        {
+            "cpp_type": "GetCountsOnly",
+            "cpp_name": "get_counts_only",
+            "api_path": "get_counts_only",
+            "description": "Only return the request counts."
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "duration_minutes",
+            "api_path": "duration",
+            "description": "The number of minutes before the one-time key expires without use.  Default duration is 30 days."
+        },
+        {
+            "cpp_type": "NofifyOwnerByEmail",
+            "cpp_name": "nofify_owner_on_access",
+            "api_path": "email_notification",
+            "description": "Notify the file owner by email when the one-time download link is accessed."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "success_callback_url",
+            "api_path": "success_callback_url",
+            "description": "An absolute URL which is called when the user successfully downloads the file."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "error_callback_url",
+            "api_path": "error_callback_url",
+            "description": "An absolute URL which is called when the download fails."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "bind_ip",
+            "api_path": "bind_ip",
+            "description": "A comma-separated list of IP masks/ranges to restrict the download to matching user IP addresses. (e.g. '68.154.11.0/8, 145.230.230.115-145.230.240.33, 78.192.10.10') "
+        },
+        {
+            "cpp_type": "BurnAfterUse",
+            "cpp_name": "burn_after_use",
+            "api_path": "burn_after_use",
+            "description": "Invalidate the one-time download link after first use. If bind_ip is not passed this parameter is ignored.  Default is to invalidate."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "one_time_key_request_count",
+            "api_path": "response.one_time_key_request_count",
+            "default_value": "0"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "one_time_key_request_max_count",
+            "api_path": "response.one_time_key_request_max_count",
+            "default_value": "0"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "token",
+            "api_path": "response.token",
+            "description": "This token can be used to reconfigure the key."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "download_link",
+            "api_path": "response.links.download",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "view_link",
+            "api_path": "response.links.view",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "watch_link",
+            "api_path": "response.links.watch",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "listen_link",
+            "api_path": "response.links.listen",
+            "optional": true
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "api": "/api/file/create_snapshot",
+    "version": "0",
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "new_revision",
+            "api_path": "response.new_revision",
+            "description": "The revision of the file."
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "old_revision",
+            "api_path": "response.old_revision",
+            "description": "The prior revision of the file."
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision",
+            "description": "The device revision"
+        }
+    ]
+}

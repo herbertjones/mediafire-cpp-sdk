@@ -1,0 +1,12 @@
+{
+    "api": "/api/file/purge",
+    "version": "0",
+    "default_version": true,
+    "input_params": [
+        {
+            "cpp_type": "std::vector<std::string>",
+            "cpp_name": "quickkeys",
+            "api_path": "quick_key"
+        }
+    ]
+}

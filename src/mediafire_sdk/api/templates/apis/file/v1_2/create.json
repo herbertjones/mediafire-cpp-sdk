@@ -1,0 +1,229 @@
+{
+    "api": "/api/1.2/file/create",
+    "version": "1.2",
+    "enums": [
+        {
+            "cpp_name": "FileType",
+            "members": [
+                {
+                    "cpp_name": "Default",
+                    "api_value": ""
+                },
+                {
+                    "cpp_name": "Text",
+                    "api_value": "text"
+                }
+            ]
+        },
+        {
+            "cpp_name": "PasswordProtected",
+            "members": [
+                {
+                    "cpp_name": "Unprotected",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Protected",
+                    "api_value": "yes"
+                }
+            ]
+        },
+        {
+            "cpp_name": "Privacy",
+            "members": [
+                {
+                    "cpp_name": "Public",
+                    "api_value": "public"
+                },
+                {
+                    "cpp_name": "Private",
+                    "api_value": "private"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Links",
+            "members": [
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "direct_download",
+                    "api_path": "direct_download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "edit",
+                    "api_path": "edit",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "listen",
+                    "api_path": "listen",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "normal_download",
+                    "api_path": "normal_download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_download",
+                    "api_path": "one-time.download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_listen",
+                    "api_path": "one-time.listen",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_watch",
+                    "api_path": "one-time.watch",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_view",
+                    "api_path": "one-time.view",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "read",
+                    "api_path": "read",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "streaming",
+                    "api_path": "streaming",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "view",
+                    "api_path": "view",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "watch",
+                    "api_path": "watch",
+                    "optional": true
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "filename"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "file_extension",
+            "api_path": "file_extension"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "parent_folderkey",
+            "api_path": "parent_key"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "mtime",
+            "api_path": "mtime"
+        },
+        {
+            "cpp_type": "FileType",
+            "cpp_name": "file_type",
+            "api_path": "type"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "response.fileinfo.created"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "description",
+            "api_path": "response.fileinfo.description",
+            "default_value": "\"\""
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "downloads",
+            "api_path": "response.fileinfo.downloads"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filehash",
+            "api_path": "response.fileinfo.hash"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "response.fileinfo.filename"
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "filesize",
+            "api_path": "response.fileinfo.size"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filetype",
+            "api_path": "response.fileinfo.filetype"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "file_revision",
+            "api_path": "response.fileinfo.revision"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "flag",
+            "api_path": "response.fileinfo.flag"
+        },
+        {
+            "cpp_type": "Links",
+            "cpp_name": "links",
+            "api_path": "response.fileinfo.links"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "mimetype",
+            "api_path": "response.fileinfo.mimetype"
+        },
+        {
+            "cpp_type": "PasswordProtected",
+            "cpp_name": "password_protected",
+            "api_path": "response.fileinfo.password_protected"
+        },
+        {
+            "cpp_type": "Privacy",
+            "cpp_name": "privacy",
+            "api_path": "response.fileinfo.privacy"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "response.fileinfo.quickkey"
+        }
+    ]
+}

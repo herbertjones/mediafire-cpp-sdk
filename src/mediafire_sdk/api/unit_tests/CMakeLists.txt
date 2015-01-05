@@ -113,7 +113,12 @@ TARGET_LINK_LIBRARIES(ut_live
 )
 
 add_executable(ut_live_general ut_live_general.cpp)
-target_link_libraries(ut_live_general ut_live)
+target_link_libraries(ut_live_general
+  ut_live
+  mf_api_sdk
+  mf_uploader_sdk
+  ${Boost_LIBRARIES}
+  )
 
 add_executable(ut_live_billing ut_live_billing.cpp)
 target_link_libraries(ut_live_billing ut_live)

@@ -1,6 +1,6 @@
 /**
- * @file file/create.hpp
- * @brief API request: file/create
+ * @file file/configure_one_time_key.hpp
+ * @brief API request: file/configure_one_time_key
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,20 +8,19 @@
  */
 #pragma once
 
-#include "create/v0.hpp"
-#include "create/v1_2.hpp"
+#include "configure_one_time_key/v1_1.hpp"
 
 namespace mf {
 namespace api {
 /** API action path "file" */
 namespace file {
-/** API action "file/create" */
-namespace create {
+/** API action "file/configure_one_time_key" */
+namespace configure_one_time_key {
 
 // Default version
-using namespace v1_2;  // NOLINT
+using namespace v1_1;  // NOLINT
 
-}  // namespace create
+}  // namespace configure_one_time_key
 }  // namespace file
 }  // namespace api
 }  // namespace mf

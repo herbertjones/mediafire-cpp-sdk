@@ -1,0 +1,40 @@
+{
+    "api": "/api/file/restore",
+    "version": "0",
+    "default_version": true,
+    "enums": [
+        {
+            "cpp_name": "Asynchronous",
+            "members": [
+                {
+                    "cpp_name": "Synchronous",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Asynchronous",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "revision"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "Asynchronous",
+            "cpp_name": "asynchronous",
+            "api_path": "response.asynchronous",
+            "default_value": "Synchronous"
+        }
+    ]
+}
