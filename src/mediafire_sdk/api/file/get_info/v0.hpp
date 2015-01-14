@@ -59,6 +59,7 @@ class Response : public ResponseBase
 public:
     Response() :
         deleted_datetime(boost::posix_time::not_a_date_time),
+        mimetype(""),
         shared_by_user(SharedByUser::Unshared)
     {}
     /** API response field "response.file_info.quickkey" */

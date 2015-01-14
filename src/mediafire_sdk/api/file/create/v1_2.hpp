@@ -58,7 +58,8 @@ class Response : public ResponseBase
 {
 public:
     Response() :
-        description("")
+        description(""),
+        mimetype("")
     {}
     struct Links
     {

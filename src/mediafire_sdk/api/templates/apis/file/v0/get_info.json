@@ -105,7 +105,8 @@
         {
             "cpp_type": "std::string",
             "cpp_name": "mimetype",
-            "api_path": "response.file_info.mimetype"
+            "api_path": "response.file_info.mimetype",
+            "default_value": "\"\""
         },
         {
             "cpp_type": "std::string",

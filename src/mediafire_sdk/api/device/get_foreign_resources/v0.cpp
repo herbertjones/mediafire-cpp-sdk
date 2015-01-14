@@ -58,6 +58,7 @@ bool FileFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    value->mimetype = "";
     value->share_link_enabled = ShareLinkEnabled::LinkDisabled;
 
     // create_content_parse_single required
@@ -126,14 +127,11 @@ bool FileFromPropertyBranch(
             mf::api::api_code::ContentInvalidData,
             "missing \"md5\"");
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
+    // create_content_parse_single optional with default
+    GetIfExists(
             pt,
             "mimetype",
-            &value->mimetype ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"mimetype\"");
+            &value->mimetype);
 
     // create_content_parse_single required
     if ( ! GetIfExists(

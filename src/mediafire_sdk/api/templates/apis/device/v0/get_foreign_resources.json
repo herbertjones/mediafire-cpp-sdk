@@ -85,7 +85,8 @@
             {
                 "cpp_type": "std::string",
                 "cpp_name": "mimetype",
-                "api_path": "mimetype"
+                "api_path": "mimetype",
+                "default_value": "\"\""
             },
             {
                 "cpp_type": "uint32_t",

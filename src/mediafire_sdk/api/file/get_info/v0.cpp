@@ -80,6 +80,7 @@ void Impl::ParseResponse( Response * response )
         return;                                                                \
     }
     response->deleted_datetime = boost::posix_time::not_a_date_time;
+    response->mimetype = "";
     response->shared_by_user = SharedByUser::Unshared;
 
     // create_content_parse_single required
@@ -200,14 +201,11 @@ void Impl::ParseResponse( Response * response )
             mf::api::api_code::ContentInvalidData,
             "missing \"response.file_info.filetype\"");
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
+    // create_content_parse_single optional with default
+    GetIfExists(
             response->pt,
             "response.file_info.mimetype",
-            &response->mimetype ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"response.file_info.mimetype\"");
+            &response->mimetype);
 
     // create_content_parse_single required
     if ( ! GetIfExists(

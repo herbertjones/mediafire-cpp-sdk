@@ -162,6 +162,7 @@ bool FileFromPropertyBranch(
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
     value->deleted_datetime = boost::posix_time::not_a_date_time;
+    value->mimetype = "";
     value->shared_by_user = SharedByUser::Unshared;
     value->shared_with_user = SharedWithUser::UserIsOwner;
 
@@ -275,14 +276,11 @@ bool FileFromPropertyBranch(
             "missing \"links\"");
     }
 
-    // create_content_parse_single required
-    if ( ! GetIfExists(
+    // create_content_parse_single optional with default
+    GetIfExists(
             pt,
             "mimetype",
-            &value->mimetype ) )
-        return_error(
-            mf::api::api_code::ContentInvalidData,
-            "missing \"mimetype\"");
+            &value->mimetype);
 
     {
         std::string optval;
