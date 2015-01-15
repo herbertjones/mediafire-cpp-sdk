@@ -21,7 +21,6 @@ set(API_TEMPLATE_GENERATED_SOURCES
     file/copy/v0.cpp
     file/create/v0.cpp
     file/create/v1_2.cpp
-    file/create_snapshot/v0.cpp
     file/file_delete/v0.cpp
     file/get_info/v0.cpp
     file/get_links/v0.cpp
@@ -52,8 +51,11 @@ set(API_TEMPLATE_GENERATED_SOURCES
     system/get_version/v0.cpp
     upload/check/v0.cpp
     upload/check/v1_2.cpp
+    upload/check/v1_3.cpp
     upload/instant/v0.cpp
+    upload/instant/v1_3.cpp
     upload/poll_upload/v0.cpp
+    upload/poll_upload/v1_3.cpp
     upload/pre_upload/v0.cpp
     user/destroy_action_token/v1_0.cpp
     user/get_action_token/v1_0.cpp
@@ -106,8 +108,6 @@ set(API_TEMPLATE_GENERATED_HEADERS
     file/create.hpp
     file/create/v0.hpp
     file/create/v1_2.hpp
-    file/create_snapshot.hpp
-    file/create_snapshot/v0.hpp
     file/file_delete.hpp
     file/file_delete/v0.hpp
     file/get_info.hpp
@@ -166,10 +166,13 @@ set(API_TEMPLATE_GENERATED_HEADERS
     upload/check.hpp
     upload/check/v0.hpp
     upload/check/v1_2.hpp
+    upload/check/v1_3.hpp
     upload/instant.hpp
     upload/instant/v0.hpp
+    upload/instant/v1_3.hpp
     upload/poll_upload.hpp
     upload/poll_upload/v0.hpp
+    upload/poll_upload/v1_3.hpp
     upload/pre_upload.hpp
     upload/pre_upload/v0.hpp
     user/destroy_action_token.hpp

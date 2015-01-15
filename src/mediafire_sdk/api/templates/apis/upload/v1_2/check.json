@@ -1,7 +1,6 @@
 {
     "api": "/api/1.2/upload/check",
     "version": "1.2",
-    "default_version": true,
     "enums": [
         {
             "cpp_name": "Resumable",

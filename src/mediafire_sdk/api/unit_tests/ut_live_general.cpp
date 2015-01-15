@@ -19,7 +19,6 @@
 #include "mediafire_sdk/api/file/configure_one_time_key.hpp"
 #include "mediafire_sdk/api/file/copy.hpp"
 #include "mediafire_sdk/api/file/create.hpp"
-#include "mediafire_sdk/api/file/create_snapshot.hpp"
 #include "mediafire_sdk/api/file/file_delete.hpp"
 #include "mediafire_sdk/api/file/get_info.hpp"
 #include "mediafire_sdk/api/file/get_links.hpp"
@@ -107,6 +106,7 @@ std::string random_file_name;
 std::string quickkey_1;
 std::string quickkey_2;
 uint32_t snapshot_old_revision;
+uint32_t snapshot_new_revision;
 }  // namespace upload
 namespace one_time_key
 {
@@ -369,8 +369,22 @@ BOOST_AUTO_TEST_CASE(UploadRandomFile)
                  = boost::get<mf::uploader::upload_state::Complete>(
                          &status.state))
         {
+            std::ostringstream ss;
+            ss << "New Quickkey: " << success->quickkey;
+            Debug(ss.str());
+
             globals::upload::quickkey_1 = success->quickkey;
-            Success();
+
+            // New revisions available when new file created.
+            if (success->new_revision)
+            {
+                globals::upload::snapshot_old_revision = *success->new_revision;
+                Success();
+            }
+            else
+            {
+                Fail("New random file returned no new revision.");
+            }
         }
     });
 
@@ -406,13 +420,79 @@ BOOST_AUTO_TEST_CASE(CopyFile2)
     StartWithDefaultTimeout();
 }
 
-BOOST_AUTO_TEST_CASE(CreateSnapshot)
+// This should replace the file that was just uploaded, so we can restore it
+// afterwards.
+BOOST_AUTO_TEST_CASE(UploadFileReplacement)
 {
-    api::file::create_snapshot::Request request(globals::upload::quickkey_1);
+    auto random_file = RandomFile(1024 * 1024 / 2 * 3);
+
+    mf::uploader::UploadManager um(&stm_);
+
+    mf::uploader::UploadRequest request(random_file.Name());
+
+    request.SetTargetFolderkey(globals::test_folderkey);
+    request.SetTargetFilename(globals::upload::random_file_name);
+    request.SetOnDuplicateAction(mf::uploader::OnDuplicateAction::Replace);
+
+    // You may want to change the name for a different test
+    // request.SetTargetFilename(save_as);
+
+    // Add the file to upload.
+    um.Add(request, [this](mf::uploader::UploadStatus status)
+           {
+        if (auto error
+            = boost::get<mf::uploader::upload_state::Error>(&status.state))
+        {
+            const auto & ec = error->error_code;
+            std::ostringstream ss;
+            ss << "Received error: " + ec.message() << "\n";
+            ss << "Error type: " + std::string(ec.category().name()) << "\n";
+            ss << "Error value: " + mf::utils::to_string(ec.value()) << "\n";
+            ss << "Description: " + error->description << "\n";
+
+            Fail(ss.str());
+        }
+        else if (auto success
+                 = boost::get<mf::uploader::upload_state::Complete>(
+                         &status.state))
+        {
+            std::ostringstream ss;
+            ss << "New Quickkey: " << success->quickkey;
+            Debug(ss.str());
+
+            if (globals::upload::quickkey_1 != success->quickkey)
+            {
+                std::ostringstream ss;
+                ss << "Replacement upload has a different quickkey: " <<
+                    success->quickkey << " should be "
+                   << globals::upload::quickkey_1;
+            }
+
+            // New revisions available when new file created.
+            if (success->new_revision)
+            {
+                globals::upload::snapshot_new_revision = *success->new_revision;
+                Success();
+            }
+            else
+            {
+                Fail("New random file returned no new revision. (2)");
+            }
+        }
+    });
+
+    StartWithTimeout(posix_time::seconds(60));
+}
+
+// The previous test should have created a new version in the cloud of that file
+// that was replaced.
+BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
+{
+    api::file::get_versions::Request request(globals::upload::quickkey_1);
 
     Call(
         request,
-        [&](const api::file::create_snapshot::Response & response)
+        [&](const api::file::get_versions::Response & response)
         {
             if ( response.error_code )
             {
@@ -420,16 +500,36 @@ BOOST_AUTO_TEST_CASE(CreateSnapshot)
             }
             else
             {
-                Success();
+                // There should be at least two versions.
+                if (response.file_versions.size() < 2)
+                {
+                    Fail("There should be at least two file versions after "
+                         "replacement upload.");
+                }
+                else
+                {
+                    bool original_revision_found = false;
+                    bool new_revision_found = false;
 
-                globals::upload::snapshot_old_revision = response.old_revision;
+                    for (auto & version_info : response.file_versions)
+                    {
+                        if (version_info.revision
+                            == globals::upload::snapshot_old_revision)
+                            original_revision_found = true;
+                        else if (version_info.revision
+                                 == globals::upload::snapshot_new_revision)
+                            new_revision_found = true;
+                    }
 
-                std::cout << "Snapshot old revision: " << response.old_revision
-                          << std::endl;
-                std::cout << "Snapshot new revision: " << response.new_revision
-                          << std::endl;
-                std::cout << "Device new revision: " << response.device_revision
-                          << std::endl;
+                    if (!original_revision_found)
+                        Fail("Unable to find first upload revision in "
+                             "get_version.");
+                    if (!new_revision_found)
+                        Fail("Unable to find second upload revision in "
+                             "get_version.");
+                    if (original_revision_found && new_revision_found)
+                        Success();
+                }
             }
         });
 
@@ -1060,7 +1160,9 @@ BOOST_AUTO_TEST_CASE(FolderDelete1)
     {
         std::string keys( boost::join(folderkeys, ",") );
 
-        std::cout << "Deleting keys: " << keys << std::endl;
+        std::ostringstream ss;
+        ss << "Deleting keys: " << keys;
+        Debug(ss.str());
 
         Call(
             api::folder::folder_delete::Request( keys ),
@@ -1117,7 +1219,9 @@ BOOST_AUTO_TEST_CASE(FolderDelete2)
     {
         std::string keys( boost::join(folderkeys, ",") );
 
-        std::cout << "Deleting keys: " << keys << std::endl;
+        std::ostringstream ss;
+        ss << "Deleting keys: " << keys;
+        Debug(ss.str());
 
         Call(
             api::folder::folder_delete::Request( keys ),
@@ -1175,12 +1279,16 @@ BOOST_AUTO_TEST_CASE(SpamTest)
                 uint32_t count
             )
         {
-            std::cout << "SpamTest: Count: " << count << std::endl;
+            std::ostringstream ss;
+            ss << "SpamTest: Count: " << count;
+            Debug(ss.str());
 
             if ( response.error_code )
             {
                 ++times_failed;
-                std::cout << "Error: " << response.error_string << std::endl;
+                std::ostringstream error_ss;
+                error_ss << "Error: " << response.error_string;
+                Debug(error_ss.str());
             }
 
             ++times_returned;
