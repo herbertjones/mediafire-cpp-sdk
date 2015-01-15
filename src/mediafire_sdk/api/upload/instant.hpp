@@ -9,6 +9,7 @@
 #pragma once
 
 #include "instant/v0.hpp"
+#include "instant/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace upload {
 namespace instant {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace instant
 }  // namespace upload

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "boost/filesystem/path.hpp"
+#include "boost/optional.hpp"
 #include "boost/variant/variant.hpp"
 
 #include "detail/types.hpp"
@@ -31,6 +32,7 @@ struct Complete
 {
     std::string quickkey;
     std::string filename;
+    boost::optional<uint32_t> new_revision;
 };
 }  // namespace upload_state
 

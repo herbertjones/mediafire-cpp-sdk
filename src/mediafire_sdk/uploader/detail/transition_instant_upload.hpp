@@ -88,8 +88,10 @@ struct DoInstantUpload
                 }
                 else
                 {
-                    fsmp->ProcessEvent(event::InstantSuccess{ response.quickkey,
-                        response.filename });
+                    fsmp->ProcessEvent(event::InstantSuccess{
+                            response.quickkey,
+                            response.filename,
+                            response.new_device_revision});
                 }
             });
     }

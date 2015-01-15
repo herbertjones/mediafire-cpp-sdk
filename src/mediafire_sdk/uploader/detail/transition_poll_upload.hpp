@@ -39,22 +39,18 @@ void HandlePollCompleteResponse(
         const mf::api::upload::poll_upload::Response & response
     )
 {
-    if (response.quickkey)
+    if (response.quickkey && response.revision)
     {
         if (response.filename)
         {
             // Filename was changed
             fsm.ProcessEvent(event::PollComplete{
-                *response.quickkey,
-                *response.filename
-                });
+                *response.quickkey, *response.filename, *response.revision});
         }
         else
         {
             fsm.ProcessEvent(event::PollComplete{
-                *response.quickkey,
-                fsm.filename()
-                });
+                    *response.quickkey, fsm.filename(), *response.revision});
         }
     }
     else

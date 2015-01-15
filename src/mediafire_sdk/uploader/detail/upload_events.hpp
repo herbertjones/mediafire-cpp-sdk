@@ -72,12 +72,14 @@ struct InstantSuccess
 {
     std::string quickkey;
     std::string filename;
+    uint32_t new_device_revision;
 };
 
 struct PollComplete
 {
     std::string quickkey;
     std::string filename;
+    uint32_t new_device_revision;
 };
 
 }  // namespace event

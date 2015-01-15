@@ -412,6 +412,19 @@ public:
     // -- Final States --
     struct CompleteWithSuccess : public msm::front::terminate_state<>
     {
+        template <typename FSM>
+        void on_entry(event::AlreadyUploaded const & evt, FSM& fsm)
+        {
+            assert( ! evt.quickkey.empty() );
+
+            fsm.SetCountState(CountState::None);
+
+            CALLBACK_INTERFACE_FSM(HandleComplete);
+
+            fsm.SendStatus(
+                    us::Complete{evt.quickkey, evt.filename, boost::none});
+        }
+
         template <typename Event, typename FSM>
         void on_entry(Event const & evt, FSM& fsm)
         {
@@ -421,7 +434,8 @@ public:
 
             CALLBACK_INTERFACE_FSM(HandleComplete);
 
-            fsm.SendStatus(us::Complete{evt.quickkey, evt.filename});
+            fsm.SendStatus(us::Complete{
+                    evt.quickkey, evt.filename, evt.new_device_revision});
         }
     };
 

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "poll_upload/v0.hpp"
+#include "poll_upload/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace upload {
 namespace poll_upload {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace poll_upload
 }  // namespace upload
