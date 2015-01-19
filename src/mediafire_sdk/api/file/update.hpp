@@ -9,6 +9,7 @@
 #pragma once
 
 #include "update/v0.hpp"
+#include "update/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace update {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace update
 }  // namespace file

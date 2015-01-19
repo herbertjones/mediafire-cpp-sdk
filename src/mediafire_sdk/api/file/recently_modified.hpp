@@ -9,6 +9,7 @@
 #pragma once
 
 #include "recently_modified/v0.hpp"
+#include "recently_modified/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace recently_modified {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace recently_modified
 }  // namespace file

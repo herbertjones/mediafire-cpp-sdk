@@ -9,6 +9,7 @@
 #pragma once
 
 #include "copy/v0.hpp"
+#include "copy/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace copy {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace copy
 }  // namespace file

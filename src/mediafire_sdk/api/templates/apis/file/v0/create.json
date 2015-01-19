@@ -1,7 +1,6 @@
 {
     "api": "/api/file/create",
     "version": "0",
-    "default_version": false,
     "return_structs": [
     {
         "cpp_name": "Links",

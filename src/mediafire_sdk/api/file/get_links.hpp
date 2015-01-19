@@ -9,6 +9,7 @@
 #pragma once
 
 #include "get_links/v0.hpp"
+#include "get_links/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace get_links {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace get_links
 }  // namespace file

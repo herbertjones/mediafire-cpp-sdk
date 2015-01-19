@@ -1,6 +1,6 @@
 /**
- * @file api/file/create.hpp
- * @brief API request: /api/1.2/file/create
+ * @file api/file/get_info.hpp
+ * @brief API request: /api/1.3/file/get_info
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -21,17 +21,17 @@ namespace mf {
 namespace api {
 /** API action path "file" */
 namespace file {
-/** API action "file/create" */
-namespace create {
-/** API path "/api/1.2/file/create" */
-namespace v1_2 {
+/** API action "file/get_info" */
+namespace get_info {
+/** API path "/api/1.3/file/get_info" */
+namespace v1_3 {
 
-enum class FileType
+enum class Privacy
 {
-    /** API value "" */
-    Default,
-    /** API value "text" */
-    Text
+    /** API value "public" */
+    Public,
+    /** API value "private" */
+    Private
 };
 
 enum class PasswordProtected
@@ -42,24 +42,25 @@ enum class PasswordProtected
     Protected
 };
 
-enum class Privacy
+enum class SharedByUser
 {
-    /** API value "public" */
-    Public,
-    /** API value "private" */
-    Private
+    /** API value "" */
+    Unshared,
+    /** API value "1" */
+    Shared
 };
 
 /**
  * @class Response
- * @brief Response from API request "file/create"
+ * @brief Response from API request "file/get_info"
  */
 class Response : public ResponseBase
 {
 public:
     Response() :
-        description(""),
-        mimetype("")
+        deleted_datetime(boost::posix_time::not_a_date_time),
+        mimetype(""),
+        shared_by_user(SharedByUser::Unshared)
     {}
     struct Links
     {
@@ -99,100 +100,78 @@ public:
         /** API response field "watch" */
         boost::optional<std::string> watch;
     };
-    /** API response field "response.fileinfo.created" */
-    boost::posix_time::ptime created_datetime;
+    /** API response field "response.file_info.quickkey" */
+    std::string quickkey;
 
-    /** API response field "response.fileinfo.description" */
-    std::string description;
-
-    /** API response field "response.device_revision" */
-    uint32_t device_revision;
-
-    /** API response field "response.fileinfo.downloads" */
-    uint32_t downloads;
-
-    /** API response field "response.fileinfo.hash" */
-    std::string filehash;
-
-    /** API response field "response.fileinfo.filename" */
+    /** API response field "response.file_info.filename" */
     std::string filename;
 
-    /** API response field "response.fileinfo.size" */
+    /** API response field "response.file_info.created" */
+    boost::posix_time::ptime created_datetime;
+
+    /** API response field "response.file_info.delete_date" */
+    boost::posix_time::ptime deleted_datetime;
+
+    /** API response field "response.file_info.downloads" */
+    boost::optional<uint32_t> download_count;
+
+    /** API response field "response.file_info.size" */
     uint64_t filesize;
 
-    /** API response field "response.fileinfo.filetype" */
-    std::string filetype;
-
-    /** API response field "response.fileinfo.revision" */
-    uint32_t file_revision;
-
-    /** API response field "response.fileinfo.flag" */
-    uint32_t flag;
-
-    /** API response field "response.fileinfo.links" */
-    Links links;
-
-    /** API response field "response.fileinfo.mimetype" */
-    std::string mimetype;
-
-    /** API response field "response.fileinfo.password_protected" */
-    PasswordProtected password_protected;
-
-    /** API response field "response.fileinfo.privacy" */
+    /** API response field "response.file_info.privacy" */
     Privacy privacy;
 
-    /** API response field "response.fileinfo.quickkey" */
-    std::string quickkey;
+    /** API response field "response.file_info.password_protected" */
+    PasswordProtected password_protected;
+
+    /** API response field "response.file_info.hash" */
+    std::string hash;
+
+    /** API response field "response.file_info.filetype" */
+    std::string filetype;
+
+    /** API response field "response.file_info.mimetype" */
+    std::string mimetype;
+
+    /** API response field "response.file_info.owner_name" */
+    std::string owner_name;
+
+    /** API response field "response.file_info.shared_by_user" */
+    SharedByUser shared_by_user;
+
+    /** API response field "response.file_info.permissions.value" */
+    boost::optional<uint32_t> permissions;
+
+    /** API response field "response.file_info.parent_folderkey" */
+    boost::optional<std::string> parent_folderkey;
+
+    /** API response field "response.file_info.revision" */
+    uint32_t revision;
+
+    /** API response field "response.file_info.flag" */
+    uint32_t flag;
+
+    /** API response field "response.file_info.links" */
+    Links links;
 };
 
 class Impl;
 
 /**
  * @class Request
- * @brief Make API request "file/create"
+ * @brief Make API request "file/get_info"
  */
 class Request
 {
 public:
     /**
-     * API request "file/create"
-     */
-    Request();
-
-    /**
-     * Optional API parameter "filename"
+     * API request "file/get_info"
      *
-     * @param filename Set parameter "filename" in API request.
+     * @param quickkey API parameter "quick_key"
      */
-    void SetFilename(std::string filename);
-
-    /**
-     * Optional API parameter "file_extension"
-     *
-     * @param file_extension Set parameter "file_extension" in API request.
-     */
-    void SetFileExtension(std::string file_extension);
-
-    /**
-     * Optional API parameter "parent_key"
-     *
-     * @param parent_folderkey Set parameter "parent_key" in API request.
-     */
-    void SetParentFolderkey(std::string parent_folderkey);
-
-    /**
-     * Optional API parameter "mtime"
-     *
-     * @param mtime Set parameter "mtime" in API request.
-     */
-    void SetMtime(boost::posix_time::ptime mtime);
-
-    /**
-     * Optional API parameter "type"
-     *
-     * @param file_type Set parameter "type" in API request.
-     */
-    void SetFileType(FileType file_type);
+    explicit Request(
+            std::string quickkey
+        );
 
     // Remaining functions are for use by API library only. --------------------
 
@@ -234,9 +213,9 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_2
+}  // namespace v1_3
 
-}  // namespace create
+}  // namespace get_info
 }  // namespace file
 }  // namespace api
 }  // namespace mf

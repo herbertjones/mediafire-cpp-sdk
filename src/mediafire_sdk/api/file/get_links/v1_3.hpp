@@ -1,6 +1,6 @@
 /**
- * @file api/file/create.hpp
- * @brief API request: /api/1.2/file/create
+ * @file api/file/get_links.hpp
+ * @brief API request: /api/1.3/file/get_links
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -21,53 +22,67 @@ namespace mf {
 namespace api {
 /** API action path "file" */
 namespace file {
-/** API action "file/create" */
-namespace create {
-/** API path "/api/1.2/file/create" */
-namespace v1_2 {
+/** API action "file/get_links" */
+namespace get_links {
+/** API path "/api/1.3/file/get_links" */
+namespace v1_3 {
 
-enum class FileType
+enum class Recurring
 {
-    /** API value "" */
-    Default,
-    /** API value "text" */
-    Text
+    /** API value "0" */
+    NonRecurring,
+    /** API value "1" */
+    Recurring
 };
 
-enum class PasswordProtected
+enum class LinkType
 {
-    /** API value "no" */
-    Unprotected,
-    /** API value "yes" */
-    Protected
-};
-
-enum class Privacy
-{
-    /** API value "public" */
-    Public,
-    /** API value "private" */
-    Private
+    /** API value "view" */
+    View,
+    /** API value "edit" */
+    Edit,
+    /** API value "listen" */
+    Listen,
+    /** API value "watch" */
+    Watch,
+    /** API value "normal_download" */
+    NormalDownload,
+    /** API value "direct_download" */
+    DirectDownload,
+    /** API value "one_time_download" */
+    OneTimeDownload
 };
 
 /**
  * @class Response
- * @brief Response from API request "file/create"
+ * @brief Response from API request "file/get_links"
  */
 class Response : public ResponseBase
 {
 public:
     Response() :
-        description(""),
-        mimetype("")
+        one_time_download_request_count(0),
+        direct_download_free_bandwidth(0)
     {}
     struct Links
     {
+        /** API response field "quickkey" */
+        std::string quickkey;
+
         /** API response field "direct_download" */
         boost::optional<std::string> direct_download;
 
+        /** API response field "direct_download_error_message" */
+        boost::optional<std::string> direct_download_error_message;
+
+        /** API response field "direct_download_error" */
+        boost::optional<int32_t> direct_download_error;
+
         /** API response field "edit" */
         boost::optional<std::string> edit;
+
+        /** API response field "edit_error_message" */
+        boost::optional<std::string> edit_error_message;
 
         /** API response field "listen" */
         boost::optional<std::string> listen;
@@ -77,6 +92,9 @@ public:
 
         /** API response field "one_time.download" */
         boost::optional<std::string> one_time_download;
+
+        /** API response field "one_time.download_error_message" */
+        boost::optional<std::string> one_time_download_error_message;
 
         /** API response field "one_time.listen" */
         boost::optional<std::string> one_time_listen;
@@ -99,100 +117,40 @@ public:
         /** API response field "watch" */
         boost::optional<std::string> watch;
     };
-    /** API response field "response.fileinfo.created" */
-    boost::posix_time::ptime created_datetime;
+    /** API response field "response.links" */
+    std::vector<Links> links;
 
-    /** API response field "response.fileinfo.description" */
-    std::string description;
+    /** API response field "response.one_time_download_request_count" */
+    uint32_t one_time_download_request_count;
 
-    /** API response field "response.device_revision" */
-    uint32_t device_revision;
-
-    /** API response field "response.fileinfo.downloads" */
-    uint32_t downloads;
-
-    /** API response field "response.fileinfo.hash" */
-    std::string filehash;
-
-    /** API response field "response.fileinfo.filename" */
-    std::string filename;
-
-    /** API response field "response.fileinfo.size" */
-    uint64_t filesize;
-
-    /** API response field "response.fileinfo.filetype" */
-    std::string filetype;
-
-    /** API response field "response.fileinfo.revision" */
-    uint32_t file_revision;
-
-    /** API response field "response.fileinfo.flag" */
-    uint32_t flag;
-
-    /** API response field "response.fileinfo.links" */
-    Links links;
-
-    /** API response field "response.fileinfo.mimetype" */
-    std::string mimetype;
-
-    /** API response field "response.fileinfo.password_protected" */
-    PasswordProtected password_protected;
-
-    /** API response field "response.fileinfo.privacy" */
-    Privacy privacy;
-
-    /** API response field "response.fileinfo.quickkey" */
-    std::string quickkey;
+    /** API response field "response.direct_download_free_bandwidth" */
+    uint32_t direct_download_free_bandwidth;
 };
 
 class Impl;
 
 /**
  * @class Request
- * @brief Make API request "file/create"
+ * @brief Make API request "file/get_links"
  */
 class Request
 {
 public:
     /**
-     * API request "file/create"
+     * API request "file/get_links"
+     *
+     * @param quickkeys API parameter "quick_key"
      */
-    Request();
+    explicit Request(
+            std::vector<std::string> quickkeys
+        );
 
     /**
-     * Optional API parameter "filename"
+     * Optional API parameter "link_type"
      *
-     * @param filename Set parameter "filename" in API request.
+     * @param link_types Set parameter "link_type" in API request.
      */
-    void SetFilename(std::string filename);
-
-    /**
-     * Optional API parameter "file_extension"
-     *
-     * @param file_extension Set parameter "file_extension" in API request.
-     */
-    void SetFileExtension(std::string file_extension);
-
-    /**
-     * Optional API parameter "parent_key"
-     *
-     * @param parent_folderkey Set parameter "parent_key" in API request.
-     */
-    void SetParentFolderkey(std::string parent_folderkey);
-
-    /**
-     * Optional API parameter "mtime"
-     *
-     * @param mtime Set parameter "mtime" in API request.
-     */
-    void SetMtime(boost::posix_time::ptime mtime);
-
-    /**
-     * Optional API parameter "type"
-     *
-     * @param file_type Set parameter "type" in API request.
-     */
-    void SetFileType(FileType file_type);
+    void SetLinkTypes(std::set<LinkType> link_types);
 
     // Remaining functions are for use by API library only. --------------------
 
@@ -234,9 +192,9 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_2
+}  // namespace v1_3
 
-}  // namespace create
+}  // namespace get_links
 }  // namespace file
 }  // namespace api
 }  // namespace mf

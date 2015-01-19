@@ -1,6 +1,6 @@
 /**
  * @file api/file/create.hpp
- * @brief API request: /api/1.2/file/create
+ * @brief API request: /api/1.3/file/create
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace file {
 /** API action "file/create" */
 namespace create {
-/** API path "/api/1.2/file/create" */
-namespace v1_2 {
+/** API path "/api/1.3/file/create" */
+namespace v1_3 {
 
 enum class FileType
 {
@@ -105,8 +105,8 @@ public:
     /** API response field "response.fileinfo.description" */
     std::string description;
 
-    /** API response field "response.device_revision" */
-    uint32_t device_revision;
+    /** API response field "response.new_device_revision" */
+    boost::optional<uint32_t> new_device_revision;
 
     /** API response field "response.fileinfo.downloads" */
     uint32_t downloads;
@@ -234,7 +234,7 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_2
+}  // namespace v1_3
 
 }  // namespace create
 }  // namespace file

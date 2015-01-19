@@ -1,0 +1,56 @@
+{
+    "api": "/api/1.3/file/update",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "Privacy",
+            "members": [
+                {
+                    "cpp_name": "Public",
+                    "api_value": "public"
+                },
+                {
+                    "cpp_name": "Private",
+                    "api_value": "private"
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "filename"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "description",
+            "api_path": "description"
+        },
+        {
+            "cpp_type": "Privacy",
+            "cpp_name": "privacy",
+            "api_path": "privacy"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "mtime",
+            "api_path": "mtime"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "new_device_revision",
+            "api_path": "response.new_device_revision",
+            "optional": true
+        }
+    ]
+}

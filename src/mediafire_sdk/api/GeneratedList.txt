@@ -18,20 +18,34 @@ set(API_TEMPLATE_GENERATED_SOURCES
     device/share_resources/v0.cpp
     device/unshare_resource/v0.cpp
     file/configure_one_time_key/v1_1.cpp
+    file/configure_one_time_key/v1_3.cpp
     file/copy/v0.cpp
+    file/copy/v1_3.cpp
     file/create/v0.cpp
     file/create/v1_2.cpp
+    file/create/v1_3.cpp
     file/file_delete/v0.cpp
+    file/file_delete/v1_3.cpp
     file/get_info/v0.cpp
+    file/get_info/v1_3.cpp
     file/get_links/v0.cpp
+    file/get_links/v1_3.cpp
     file/get_versions/v0.cpp
+    file/get_versions/v1_3.cpp
     file/move/v0.cpp
+    file/move/v1_3.cpp
     file/one_time_key/v1_1.cpp
+    file/one_time_key/v1_3.cpp
     file/purge/v0.cpp
+    file/purge/v1_3.cpp
     file/recently_modified/v0.cpp
+    file/recently_modified/v1_3.cpp
     file/restore/v0.cpp
+    file/restore/v1_3.cpp
     file/update/v0.cpp
+    file/update/v1_3.cpp
     file/update_file/v0.cpp
+    file/update_file/v1_3.cpp
     folder/copy/v0.cpp
     folder/create/v0.cpp
     folder/folder_delete/v0.cpp
@@ -103,33 +117,47 @@ set(API_TEMPLATE_GENERATED_HEADERS
     device/unshare_resource/v0.hpp
     file/configure_one_time_key.hpp
     file/configure_one_time_key/v1_1.hpp
+    file/configure_one_time_key/v1_3.hpp
     file/copy.hpp
     file/copy/v0.hpp
+    file/copy/v1_3.hpp
     file/create.hpp
     file/create/v0.hpp
     file/create/v1_2.hpp
+    file/create/v1_3.hpp
     file/file_delete.hpp
     file/file_delete/v0.hpp
+    file/file_delete/v1_3.hpp
     file/get_info.hpp
     file/get_info/v0.hpp
+    file/get_info/v1_3.hpp
     file/get_links.hpp
     file/get_links/v0.hpp
+    file/get_links/v1_3.hpp
     file/get_versions.hpp
     file/get_versions/v0.hpp
+    file/get_versions/v1_3.hpp
     file/move.hpp
     file/move/v0.hpp
+    file/move/v1_3.hpp
     file/one_time_key.hpp
     file/one_time_key/v1_1.hpp
+    file/one_time_key/v1_3.hpp
     file/purge.hpp
     file/purge/v0.hpp
+    file/purge/v1_3.hpp
     file/recently_modified.hpp
     file/recently_modified/v0.hpp
+    file/recently_modified/v1_3.hpp
     file/restore.hpp
     file/restore/v0.hpp
+    file/restore/v1_3.hpp
     file/update.hpp
     file/update/v0.hpp
+    file/update/v1_3.hpp
     file/update_file.hpp
     file/update_file/v0.hpp
+    file/update_file/v1_3.hpp
     folder/copy.hpp
     folder/copy/v0.hpp
     folder/create.hpp

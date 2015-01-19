@@ -9,6 +9,7 @@
 #pragma once
 
 #include "restore/v0.hpp"
+#include "restore/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace restore {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace restore
 }  // namespace file

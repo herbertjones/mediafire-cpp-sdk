@@ -10,6 +10,7 @@
 
 #include "create/v0.hpp"
 #include "create/v1_2.hpp"
+#include "create/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -19,7 +20,7 @@ namespace file {
 namespace create {
 
 // Default version
-using namespace v1_2;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace create
 }  // namespace file

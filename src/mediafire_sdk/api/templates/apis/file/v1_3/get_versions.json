@@ -1,0 +1,64 @@
+{
+    "api": "/api/1.3/file/get_versions",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "AtHead",
+            "members": [
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                },
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "FileVersion",
+            "members": [
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "revision",
+                    "api_path": "revision"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "date",
+                    "api_path": "date"
+                },
+                {
+                    "cpp_type": "AtHead",
+                    "cpp_name": "at_head",
+                    "api_path": "head",
+                    "default_value": "No"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "new_key",
+                    "api_path": "new_key",
+                    "optional": true
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "FileVersion",
+            "cpp_name": "file_versions",
+            "api_path": "response.file_versions",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

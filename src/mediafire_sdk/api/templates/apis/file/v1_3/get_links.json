@@ -1,0 +1,197 @@
+{
+    "api": "/api/1.3/file/get_links",
+    "version": "1.3",
+    "system_hpp_includes": [
+        "set"
+    ],
+    "enums": [
+        {
+            "cpp_name": "Recurring",
+            "members": [
+                {
+                    "cpp_name": "NonRecurring",
+                    "api_value": "0"
+                },
+                {
+                    "cpp_name": "Recurring",
+                    "api_value": "1"
+                }
+            ]
+        },
+        {
+            "cpp_name": "LinkType",
+            "members": [
+                {
+                    "cpp_name": "View",
+                    "api_value": "view"
+                },
+                {
+                    "cpp_name": "Edit",
+                    "api_value": "edit"
+                },
+                {
+                    "cpp_name": "Listen",
+                    "api_value": "listen"
+                },
+                {
+                    "cpp_name": "Watch",
+                    "api_value": "watch"
+                },
+                {
+                    "cpp_name": "NormalDownload",
+                    "api_value": "normal_download"
+                },
+                {
+                    "cpp_name": "DirectDownload",
+                    "api_value": "direct_download"
+                },
+                {
+                    "cpp_name": "OneTimeDownload",
+                    "api_value": "one_time_download"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "Links",
+            "members": [
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "quickkey",
+                    "api_path": "quickkey"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "direct_download",
+                    "api_path": "direct_download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "direct_download_error_message",
+                    "api_path": "direct_download_error_message",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "int32_t",
+                    "cpp_name": "direct_download_error",
+                    "api_path": "direct_download_error",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "edit",
+                    "api_path": "edit",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "edit_error_message",
+                    "api_path": "edit_error_message",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "listen",
+                    "api_path": "listen",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "normal_download",
+                    "api_path": "normal_download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_download",
+                    "api_path": "one_time.download",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_download_error_message",
+                    "api_path": "one_time.download_error_message",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_listen",
+                    "api_path": "one_time.listen",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_watch",
+                    "api_path": "one_time.watch",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "one_time_view",
+                    "api_path": "one_time.view",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "read",
+                    "api_path": "read",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "streaming",
+                    "api_path": "streaming",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "view",
+                    "api_path": "view",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "watch",
+                    "api_path": "watch",
+                    "optional": true
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::vector<std::string>",
+            "cpp_name": "quickkeys",
+            "api_path": "quick_key"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::set<LinkType>",
+            "cpp_name": "link_types",
+            "api_path": "link_type"
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "Links",
+            "cpp_name": "links",
+            "api_path": "response.links",
+            "json_type": "array"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "one_time_download_request_count",
+            "api_path": "response.one_time_download_request_count",
+            "default_value": "0"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "direct_download_free_bandwidth",
+            "api_path": "response.direct_download_free_bandwidth",
+            "default_value": "0"
+        }
+    ]
+}

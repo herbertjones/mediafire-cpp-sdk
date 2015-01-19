@@ -9,6 +9,7 @@
 #pragma once
 
 #include "one_time_key/v1_1.hpp"
+#include "one_time_key/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace one_time_key {
 
 // Default version
-using namespace v1_1;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace one_time_key
 }  // namespace file

@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(CreateFile)
     // Only .txt files allowed currently.
     globals::test_file_name = ut::RandomAlphaNum(20) + ".txt";
 
-    Debug( globals::test_file_name );
+    Debug(globals::test_file_name);
 
     api::file::create::Request request;
 
@@ -291,7 +291,15 @@ BOOST_AUTO_TEST_CASE(CreateFile)
              }
              else
              {
-                 Success();
+                 if (!response.links.normal_download)
+                 {
+                     Fail("Newly created file should have normal download "
+                          "field for downloading file.");
+                 }
+                 else
+                 {
+                     Success();
+                 }
 
                  globals::test_quickkey = response.quickkey;
 
@@ -413,8 +421,7 @@ BOOST_AUTO_TEST_CASE(VerifyOneVersionExists)
                          != globals::upload::upload_revision_1)
                      {
                          Fail("The revision received from the uploader does "
-                              "not "
-                              "match the revision from get_versions.");
+                              "not match the revision from get_versions.");
                      }
                      else
                      {
@@ -526,48 +533,54 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
 {
     api::file::get_versions::Request request(globals::upload::quickkey_1);
 
-    Call(
-        request,
-        [&](const api::file::get_versions::Response & response)
-        {
-            if ( response.error_code )
-            {
-                Fail(response);
-            }
-            else
-            {
-                // There should be at least two versions.
-                if (response.file_versions.size() < 2)
-                {
-                    Fail("There should be at least two file versions after "
-                         "replacement upload.");
-                }
-                else
-                {
-                    bool original_revision_found = false;
-                    bool new_revision_found = false;
+    Call(request, [&](const api::file::get_versions::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 // There should be at least two versions.
+                 if (response.file_versions.size() < 2)
+                 {
+                     Debug(response.debug);
 
-                    for (auto & version_info : response.file_versions)
-                    {
-                        if (version_info.revision
-                            == globals::upload::upload_revision_1)
-                            original_revision_found = true;
-                        else if (version_info.revision
-                                 == globals::upload::upload_revision_2)
-                            new_revision_found = true;
-                    }
+                     Fail("There should be at least two file versions after "
+                          "replacement upload.");
+                 }
+                 else
+                 {
+                     bool original_revision_found = false;
+                     bool new_revision_found = false;
 
-                    if (!original_revision_found)
-                        Fail("Unable to find first upload revision in "
-                             "get_version.");
-                    if (!new_revision_found)
-                        Fail("Unable to find second upload revision in "
-                             "get_version.");
-                    if (original_revision_found && new_revision_found)
-                        Success();
-                }
-            }
-        });
+                     for (auto & version_info : response.file_versions)
+                     {
+                         if (version_info.revision
+                             == globals::upload::upload_revision_1)
+                             original_revision_found = true;
+                         else if (version_info.revision
+                                  == globals::upload::upload_revision_2)
+                             new_revision_found = true;
+                     }
+
+                     if (!original_revision_found)
+                     {
+                         Debug(response.debug);
+                         Fail("Unable to find first upload revision in "
+                              "get_version.");
+                     }
+                     if (!new_revision_found)
+                     {
+                         Debug(response.debug);
+                         Fail("Unable to find second upload revision in "
+                              "get_version.");
+                     }
+                     if (original_revision_found && new_revision_found)
+                         Success();
+                 }
+             }
+         });
 
     StartWithDefaultTimeout();
 }
@@ -722,7 +735,15 @@ BOOST_AUTO_TEST_CASE(FileGetInfo)
             }
             else
             {
-                Success();
+                if (!response.links.normal_download)
+                {
+                    Fail("New upload should have normal download field for "
+                         "downloading file.");
+                }
+                else
+                {
+                    Success();
+                }
 
                 globals::test_file_name2 = response.filename;
 
@@ -839,15 +860,26 @@ BOOST_AUTO_TEST_CASE(DeleteFile)
 BOOST_AUTO_TEST_CASE(FileGetLinks)
 {
     std::vector<std::string> quickkeys = {globals::test_quickkey};
-    Call(
-        api::file::get_links::Request(quickkeys),
-        [&](const api::file::get_links::Response & response)
-        {
-            if ( response.error_code )
-                Fail(response);
-            else
-                Success();
-        });
+    Call(api::file::get_links::Request(quickkeys),
+         [&](const api::file::get_links::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else if (response.links.empty())
+             {
+                 Fail("No links were provided.");
+             }
+             else if (! response.links[0].one_time_download)
+             {
+                 Fail("get_links should have provided a one time link.");
+             }
+             else
+             {
+                 Success();
+             }
+         });
 
     StartWithDefaultTimeout();
 }

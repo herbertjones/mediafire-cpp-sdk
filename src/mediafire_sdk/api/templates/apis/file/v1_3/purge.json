@@ -1,6 +1,6 @@
 {
-    "api": "/api/file/purge",
-    "version": "0",
+    "api": "/api/1.3/file/purge",
+    "version": "1.3",
     "input_params": [
         {
             "cpp_type": "std::vector<std::string>",
@@ -11,8 +11,8 @@
     "return_params": [
         {
             "cpp_type": "uint32_t",
-            "cpp_name": "device_revision",
-            "api_path": "response.device_revision",
+            "cpp_name": "new_device_revision",
+            "api_path": "response.new_device_revision",
             "optional": true
         }
     ]

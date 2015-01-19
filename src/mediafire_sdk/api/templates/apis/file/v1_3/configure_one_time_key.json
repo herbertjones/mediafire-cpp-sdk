@@ -1,0 +1,85 @@
+{
+    "api": "/api/1.3/file/configure_one_time_key",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "NofifyOwnerByEmail",
+            "members": [
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                },
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                }
+            ]
+        },
+        {
+            "cpp_name": "BurnAfterUse",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "token",
+            "api_path": "token"
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "duration_minutes",
+            "api_path": "duration",
+            "description": "How long the one-time download link is valid in minutes."
+        },
+        {
+            "cpp_type": "NofifyOwnerByEmail",
+            "cpp_name": "email_notification",
+            "api_path": "email_notification",
+            "description": "Notify file owner when the file is accessed for downloading.  Default is to not notify."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "success_callback_url",
+            "api_path": "success_callback_url",
+            "description": "An absolute URL which is called when the user successfully downloads the file."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "error_callback_url",
+            "api_path": "error_callback_url",
+            "description": "An absolute URL which is called when the download fails."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "bind_ip",
+            "api_path": "bind_ip",
+            "description": "A comma-separated list of IP masks/ranges to restrict the download to matching user IP addresses. (e.g. '68.154.11.0/8, 145.230.230.115-145.230.240.33, 78.192.10.10') "
+        },
+        {
+            "cpp_type": "BurnAfterUse",
+            "cpp_name": "burn_after_use",
+            "api_path": "burn_after_use",
+            "description": "Invalidate the one-time download link after first use. If bind_ip is not passed this parameter is ignored.  Default is to invalidate."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "one_time_key_request_count",
+            "api_path": "response.one_time_key_request_count",
+            "default_value": "0"
+        }
+    ]
+}

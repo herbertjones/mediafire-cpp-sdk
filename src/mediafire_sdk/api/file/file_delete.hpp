@@ -9,6 +9,7 @@
 #pragma once
 
 #include "file_delete/v0.hpp"
+#include "file_delete/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace file {
 namespace file_delete {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace file_delete
 }  // namespace file
