@@ -42,19 +42,6 @@
             ]
         }
     ],
-    "return_structs": [
-        {
-            "cpp_name": "Links",
-            "members": [
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "direct_download",
-                "api_path": "direct_download",
-                "optional": true
-            }
-            ]
-        }
-    ],
     "optional_input_params": [
         {
             "cpp_type": "std::string",

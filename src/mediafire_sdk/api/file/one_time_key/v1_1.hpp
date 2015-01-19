@@ -61,11 +61,6 @@ public:
         one_time_key_request_count(0),
         one_time_key_request_max_count(0)
     {}
-    struct Links
-    {
-        /** API response field "direct_download" */
-        boost::optional<std::string> direct_download;
-    };
     /** API response field "response.one_time_key_request_count" */
     uint32_t one_time_key_request_count;
 

@@ -48,12 +48,8 @@ class Request
 public:
     /**
      * API request "file/recently_modified"
-     *
-     * @param quickkey API parameter "quick_key"
      */
-    explicit Request(
-            std::string quickkey
-        );
+    Request();
 
     /**
      * Optional API parameter "number_of_files"

@@ -49,42 +49,6 @@ std::string AsString(const v1_1::GetCountsOnly & value)
 
 #include "mediafire_sdk/api/type_helpers.hpp"
 
-namespace {
-// get_data_type_struct_extractor begin
-using namespace v1_1;  // NOLINT
-bool LinksFromPropertyBranch(
-        Response * response,
-        Response::Links * value,
-        const boost::property_tree::wptree & pt
-    )
-{
-#   define return_error(error_type, error_message)                             \
-    {                                                                          \
-        response->error_code = make_error_code( error_type );                  \
-        response->error_string = error_message;                                \
-        return false;                                                          \
-    }
-    using mf::api::GetIfExists;
-    using mf::api::GetValueIfExists;
-
-    // create_content_parse_single optional no default
-    {
-        std::string optarg;
-        if ( GetIfExists(
-                pt,
-                "direct_download",
-                &optarg) )
-        {
-            value->direct_download = optarg;
-        }
-    }
-
-    // get_data_type_struct_extractor conclusion
-    return true;
-#   undef return_error
-}
-}  // namespace
-
 namespace mf {
 namespace api {
 /** API action path "file" */

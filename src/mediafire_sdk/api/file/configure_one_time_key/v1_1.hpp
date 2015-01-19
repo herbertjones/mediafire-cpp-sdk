@@ -75,7 +75,7 @@ public:
         );
 
     /**
-     * Optional API parameter "duration_minutes"
+     * Optional API parameter "duration"
      *
      * @param duration_minutes How long the one-time download link is valid in
      *                         minutes.

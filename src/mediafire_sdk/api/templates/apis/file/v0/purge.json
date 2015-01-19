@@ -8,5 +8,13 @@
             "cpp_name": "quickkeys",
             "api_path": "quick_key"
         }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision",
+            "optional": true
+        }
     ]
 }

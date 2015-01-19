@@ -121,7 +121,7 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 
     parts["token"] = token_;
     if (duration_minutes_)
-        parts["duration_minutes"] = AsString(*duration_minutes_);
+        parts["duration"] = AsString(*duration_minutes_);
     if (email_notification_)
         parts["email_notification"] = AsString(*email_notification_);
     if (success_callback_url_)

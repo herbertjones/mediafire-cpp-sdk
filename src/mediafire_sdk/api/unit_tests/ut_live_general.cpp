@@ -105,8 +105,8 @@ namespace upload
 std::string random_file_name;
 std::string quickkey_1;
 std::string quickkey_2;
-uint32_t snapshot_old_revision;
-uint32_t snapshot_new_revision;
+uint32_t upload_revision_1;
+uint32_t upload_revision_2;
 }  // namespace upload
 namespace one_time_key
 {
@@ -283,25 +283,23 @@ BOOST_AUTO_TEST_CASE(CreateFile)
     request.SetFilename(globals::test_file_name);
     request.SetParentFolderkey(globals::test_folderkey);
 
-    Call(
-        request,
-        [&](const api::file::create::Response & response)
-        {
-            if ( response.error_code )
-            {
-                Fail(response);
-            }
-            else
-            {
-                Success();
+    Call(request, [&](const api::file::create::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Success();
 
-                globals::test_quickkey = response.quickkey;
+                 globals::test_quickkey = response.quickkey;
 
-                BOOST_CHECK(!response.quickkey.empty());
-                BOOST_CHECK(response.created_datetime
-                            != boost::date_time::not_a_date_time);
-            }
-        });
+                 BOOST_CHECK(!response.quickkey.empty());
+                 BOOST_CHECK(response.created_datetime
+                             != boost::date_time::not_a_date_time);
+             }
+         });
 
     StartWithDefaultTimeout();
 }
@@ -378,7 +376,7 @@ BOOST_AUTO_TEST_CASE(UploadRandomFile)
             // New revisions available when new file created.
             if (success->new_revision)
             {
-                globals::upload::snapshot_old_revision = *success->new_revision;
+                globals::upload::upload_revision_1 = *success->new_revision;
                 Success();
             }
             else
@@ -389,6 +387,44 @@ BOOST_AUTO_TEST_CASE(UploadRandomFile)
     });
 
     StartWithTimeout(posix_time::seconds(60));
+}
+
+BOOST_AUTO_TEST_CASE(VerifyOneVersionExists)
+{
+    api::file::get_versions::Request request(globals::upload::quickkey_1);
+
+    Call(request, [&](const api::file::get_versions::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 // There should be at least two versions.
+                 if (response.file_versions.size() != 1)
+                 {
+                     Fail("There should be only one file version after "
+                          "replacement upload.");
+                 }
+                 else
+                 {
+                     if (response.file_versions[0].revision
+                         != globals::upload::upload_revision_1)
+                     {
+                         Fail("The revision received from the uploader does "
+                              "not "
+                              "match the revision from get_versions.");
+                     }
+                     else
+                     {
+                         Success();
+                     }
+                 }
+             }
+         });
+
+    StartWithDefaultTimeout();
 }
 
 BOOST_AUTO_TEST_CASE(CopyFile2)
@@ -471,7 +507,7 @@ BOOST_AUTO_TEST_CASE(UploadFileReplacement)
             // New revisions available when new file created.
             if (success->new_revision)
             {
-                globals::upload::snapshot_new_revision = *success->new_revision;
+                globals::upload::upload_revision_2 = *success->new_revision;
                 Success();
             }
             else
@@ -514,10 +550,10 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
                     for (auto & version_info : response.file_versions)
                     {
                         if (version_info.revision
-                            == globals::upload::snapshot_old_revision)
+                            == globals::upload::upload_revision_1)
                             original_revision_found = true;
                         else if (version_info.revision
-                                 == globals::upload::snapshot_new_revision)
+                                 == globals::upload::upload_revision_2)
                             new_revision_found = true;
                     }
 
@@ -540,7 +576,7 @@ BOOST_AUTO_TEST_CASE(RestoreFile)
 {
     api::file::restore::Request request(
         globals::upload::quickkey_1,
-        globals::upload::snapshot_old_revision
+        globals::upload::upload_revision_1
         );
 
     Call(
@@ -591,7 +627,7 @@ BOOST_AUTO_TEST_CASE(GetFileVersions)
 
 BOOST_AUTO_TEST_CASE(RecentlyModified)
 {
-    api::file::recently_modified::Request request(globals::upload::quickkey_1);
+    api::file::recently_modified::Request request;
 
     Call(
         request,
@@ -917,15 +953,14 @@ BOOST_AUTO_TEST_CASE(ConfirmCopyMove)
 BOOST_AUTO_TEST_CASE(PurgeFile)
 {
     std::vector<std::string> quickkeys = {globals::test_quickkey};
-    Call(
-        api::file::purge::Request(quickkeys),
-        [&](const api::file::purge::Response & response)
-        {
-            if ( response.error_code )
-                Fail(response);
-            else
-                Success();
-        });
+    Call(api::file::purge::Request(quickkeys),
+         [&](const api::file::purge::Response & response)
+         {
+             if (response.error_code)
+                 Fail(response);
+             else
+                 Success();
+         });
 
     StartWithDefaultTimeout();
 }

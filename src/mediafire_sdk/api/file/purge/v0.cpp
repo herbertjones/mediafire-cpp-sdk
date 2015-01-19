@@ -46,7 +46,7 @@ public:
         std::map<std::string, std::string> * query_parts
     ) const override;
 
-    virtual void ParseResponse( Response * /* response */ ) override;
+    virtual void ParseResponse( Response * response ) override;
 
     mf::http::SharedBuffer::Pointer GetPostData();
 
@@ -71,7 +71,7 @@ void Impl::BuildUrl(
     *path = api_path + ".php";
 }
 
-void Impl::ParseResponse( Response * /* response */ )
+void Impl::ParseResponse( Response * response )
 {
     // This function uses return defines for readability and maintainability.
 #   define return_error(error_type, error_message)                             \
@@ -80,6 +80,17 @@ void Impl::ParseResponse( Response * /* response */ )
         return;                                                                \
     }
 
+    // create_content_parse_single optional no default
+    {
+        uint32_t optarg;
+        if ( GetIfExists(
+                response->pt,
+                "response.device_revision",
+                &optarg) )
+        {
+            response->device_revision = optarg;
+        }
+    }
 
 #   undef return_error
 }

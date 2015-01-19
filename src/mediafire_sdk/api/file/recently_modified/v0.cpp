@@ -36,11 +36,8 @@ const std::string api_path("/api/file/recently_modified");
 class Impl : public SessionTokenApiBase<Response>
 {
 public:
-    explicit Impl(
-            std::string quickkey
-        );
+    Impl();
 
-    std::string quickkey_;
     boost::optional<uint32_t> number_of_files_;
     virtual void BuildUrl(
         std::string * path,
@@ -57,10 +54,7 @@ public:
     }
 };
 
-Impl::Impl(
-        std::string quickkey
-    ) :
-    quickkey_(quickkey)
+Impl::Impl()
 {
 }
 
@@ -113,7 +107,6 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 {
     std::map<std::string, std::string> parts;
 
-    parts["quick_key"] = quickkey_;
     if (number_of_files_)
         parts["number_of_files"] = AsString(*number_of_files_);
 
@@ -124,10 +117,8 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 
 // Request ---------------------------------------------------------------------
 
-Request::Request(
-        std::string quickkey
-    ) :
-    impl_(new Impl(quickkey))
+Request::Request() :
+    impl_(new Impl())
 {
 }
 

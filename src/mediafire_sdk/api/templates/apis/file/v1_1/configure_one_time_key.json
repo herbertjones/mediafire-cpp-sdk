@@ -40,7 +40,7 @@
         {
             "cpp_type": "uint32_t",
             "cpp_name": "duration_minutes",
-            "api_path": "duration_minutes",
+            "api_path": "duration",
             "description": "How long the one-time download link is valid in minutes."
         },
         {
