@@ -1558,6 +1558,9 @@ class JsonAnalyser:
                 'required': required,
                 }
 
+    def is_private_field(self, key):
+        return key[0:1] == '_'
+
     def run(self, json, identifier = None, ef = None, duplicate_checker = None):
         if ef is None:
             ef = ErrorFormatter()
@@ -1590,7 +1593,7 @@ class JsonAnalyser:
 
         # Ensure no excess members
         for key in json:
-            if key not in all_keys:
+            if key not in all_keys and not self.is_private_field(key):
                 ef.add('Unexpected parameter "' + key + '"')
 
         # Validate
