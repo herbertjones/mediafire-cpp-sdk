@@ -72,6 +72,14 @@ enum class Privacy
     Private
 };
 
+enum class ExplicitShare
+{
+    /** API value "0" */
+    No,
+    /** API value "1" */
+    Yes
+};
+
 enum class FileDrop
 {
     /** API value "no" */
@@ -86,6 +94,14 @@ enum class PasswordProtected
     Unprotected,
     /** API value "yes" */
     Protected
+};
+
+enum class Permission
+{
+    /** API value "1" */
+    Allowed,
+    /** API value "0" */
+    Denied
 };
 
 enum class SharedByUser
@@ -136,6 +152,20 @@ public:
         /** API response field "view" */
         boost::optional<std::string> view;
     };
+    struct Permissions
+    {
+        /** API response field "value" */
+        uint32_t value;
+
+        /** API response field "explicit" */
+        ExplicitShare explicit_share;
+
+        /** API response field "read" */
+        Permission read_permission;
+
+        /** API response field "write" */
+        Permission write_permission;
+    };
     struct File
     {
         /** API response field "created" */
@@ -174,8 +204,8 @@ public:
         /** API response field "password_protected" */
         PasswordProtected password_protected;
 
-        /** API response field "permissions.value" */
-        boost::optional<uint32_t> permissions;
+        /** API response field "permissions" */
+        boost::optional<Permissions> permissions;
 
         /** API response field "privacy" */
         Privacy privacy;
@@ -224,8 +254,8 @@ public:
         /** API response field "name" */
         std::string name;
 
-        /** API response field "permissions.value" */
-        boost::optional<uint32_t> permissions;
+        /** API response field "permissions" */
+        boost::optional<Permissions> permissions;
 
         /** API response field "privacy" */
         Privacy privacy;

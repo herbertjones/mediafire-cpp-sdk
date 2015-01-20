@@ -1,6 +1,8 @@
 {
     "api": "/api/file/get_info",
     "version": "0",
+    "_comment" : "This version must be the default until STARS #27247 is fixed",
+    "default_version": true,
     "enums": [
     {
         "cpp_name": "Privacy",

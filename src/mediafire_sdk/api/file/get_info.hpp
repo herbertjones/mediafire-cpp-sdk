@@ -19,7 +19,7 @@ namespace file {
 namespace get_info {
 
 // Default version
-using namespace v1_3;  // NOLINT
+using namespace v0;  // NOLINT
 
 }  // namespace get_info
 }  // namespace file

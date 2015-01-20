@@ -26,6 +26,14 @@ namespace get_info {
 /** API path "/api/1.3/file/get_info" */
 namespace v1_3 {
 
+enum class ExplicitShare
+{
+    /** API value "0" */
+    No,
+    /** API value "1" */
+    Yes
+};
+
 enum class Privacy
 {
     /** API value "public" */
@@ -40,6 +48,14 @@ enum class PasswordProtected
     Unprotected,
     /** API value "yes" */
     Protected
+};
+
+enum class Permission
+{
+    /** API value "1" */
+    Allowed,
+    /** API value "0" */
+    Denied
 };
 
 enum class SharedByUser
@@ -100,6 +116,20 @@ public:
         /** API response field "watch" */
         boost::optional<std::string> watch;
     };
+    struct Permissions
+    {
+        /** API response field "value" */
+        uint32_t value;
+
+        /** API response field "explicit" */
+        ExplicitShare explicit_share;
+
+        /** API response field "read" */
+        Permission read_permission;
+
+        /** API response field "write" */
+        Permission write_permission;
+    };
     /** API response field "response.file_info.quickkey" */
     std::string quickkey;
 
@@ -139,8 +169,8 @@ public:
     /** API response field "response.file_info.shared_by_user" */
     SharedByUser shared_by_user;
 
-    /** API response field "response.file_info.permissions.value" */
-    boost::optional<uint32_t> permissions;
+    /** API response field "response.file_info.permissions" */
+    boost::optional<Permissions> permissions;
 
     /** API response field "response.file_info.parent_folderkey" */
     boost::optional<std::string> parent_folderkey;

@@ -188,6 +188,105 @@ bool LinksFromPropertyBranch(
     return true;
 #   undef return_error
 }
+// get_data_type_struct_extractor begin
+using namespace v1_3;  // NOLINT
+bool PermissionsFromPropertyBranch(
+        Response * response,
+        Response::Permissions * value,
+        const boost::property_tree::wptree & pt
+    )
+{
+#   define return_error(error_type, error_message)                             \
+    {                                                                          \
+        response->error_code = make_error_code( error_type );                  \
+        response->error_string = error_message;                                \
+        return false;                                                          \
+    }
+    using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
+
+    // create_content_parse_single required
+    if ( ! GetIfExists(
+            pt,
+            "value",
+            &value->value ) )
+        return_error(
+            mf::api::api_code::ContentInvalidData,
+            "missing \"value\"");
+
+    {
+        std::string optval;
+        // create_content_enum_parse TSingle
+        if ( GetIfExists(
+                pt,
+                "explicit",
+                &optval) )
+        {
+            if ( optval == "0" )
+                value->explicit_share = ExplicitShare::No;
+            else if ( optval == "1" )
+                value->explicit_share = ExplicitShare::Yes;
+            else
+                return_error(
+                    mf::api::api_code::ContentInvalidData,
+                    "invalid value in explicit");
+        }
+        else
+            return_error(
+                mf::api::api_code::ContentInvalidData,
+                "no value in explicit");
+    }
+
+    {
+        std::string optval;
+        // create_content_enum_parse TSingle
+        if ( GetIfExists(
+                pt,
+                "read",
+                &optval) )
+        {
+            if ( optval == "1" )
+                value->read_permission = Permission::Allowed;
+            else if ( optval == "0" )
+                value->read_permission = Permission::Denied;
+            else
+                return_error(
+                    mf::api::api_code::ContentInvalidData,
+                    "invalid value in read");
+        }
+        else
+            return_error(
+                mf::api::api_code::ContentInvalidData,
+                "no value in read");
+    }
+
+    {
+        std::string optval;
+        // create_content_enum_parse TSingle
+        if ( GetIfExists(
+                pt,
+                "write",
+                &optval) )
+        {
+            if ( optval == "1" )
+                value->write_permission = Permission::Allowed;
+            else if ( optval == "0" )
+                value->write_permission = Permission::Denied;
+            else
+                return_error(
+                    mf::api::api_code::ContentInvalidData,
+                    "invalid value in write");
+        }
+        else
+            return_error(
+                mf::api::api_code::ContentInvalidData,
+                "no value in write");
+    }
+
+    // get_data_type_struct_extractor conclusion
+    return true;
+#   undef return_error
+}
 }  // namespace
 
 namespace mf {
@@ -399,16 +498,21 @@ void Impl::ParseResponse( Response * response )
         }
     }
 
-    // create_content_parse_single optional no default
-    {
-        uint32_t optarg;
-        if ( GetIfExists(
-                response->pt,
-                "response.file_info.permissions.value",
-                &optarg) )
+    // create_content_struct_parse TSingle
+    try {
+        const boost::property_tree::wptree & branch =
+            response->pt.get_child(L"response.file_info.permissions");
+
+        Response::Permissions optarg;
+        if ( PermissionsFromPropertyBranch(
+                response, &optarg, branch) )
         {
-            response->permissions = optarg;
+            response->permissions = std::move(optarg);
         }
+    }
+    catch(boost::property_tree::ptree_bad_path & err)
+    {
+        // Is optional
     }
 
     // create_content_parse_single optional no default

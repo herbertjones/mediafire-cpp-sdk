@@ -81,6 +81,19 @@
         ]
     },
     {
+        "cpp_name": "ExplicitShare",
+        "members": [
+        {
+            "cpp_name": "No",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "Yes",
+            "api_value": "1"
+        }
+        ]
+    },
+    {
         "cpp_name": "FileDrop",
         "members": [
         {
@@ -103,6 +116,19 @@
         {
             "cpp_name": "Protected",
             "api_value": "yes"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Permission",
+        "members": [
+        {
+            "cpp_name": "Allowed",
+            "api_value": "1"
+        },
+        {
+            "cpp_name": "Denied",
+            "api_value": "0"
         }
         ]
     },
@@ -183,6 +209,31 @@
             ]
         },
         {
+            "cpp_name": "Permissions",
+            "members": [
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "value",
+                "api_path": "value"
+            },
+            {
+                "cpp_type": "ExplicitShare",
+                "cpp_name": "explicit_share",
+                "api_path": "explicit"
+            },
+            {
+                "cpp_type": "Permission",
+                "cpp_name": "read_permission",
+                "api_path": "read"
+            },
+            {
+                "cpp_type": "Permission",
+                "cpp_name": "write_permission",
+                "api_path": "write"
+            }
+            ]
+        },
+        {
             "cpp_name": "File",
             "members": [
             {
@@ -249,9 +300,9 @@
                 "api_path": "password_protected"
             },
             {
-                "cpp_type": "uint32_t",
+                "cpp_type": "Permissions",
                 "cpp_name": "permissions",
-                "api_path": "permissions.value",
+                "api_path": "permissions",
                 "optional": true
             },
             {
@@ -339,9 +390,9 @@
                 "api_path": "name"
             },
             {
-                "cpp_type": "uint32_t",
+                "cpp_type": "Permissions",
                 "cpp_name": "permissions",
-                "api_path": "permissions.value",
+                "api_path": "permissions",
                 "optional": true
             },
             {

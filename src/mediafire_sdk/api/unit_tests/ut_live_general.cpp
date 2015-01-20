@@ -735,12 +735,15 @@ BOOST_AUTO_TEST_CASE(FileGetInfo)
             }
             else
             {
+#if 0  // Re-enable when #27247 is complete and we have upgraded to v1.3 of file/get_info
+
                 if (!response.links.normal_download)
                 {
-                    Fail("New upload should have normal download field for "
+                    Fail("All files should return normal download field for "
                          "downloading file.");
                 }
                 else
+#endif
                 {
                     Success();
                 }
