@@ -672,6 +672,7 @@ public:
     boost::optional<OrderDirection> order_direction_;
     boost::optional<std::string> filter_;
     boost::optional<Details> details_;
+    boost::optional<uint32_t> chunk_size_;
     virtual void BuildUrl(
         std::string * path,
         std::map<std::string, std::string> * query_parts
@@ -837,6 +838,8 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
         parts["filter"] = *filter_;
     if (details_)
         parts["details"] = AsString(*details_);
+    if (chunk_size_)
+        parts["chunk_size"] = AsString(*chunk_size_);
 
     std::string post_data = MakePost(api_path + ".php", parts);
     AddDebugText(" POST data: " + post_data + "\n");
@@ -914,6 +917,11 @@ void Request::SetFilter(std::string filter)
 void Request::SetDetails(Details details)
 {
     impl_->details_ = details;
+}
+
+void Request::SetChunkSize(uint32_t chunk_size)
+{
+    impl_->chunk_size_ = chunk_size;
 }
 
 mf::http::SharedBuffer::Pointer Request::GetPostData()

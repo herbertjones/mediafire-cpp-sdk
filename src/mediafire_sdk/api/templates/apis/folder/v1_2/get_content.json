@@ -435,6 +435,11 @@
             "cpp_type": "Details",
             "cpp_name": "details",
             "api_path": "details"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "chunk_size",
+            "api_path": "chunk_size"
         }
     ],
     "return_params": [

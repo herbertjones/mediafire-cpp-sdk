@@ -327,6 +327,13 @@ public:
      */
     void SetDetails(Details details);
 
+    /**
+     * Optional API parameter "chunk_size"
+     *
+     * @param chunk_size Set parameter "chunk_size" in API request.
+     */
+    void SetChunkSize(uint32_t chunk_size);
+
     // Remaining functions are for use by API library only. --------------------
 
     /** Requester/SessionMaintainer expected type. */
