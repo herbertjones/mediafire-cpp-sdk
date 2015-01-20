@@ -35,12 +35,6 @@
                     "cpp_name": "at_head",
                     "api_path": "head",
                     "default_value": "No"
-                },
-                {
-                    "cpp_type": "std::string",
-                    "cpp_name": "new_key",
-                    "api_path": "new_key",
-                    "optional": true
                 }
             ]
         }

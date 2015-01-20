@@ -51,9 +51,6 @@ public:
 
         /** API response field "head" */
         AtHead at_head;
-
-        /** API response field "new_key" */
-        boost::optional<std::string> new_key;
     };
     /** API response field "response.file_versions" */
     std::vector<FileVersion> file_versions;

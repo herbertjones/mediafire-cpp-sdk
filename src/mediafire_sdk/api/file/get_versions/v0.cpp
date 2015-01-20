@@ -74,18 +74,6 @@ bool FileVersionFromPropertyBranch(
         }
     }
 
-    // create_content_parse_single optional no default
-    {
-        std::string optarg;
-        if ( GetIfExists(
-                pt,
-                "new_key",
-                &optarg) )
-        {
-            value->new_key = optarg;
-        }
-    }
-
     // get_data_type_struct_extractor conclusion
     return true;
 #   undef return_error
