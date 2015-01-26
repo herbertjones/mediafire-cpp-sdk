@@ -9,6 +9,7 @@
 #pragma once
 
 #include "link_twitter/v0.hpp"
+#include "link_twitter/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace link_twitter {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace link_twitter
 }  // namespace user

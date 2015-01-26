@@ -9,6 +9,7 @@
 #pragma once
 
 #include "user_register/v0.hpp"
+#include "user_register/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace user_register {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace user_register
 }  // namespace user

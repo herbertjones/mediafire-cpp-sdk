@@ -1,4 +1,3 @@
-
 /**
  * @file api/unit_tests/ut_live_user.cpp
  * @author Herbert Jones
@@ -11,11 +10,17 @@
 #  define OUTPUT_DEBUG
 #endif
 
+#include "mediafire_sdk/api/user/destroy_action_token.hpp"
+#include "mediafire_sdk/api/user/fetch_tos.hpp"
 #include "mediafire_sdk/api/user/get_action_token.hpp"
+#include "mediafire_sdk/api/user/get_avatar.hpp"
 #include "mediafire_sdk/api/user/get_info.hpp"
 #include "mediafire_sdk/api/user/get_limits.hpp"
 #include "mediafire_sdk/api/user/get_login_token.hpp"
 #include "mediafire_sdk/api/user/get_session_token.hpp"
+#include "mediafire_sdk/api/user/get_settings.hpp"
+#include "mediafire_sdk/api/user/set_settings.hpp"
+#include "mediafire_sdk/api/user/update.hpp"
 
 #ifdef BOOST_ASIO_SEPARATE_COMPILATION
 #include "boost/asio/impl/src.hpp"      // Define once in program
@@ -29,6 +34,7 @@ namespace api = mf::api;
 
 namespace globals {
 using namespace ut::globals;
+std::string action_token;
 }  // namespace globals
 
 BOOST_FIXTURE_TEST_SUITE( s, ut::Fixture )
@@ -62,20 +68,105 @@ BOOST_AUTO_TEST_CASE(SessionTokenOverSessionMaintainerLive)
 
 BOOST_AUTO_TEST_CASE(UserGetInfo)
 {
-    Call(
-        api::user::get_info::Request(),
-        [&](const api::user::get_info::Response & response)
-        {
-            if ( response.error_code )
-            {
-                Fail(response);
-            }
-            else
-            {
-                Success();
-            }
-        });
+    using api::user::get_info::Linked::Yes;
 
+    Call(api::user::get_info::Request(),
+         [&](const api::user::get_info::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Log("Has facebook:",
+                     response.facebook && response.facebook->linked == Yes);
+                 Log("Has twitter:",
+                     response.twitter && response.twitter->linked == Yes);
+                 Log("Has gmail:",
+                     response.gmail && response.gmail->linked == Yes);
+                 Log("Email:", response.email);
+                 Log("Display name:", response.display_name);
+                 Log("Ekey:", response.ekey);
+
+                 Success();
+             }
+         });
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(GetSettings)
+{
+    Call(api::user::get_settings::Request(),
+         [&](const api::user::get_settings::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Success();
+             }
+         });
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(SetSettings)
+{
+    api::user::set_settings::Request request;
+    request.SetDefaultShareLinkStatus(
+            api::user::set_settings::ShareLinkStatus::Enabled);
+
+    Call(request, [&](const api::user::set_settings::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Success();
+             }
+         });
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(UpdateUser)
+{
+    api::user::update::Request request;
+    request.SetGender(api::user::update::Gender::None);
+
+    Call(request, [&](const api::user::update::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Success();
+             }
+         });
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(GetAvatar)
+{
+    Call(api::user::get_avatar::Request(),
+         [&](const api::user::get_avatar::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Log("Avatar URL:", response.avatar_url);
+
+                 Success();
+             }
+         });
     StartWithDefaultTimeout();
 }
 
@@ -213,13 +304,33 @@ BOOST_AUTO_TEST_CASE(UserGetLimits)
     StartWithDefaultTimeout();
 }
 
-BOOST_AUTO_TEST_CASE(GetActionTokenLive)
+BOOST_AUTO_TEST_CASE(GetActionToken)
 {
     api::user::get_action_token::Request request(
         api::user::get_action_token::Type::Image);
     Call(
         request,
         [&](const api::user::get_action_token::Response & response)
+        {
+            if ( response.error_code )
+            {
+                Fail(response);
+            }
+            else
+            {
+                globals::action_token = response.action_token;
+                Success();
+            }
+        });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(DestroyActionToken)
+{
+    Call(
+        api::user::destroy_action_token::Request(globals::action_token),
+        [&](const api::user::destroy_action_token::Response & response)
         {
             if ( response.error_code )
                 Fail(response);
@@ -250,6 +361,27 @@ BOOST_AUTO_TEST_CASE(GetLoginToken)
                           << response.login_token << std::endl;
             }
         });
+
+    StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(FetchTOS)
+{
+    namespace tos = api::user::fetch_tos;
+    Call(tos::Request(), [&](const tos::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+                 Log("User accepted terms:",
+                     response.user_accepted_terms == tos::TOSAccepted::Yes);
+                 Log("Acceptance token:", response.acceptance_token);
+                 Success();
+             }
+         });
 
     StartWithDefaultTimeout();
 }

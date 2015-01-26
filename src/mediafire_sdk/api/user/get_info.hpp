@@ -9,6 +9,7 @@
 #pragma once
 
 #include "get_info/v0.hpp"
+#include "get_info/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace get_info {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace get_info
 }  // namespace user

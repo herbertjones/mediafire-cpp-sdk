@@ -26,7 +26,8 @@ set(API_SOURCES
 
     # Non template generated APIs
     user/get_login_token.cpp
-    user/get_session_token.cpp
+    user/get_session_token/v0.cpp
+    user/get_session_token/v1_3.cpp
     user/renew_session_token.cpp
 
     app_constants.cpp
@@ -51,6 +52,8 @@ set(API_HEADERS
     # Non template generated APIs
     user/get_login_token.hpp
     user/get_session_token.hpp
+    user/get_session_token/v0.hpp
+    user/get_session_token/v1_3.hpp
     user/renew_session_token.hpp
 
     app_constants.hpp

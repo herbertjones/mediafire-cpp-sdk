@@ -1,0 +1,52 @@
+{
+    "api": "/api/1.3/user/fetch_tos",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "TOSAccepted",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "revision",
+            "api_path": "response.terms_of_service.revision",
+            "description": "The version of the Terms of Service."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "terms",
+            "api_path": "response.terms_of_service.terms",
+            "description": "The complete Terms of Service."
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "date",
+            "api_path": "response.terms_of_service.date",
+            "description": "The date and time the Terms of Service was created."
+        },
+        {
+            "cpp_type": "TOSAccepted",
+            "cpp_name": "user_accepted_terms",
+            "api_path": "response.terms_of_service.user_accepted_terms",
+            "default_value" : "No",
+            "description": "Whether user accepted terms previously."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "acceptance_token",
+            "api_path": "response.terms_of_service.acceptance_token",
+            "description": "Token to be used with user/accept_tos."
+        }
+    ]
+}

@@ -1,0 +1,55 @@
+{
+    "api": "/api/1.3/user/set_avatar",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "Action",
+            "members": [
+                {
+                    "cpp_name": "SetDefault",
+                    "api_value": "set_default"
+                },
+                {
+                    "cpp_name": "Remove",
+                    "api_value": "remove"
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "Action",
+            "cpp_name": "action",
+            "api_path": "action",
+            "description" : "Type of change to make to the account avatar.  Required if quickkey or URL are not passed."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quick_key",
+            "description" : "A file key of an image file existing in the session user's account.  If action is passed this parameter is ignored. Required if action or url are not passed. "
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "url",
+            "api_path": "url",
+            "description" : "A URL to an image file.  If action or quick_key are passed this parameter is ignored.  Required if action or quick_key are not passed."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "response.quick_key",
+            "optional": true,
+            "description": "The quickkey of the avatar."
+        },
+        {
+            "cpp_type": "uint64_t",
+            "cpp_name": "new_device_revision",
+            "api_path": "response.new_device_revision",
+            "optional": true,
+            "description": "The revision of the cloud device if changed."
+        }
+    ]
+}

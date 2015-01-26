@@ -71,15 +71,32 @@ set(API_TEMPLATE_GENERATED_SOURCES
     upload/poll_upload/v0.cpp
     upload/poll_upload/v1_3.cpp
     upload/pre_upload/v0.cpp
+    user/accept_tos/v1_3.cpp
     user/destroy_action_token/v1_0.cpp
+    user/destroy_action_token/v1_3.cpp
+    user/fetch_tos/v1_3.cpp
     user/get_action_token/v1_0.cpp
+    user/get_action_token/v1_3.cpp
+    user/get_avatar/v1_3.cpp
     user/get_info/v0.cpp
+    user/get_info/v1_3.cpp
     user/get_limits/v0.cpp
+    user/get_limits/v1_3.cpp
+    user/get_settings/v1_3.cpp
     user/link_facebook/v0.cpp
+    user/link_facebook/v1_3.cpp
+    user/link_gmail/v1_3.cpp
     user/link_twitter/v0.cpp
+    user/link_twitter/v1_3.cpp
+    user/set_avatar/v1_3.cpp
+    user/set_settings/v1_3.cpp
     user/unlink_facebook/v0.cpp
+    user/unlink_facebook/v1_3.cpp
     user/unlink_twitter/v0.cpp
+    user/unlink_twitter/v1_3.cpp
+    user/update/v1_3.cpp
     user/user_register/v0.cpp
+    user/user_register/v1_3.cpp
 )
 
 set(API_TEMPLATE_GENERATED_HEADERS
@@ -203,22 +220,47 @@ set(API_TEMPLATE_GENERATED_HEADERS
     upload/poll_upload/v1_3.hpp
     upload/pre_upload.hpp
     upload/pre_upload/v0.hpp
+    user/accept_tos.hpp
+    user/accept_tos/v1_3.hpp
     user/destroy_action_token.hpp
     user/destroy_action_token/v1_0.hpp
+    user/destroy_action_token/v1_3.hpp
+    user/fetch_tos.hpp
+    user/fetch_tos/v1_3.hpp
     user/get_action_token.hpp
     user/get_action_token/v1_0.hpp
+    user/get_action_token/v1_3.hpp
+    user/get_avatar.hpp
+    user/get_avatar/v1_3.hpp
     user/get_info.hpp
     user/get_info/v0.hpp
+    user/get_info/v1_3.hpp
     user/get_limits.hpp
     user/get_limits/v0.hpp
+    user/get_limits/v1_3.hpp
+    user/get_settings.hpp
+    user/get_settings/v1_3.hpp
     user/link_facebook.hpp
     user/link_facebook/v0.hpp
+    user/link_facebook/v1_3.hpp
+    user/link_gmail.hpp
+    user/link_gmail/v1_3.hpp
     user/link_twitter.hpp
     user/link_twitter/v0.hpp
+    user/link_twitter/v1_3.hpp
+    user/set_avatar.hpp
+    user/set_avatar/v1_3.hpp
+    user/set_settings.hpp
+    user/set_settings/v1_3.hpp
     user/unlink_facebook.hpp
     user/unlink_facebook/v0.hpp
+    user/unlink_facebook/v1_3.hpp
     user/unlink_twitter.hpp
     user/unlink_twitter/v0.hpp
+    user/unlink_twitter/v1_3.hpp
+    user/update.hpp
+    user/update/v1_3.hpp
     user/user_register.hpp
     user/user_register/v0.hpp
+    user/user_register/v1_3.hpp
 )

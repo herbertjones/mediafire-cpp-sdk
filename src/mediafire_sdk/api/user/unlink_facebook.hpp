@@ -9,6 +9,7 @@
 #pragma once
 
 #include "unlink_facebook/v0.hpp"
+#include "unlink_facebook/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace unlink_facebook {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace unlink_facebook
 }  // namespace user

@@ -1,0 +1,56 @@
+{
+    "api": "/api/1.3/user/set_settings",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "ShareLinkStatus",
+            "members": [
+                {
+                    "cpp_name": "Disabled",
+                    "api_value": "disabled"
+                },
+                {
+                    "cpp_name": "Enabled",
+                    "api_value": "enabled"
+                },
+                {
+                    "cpp_name": "Inherit",
+                    "api_value": "inherit"
+                }
+            ]
+        },
+        {
+            "cpp_name": "CollectMetadata",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "previous_file_versions",
+            "api_path": "previous_file_versions",
+            "description" : "The number of older file versions to keep for a file."
+        },
+        {
+            "cpp_type": "ShareLinkStatus",
+            "cpp_name": "default_share_link_status",
+            "api_path": "default_share_link_status",
+            "description" : "Specifies the initial share link status for a new file."
+        },
+        {
+            "cpp_type": "CollectMetadata",
+            "cpp_name": "collect_metadata",
+            "api_path": "collect_metadata",
+            "description" : "Specifies whether metadata should be collected on files uploaded to this user account."
+        }
+    ]
+}

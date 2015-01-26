@@ -9,6 +9,7 @@
 #pragma once
 
 #include "destroy_action_token/v1_0.hpp"
+#include "destroy_action_token/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace destroy_action_token {
 
 // Default version
-using namespace v1_0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace destroy_action_token
 }  // namespace user

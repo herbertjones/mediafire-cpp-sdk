@@ -9,6 +9,7 @@
 #pragma once
 
 #include "get_limits/v0.hpp"
+#include "get_limits/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace user {
 namespace get_limits {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace get_limits
 }  // namespace user

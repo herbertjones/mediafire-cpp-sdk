@@ -87,8 +87,31 @@ public:
 
     void Debug(const std::string & str);
 
+    template <typename Head, typename... Tail>
+    inline void Log(const Head head, Tail&&...tail)
+    {
+        std::ostringstream ss;
+        ss << head;
+        LogStep(ss, tail...);
+        Debug(ss.str());
+    }
+
 protected:
     void HandleTimeout(const boost::system::error_code & err);
+
+    inline void LogStep(std::ostringstream &)
+    {
+        // Base case.  Nothing to do.
+    }
+
+    template <typename Head, typename... Tail>
+    inline void LogStep(std::ostringstream & ss,
+                        const Head head,
+                        Tail &&... tail)
+    {
+        ss << ' ' << head;
+        LogStep(ss, tail...);
+    }
 
     mf::api::Credentials credentials_;
     mf::http::HttpConfig::Pointer http_config_;

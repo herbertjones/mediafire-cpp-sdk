@@ -1,0 +1,12 @@
+{
+    "api": "/api/1.3/user/get_avatar",
+    "version": "1.3",
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "avatar_url",
+            "api_path": "response.avatar",
+            "description": "The URL of the user's avatar."
+        }
+    ]
+}
