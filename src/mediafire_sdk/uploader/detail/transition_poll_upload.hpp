@@ -32,33 +32,37 @@ void StartPoll(
         FSM & fsm
     );
 
-
 template <typename FSM>
 void HandlePollCompleteResponse(
         FSM & fsm,
-        const mf::api::upload::poll_upload::Response & response
-    )
+        const mf::api::upload::poll_upload::Response & response)
 {
-    if (response.quickkey && response.revision)
+    if (!response.quickkey)
+    {
+        fsm.ProcessEvent(
+                event::Error{make_error_code(api::api_code::ContentInvalidData),
+                             "Successful response missing quickkey"});
+    }
+    else if (!response.revision)
+    {
+        fsm.ProcessEvent(
+                event::Error{make_error_code(api::api_code::ContentInvalidData),
+                             "Successful response missing revision"});
+    }
+    else
     {
         if (response.filename)
         {
             // Filename was changed
-            fsm.ProcessEvent(event::PollComplete{
-                *response.quickkey, *response.filename, *response.revision});
+            fsm.ProcessEvent(event::PollComplete{*response.quickkey,
+                                                 *response.filename,
+                                                 *response.revision});
         }
         else
         {
             fsm.ProcessEvent(event::PollComplete{
                     *response.quickkey, fsm.filename(), *response.revision});
         }
-    }
-    else
-    {
-        fsm.ProcessEvent(event::Error{
-            make_error_code(api::api_code::ContentInvalidData),
-            "Successful response missing quickkey"
-            });
     }
 }
 
@@ -98,7 +102,7 @@ void HandlePollResponse(
             "Poll upload file error received"
             });
     }
-    else if( response.status && *response.status == 99 )
+    else if( response.quickkey )
     {
         HandlePollCompleteResponse(fsm, response);
     }
