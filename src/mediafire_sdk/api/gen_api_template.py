@@ -1232,6 +1232,8 @@ def get_data_type_struct_extractor(api, name, param_list):
 
     lines.append(I(1) + 'using mf::api::GetIfExists;')
     lines.append(I(1) + 'using mf::api::GetValueIfExists;')
+    lines.append(I(1) + 'if (pt.size() == 0)  // Stop if branch is empty')
+    lines.append(I(2) + 'return false;')
 
     top = '\n'.join(lines) + '\n'
 
