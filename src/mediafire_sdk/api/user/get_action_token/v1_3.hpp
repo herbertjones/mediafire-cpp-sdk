@@ -67,7 +67,7 @@ public:
      * Optional API parameter "lifespan"
      *
      * @param lifespan The number of minutes before the action token should be
-     *                 destroyed.  Defaults to 24 hours.
+     *                 destroyed.  Defaults to 1 minute.
      */
     void SetLifespan(uint32_t lifespan);
 
