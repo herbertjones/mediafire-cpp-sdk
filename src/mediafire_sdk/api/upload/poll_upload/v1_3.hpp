@@ -26,6 +26,14 @@ namespace poll_upload {
 /** API path "/api/1.3/upload/poll_upload" */
 namespace v1_3 {
 
+enum class AllUnitsReady
+{
+    /** API value "no" */
+    No,
+    /** API value "yes" */
+    Yes
+};
+
 /**
  * @class Response
  * @brief Response from API request "upload/poll_upload"
@@ -36,29 +44,58 @@ public:
     Response() :
         fileerror(0)
     {}
+    struct ResumableData
+    {
+        /** API response field "number_of_units" */
+        uint32_t number_of_units;
+
+        /** API response field "all_units_ready" */
+        AllUnitsReady all_units_ready;
+
+        /** API response field "unit_size" */
+        uint64_t unit_size;
+
+        /** API response field "bitmap.count" */
+        boost::optional<uint32_t> bitmap_count;
+
+        /** API response field "bitmap.words" */
+        std::vector<uint16_t> words;
+
+        /** API response field "upload_key" */
+        boost::optional<std::string> upload_key;
+    };
     /** API response field "response.doupload.result" */
     int32_t result;
-
-    /** API response field "response.doupload.status" */
-    boost::optional<int32_t> status;
 
     /** API response field "response.doupload.fileerror" */
     int32_t fileerror;
 
-    /** New filename if filename was changed. */
-    boost::optional<std::string> filename;
+    /** API response field "response.doupload.created" */
+    boost::optional<boost::posix_time::ptime> created;
 
     /** API response field "response.doupload.description" */
     boost::optional<std::string> description;
 
+    /** New filename if filename was changed. */
+    boost::optional<std::string> filename;
+
+    /** API response field "response.doupload.hash" */
+    boost::optional<std::string> hash;
+
     /** API response field "response.doupload.quickkey" */
     boost::optional<std::string> quickkey;
+
+    /** API response field "response.doupload.resumable_upload" */
+    boost::optional<ResumableData> resumable;
+
+    /** API response field "response.doupload.revision" */
+    boost::optional<uint32_t> revision;
 
     /** API response field "response.doupload.size" */
     boost::optional<uint64_t> filesize;
 
-    /** API response field "response.doupload.revision" */
-    boost::optional<uint32_t> revision;
+    /** API response field "response.doupload.status" */
+    boost::optional<int32_t> status;
 };
 
 class Impl;

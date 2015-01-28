@@ -1,6 +1,62 @@
 {
     "api": "/api/1.3/upload/poll_upload",
     "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "AllUnitsReady",
+            "members": [
+                {
+                    "cpp_name": "No",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Yes",
+                    "api_value": "yes"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "ResumableData",
+            "members": [
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "number_of_units",
+                    "api_path": "number_of_units"
+                },
+                {
+                    "cpp_type": "AllUnitsReady",
+                    "cpp_name": "all_units_ready",
+                    "api_path": "all_units_ready",
+                    "default_value": "No"
+                },
+                {
+                    "cpp_type": "uint64_t",
+                    "cpp_name": "unit_size",
+                    "api_path": "unit_size"
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "bitmap_count",
+                    "api_path": "bitmap.count",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "uint16_t",
+                    "cpp_name": "words",
+                    "api_path": "bitmap.words",
+                    "json_type": "array"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "upload_key",
+                    "api_path": "upload_key",
+                    "optional": true
+                }
+            ]
+        }
+    ],
     "input_params": [
         {
             "cpp_type": "std::string",
@@ -16,21 +72,14 @@
         },
         {
             "cpp_type": "int32_t",
-            "cpp_name": "status",
-            "api_path": "response.doupload.status",
-            "optional": true
-        },
-        {
-            "cpp_type": "int32_t",
             "cpp_name": "fileerror",
             "api_path": "response.doupload.fileerror",
             "default_value": "0"
         },
         {
-            "cpp_type": "std::string",
-            "cpp_name": "filename",
-            "api_path": "response.doupload.filename",
-            "description": "New filename if filename was changed.",
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created",
+            "api_path": "response.doupload.created",
             "optional": true
         },
         {
@@ -41,8 +90,33 @@
         },
         {
             "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "response.doupload.filename",
+            "description": "New filename if filename was changed.",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "hash",
+            "api_path": "response.doupload.hash",
+            "optional": true
+        },
+        {
+            "cpp_type": "std::string",
             "cpp_name": "quickkey",
             "api_path": "response.doupload.quickkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "ResumableData",
+            "cpp_name": "resumable",
+            "api_path": "response.doupload.resumable_upload",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "response.doupload.revision",
             "optional": true
         },
         {
@@ -52,9 +126,9 @@
             "optional": true
         },
         {
-            "cpp_type": "uint32_t",
-            "cpp_name": "revision",
-            "api_path": "response.doupload.revision",
+            "cpp_type": "int32_t",
+            "cpp_name": "status",
+            "api_path": "response.doupload.status",
             "optional": true
         }
     ]

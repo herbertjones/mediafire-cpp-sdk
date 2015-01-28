@@ -22,6 +22,127 @@ namespace v1_3 = mf::api::upload::poll_upload::v1_3;
 
 #include "mediafire_sdk/api/type_helpers.hpp"
 
+namespace {
+// get_data_type_struct_extractor begin
+using namespace v1_3;  // NOLINT
+bool ResumableDataFromPropertyBranch(
+        Response * response,
+        Response::ResumableData * value,
+        const boost::property_tree::wptree & pt
+    )
+{
+#   define return_error(error_type, error_message)                             \
+    {                                                                          \
+        response->error_code = make_error_code( error_type );                  \
+        response->error_string = error_message;                                \
+        return false;                                                          \
+    }
+    using mf::api::GetIfExists;
+    using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
+    value->all_units_ready = AllUnitsReady::No;
+
+    // create_content_parse_single required
+    if ( ! GetIfExists(
+            pt,
+            "number_of_units",
+            &value->number_of_units ) )
+        return_error(
+            mf::api::api_code::ContentInvalidData,
+            "missing \"number_of_units\"");
+
+    {
+        std::string optval;
+        // create_content_enum_parse TSingle
+        if ( GetIfExists(
+                pt,
+                "all_units_ready",
+                &optval) )
+        {
+            if ( optval == "no" )
+                value->all_units_ready = AllUnitsReady::No;
+            else if ( optval == "yes" )
+                value->all_units_ready = AllUnitsReady::Yes;
+        }
+    }
+
+    // create_content_parse_single required
+    if ( ! GetIfExists(
+            pt,
+            "unit_size",
+            &value->unit_size ) )
+        return_error(
+            mf::api::api_code::ContentInvalidData,
+            "missing \"unit_size\"");
+
+    // create_content_parse_single optional no default
+    {
+        uint32_t optarg;
+        if ( GetIfExists(
+                pt,
+                "bitmap.count",
+                &optarg) )
+        {
+            value->bitmap_count = optarg;
+        }
+    }
+
+    // create_content_parse_array TArray
+    try {
+        const boost::property_tree::wptree & branch =
+            pt.get_child(L"bitmap.words");
+        value->words.reserve( branch.size() );
+        if (branch.empty())
+        {
+            return_error(
+                mf::api::api_code::ContentInvalidData,
+                "missing value in bitmap.words");
+        }
+        for ( auto & it : branch )
+        {
+            uint16_t result;
+            if ( GetValueIfExists(
+                    it.second,
+                    &result ) )
+            {
+                value->words.push_back(result);
+            }
+            else
+            {
+                return_error(
+                    mf::api::api_code::ContentInvalidData,
+                    "invalid value in bitmap.words");
+            }
+        }
+    }
+    catch(boost::property_tree::ptree_bad_path & err)
+    {
+        // JSON response still has element if expected.
+        // This is really an error.
+        return_error(
+            mf::api::api_code::ContentInvalidData,
+            "missing \"bitmap.words\"");
+    }
+
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                pt,
+                "upload_key",
+                &optarg) )
+        {
+            value->upload_key = optarg;
+        }
+    }
+
+    // get_data_type_struct_extractor conclusion
+    return true;
+#   undef return_error
+}
+}  // namespace
+
 namespace mf {
 namespace api {
 /** API action path "upload" */
@@ -90,18 +211,6 @@ void Impl::ParseResponse( Response * response )
             mf::api::api_code::ContentInvalidData,
             "missing \"response.doupload.result\"");
 
-    // create_content_parse_single optional no default
-    {
-        int32_t optarg;
-        if ( GetIfExists(
-                response->pt,
-                "response.doupload.status",
-                &optarg) )
-        {
-            response->status = optarg;
-        }
-    }
-
     // create_content_parse_single optional with default
     GetIfExists(
             response->pt,
@@ -110,13 +219,13 @@ void Impl::ParseResponse( Response * response )
 
     // create_content_parse_single optional no default
     {
-        std::string optarg;
+        boost::posix_time::ptime optarg;
         if ( GetIfExists(
                 response->pt,
-                "response.doupload.filename",
+                "response.doupload.created",
                 &optarg) )
         {
-            response->filename = optarg;
+            response->created = optarg;
         }
     }
 
@@ -137,10 +246,63 @@ void Impl::ParseResponse( Response * response )
         std::string optarg;
         if ( GetIfExists(
                 response->pt,
+                "response.doupload.filename",
+                &optarg) )
+        {
+            response->filename = optarg;
+        }
+    }
+
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                response->pt,
+                "response.doupload.hash",
+                &optarg) )
+        {
+            response->hash = optarg;
+        }
+    }
+
+    // create_content_parse_single optional no default
+    {
+        std::string optarg;
+        if ( GetIfExists(
+                response->pt,
                 "response.doupload.quickkey",
                 &optarg) )
         {
             response->quickkey = optarg;
+        }
+    }
+
+    // create_content_struct_parse TSingle
+    try {
+        const boost::property_tree::wptree & branch =
+            response->pt.get_child(L"response.doupload.resumable_upload");
+
+        Response::ResumableData optarg;
+        if ( ResumableDataFromPropertyBranch(
+                response, &optarg, branch) )
+        {
+            response->resumable = std::move(optarg);
+        }
+    }
+    catch(boost::property_tree::ptree_bad_path & err)
+    {
+        // Is optional
+    }
+
+    // create_content_parse_single optional no default
+    {
+        uint32_t optarg;
+        if ( GetIfExists(
+                response->pt,
+                "response.doupload.revision",
+                &optarg) )
+        {
+            response->revision = optarg;
         }
     }
 
@@ -158,13 +320,13 @@ void Impl::ParseResponse( Response * response )
 
     // create_content_parse_single optional no default
     {
-        uint32_t optarg;
+        int32_t optarg;
         if ( GetIfExists(
                 response->pt,
-                "response.doupload.revision",
+                "response.doupload.status",
                 &optarg) )
         {
-            response->revision = optarg;
+            response->status = optarg;
         }
     }
 
