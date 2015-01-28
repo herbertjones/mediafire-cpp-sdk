@@ -50,6 +50,8 @@ bool ResumableDataFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->all_units_ready = AllUnitsReady::No;
 
     // create_content_parse_single required

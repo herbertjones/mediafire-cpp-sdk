@@ -105,6 +105,9 @@ namespace upload
 std::string random_file_name;
 std::string quickkey_1;
 std::string quickkey_2;
+std::string hash_1;
+std::string hash_2;
+bool file_restored = false;
 uint32_t upload_revision_1;
 uint32_t upload_revision_2;
 }  // namespace upload
@@ -129,7 +132,7 @@ std::string RandomFilename()
     std::string data;
     data.reserve(name_size);
 
-    for (std::size_t i = 0; i < name_size; ++i)
+    for (int i = 0; i < name_size; ++i)
     {
         data.push_back(chars[index_dist(rng)]);
     }
@@ -375,15 +378,16 @@ BOOST_AUTO_TEST_CASE(UploadRandomFile)
                  = boost::get<mf::uploader::upload_state::Complete>(
                          &status.state))
         {
-            std::ostringstream ss;
-            ss << "New Quickkey: " << success->quickkey;
-            Debug(ss.str());
+            Log("New quickkey:", success->quickkey);
+            Log("New hash:", success->hash);
 
             globals::upload::quickkey_1 = success->quickkey;
+            globals::upload::hash_1 = success->hash;
 
             // New revisions available when new file created.
             if (success->new_revision)
             {
+                Log("First revision:", *success->new_revision);
                 globals::upload::upload_revision_1 = *success->new_revision;
                 Success();
             }
@@ -417,6 +421,10 @@ BOOST_AUTO_TEST_CASE(VerifyOneVersionExists)
                  }
                  else
                  {
+                     Log("Got versions:");
+                     for (auto & version : response.file_versions)
+                         Log(version.revision);
+
                      if (response.file_versions[0].revision
                          != globals::upload::upload_revision_1)
                      {
@@ -483,46 +491,51 @@ BOOST_AUTO_TEST_CASE(UploadFileReplacement)
     // Add the file to upload.
     um.Add(request, [this](mf::uploader::UploadStatus status)
            {
-        if (auto error
-            = boost::get<mf::uploader::upload_state::Error>(&status.state))
-        {
-            const auto & ec = error->error_code;
-            std::ostringstream ss;
-            ss << "Received error: " + ec.message() << "\n";
-            ss << "Error type: " + std::string(ec.category().name()) << "\n";
-            ss << "Error value: " + mf::utils::to_string(ec.value()) << "\n";
-            ss << "Description: " + error->description << "\n";
+               if (auto error = boost::get<mf::uploader::upload_state::Error>(
+                           &status.state))
+               {
+                   const auto & ec = error->error_code;
+                   std::ostringstream ss;
+                   ss << "Received error: " + ec.message() << "\n";
+                   ss << "Error type: " + std::string(ec.category().name())
+                      << "\n";
+                   ss << "Error value: " + mf::utils::to_string(ec.value())
+                      << "\n";
+                   ss << "Description: " + error->description << "\n";
 
-            Fail(ss.str());
-        }
-        else if (auto success
-                 = boost::get<mf::uploader::upload_state::Complete>(
-                         &status.state))
-        {
-            std::ostringstream ss;
-            ss << "New Quickkey: " << success->quickkey;
-            Debug(ss.str());
+                   Fail(ss.str());
+               }
+               else if (auto success
+                        = boost::get<mf::uploader::upload_state::Complete>(
+                                &status.state))
+               {
+                   Log("Re-upload quickkey:", success->quickkey);
+                   Log("New hash:", success->hash);
 
-            if (globals::upload::quickkey_1 != success->quickkey)
-            {
-                std::ostringstream ss;
-                ss << "Replacement upload has a different quickkey: " <<
-                    success->quickkey << " should be "
-                   << globals::upload::quickkey_1;
-            }
+                   globals::upload::hash_2 = success->hash;
 
-            // New revisions available when new file created.
-            if (success->new_revision)
-            {
-                globals::upload::upload_revision_2 = *success->new_revision;
-                Success();
-            }
-            else
-            {
-                Fail("New random file returned no new revision. (2)");
-            }
-        }
-    });
+                   if (globals::upload::quickkey_1 != success->quickkey)
+                   {
+                       std::ostringstream ss;
+                       ss << "Replacement upload has a different quickkey: "
+                          << success->quickkey << " should be "
+                          << globals::upload::quickkey_1;
+
+                       Fail(ss.str());
+                   }
+                   else if (!success->new_revision)
+                   {  // New revision should be available when new file created.
+                       Fail("New random file returned no new revision. (2)");
+                   }
+                   else
+                   {
+                       Log("New revision:", *success->new_revision);
+                       globals::upload::upload_revision_2
+                               = *success->new_revision;
+                       Success();
+                   }
+               }
+           });
 
     StartWithTimeout(posix_time::seconds(60));
 }
@@ -577,7 +590,10 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
                               "get_version.");
                      }
                      if (original_revision_found && new_revision_found)
+                     {
+                         Debug(response.debug);
                          Success();
+                     }
                  }
              }
          });
@@ -587,26 +603,74 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
 
 BOOST_AUTO_TEST_CASE(RestoreFile)
 {
-    api::file::restore::Request request(
-        globals::upload::quickkey_1,
-        globals::upload::upload_revision_1
-        );
+    api::file::restore::Request request(globals::upload::quickkey_1,
+                                        globals::upload::upload_revision_1);
 
-    Call(
-        request,
-        [&](const api::file::restore::Response & response)
-        {
-            if ( response.error_code )
-            {
-                Fail(response);
-            }
-            else
-            {
-                Success();
-            }
-        });
+    Call(request, [&](const api::file::restore::Response & response)
+         {
+             if (response.error_code)
+             {
+                 Fail(response);
+             }
+             else
+             {
+std::cout << response.debug << std::endl;
+                 globals::upload::file_restored = true;
+                 Success();
+             }
+         });
 
     StartWithDefaultTimeout();
+}
+
+BOOST_AUTO_TEST_CASE(VerifyRestoreFile)
+{
+    if (globals::upload::file_restored)
+    {
+        Call(api::file::get_info::Request(globals::upload::quickkey_1),
+             [&](const api::file::get_info::Response & response)
+             {
+                 // Success requires the following:
+                 // 1. Result is "Success"
+                 // 2. Hash is hash of requested version(original)
+                 // 3. Revision is incremented
+                 //    - Revisions must increment, otherwise device/get_changes
+                 //      will not work properly.
+                 if (response.error_code)
+                 {
+                     Fail(response);
+                 }
+                 else if (response.hash != globals::upload::hash_1)
+                 {
+                     Log("First hash:", globals::upload::hash_1);
+                     Log("Second hash:", globals::upload::hash_2);
+                     Log("Hash after restoration:", response.hash);
+                     Log("Revisions. 1:", globals::upload::upload_revision_1,
+                         "2:", globals::upload::upload_revision_2, "Current:",
+                         response.revision);
+
+                     Fail("Hash on restored file incorrect!");
+                 }
+                 else if (response.revision
+                          <= globals::upload::upload_revision_2)
+                 {
+                     Log("First hash:", globals::upload::hash_1);
+                     Log("Second hash:", globals::upload::hash_2);
+                     Log("Hash after restoration:", response.hash);
+                     Log("Revisions. 1:", globals::upload::upload_revision_1,
+                         "2:", globals::upload::upload_revision_2, "Current:",
+                         response.revision);
+
+                     Fail("Revision on file not incremented!");
+                 }
+                 else
+                 {
+                     Success();
+                 }
+             });
+
+        StartWithDefaultTimeout();
+    }
 }
 
 BOOST_AUTO_TEST_CASE(GetFileVersions)

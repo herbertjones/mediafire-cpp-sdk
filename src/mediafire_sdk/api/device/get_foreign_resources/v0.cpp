@@ -58,6 +58,8 @@ bool FileFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->mimetype = "";
     value->share_link_enabled = ShareLinkEnabled::LinkDisabled;
 
@@ -225,6 +227,8 @@ bool FolderFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->share_link_enabled = ShareLinkEnabled::LinkDisabled;
 
     // create_content_parse_single required

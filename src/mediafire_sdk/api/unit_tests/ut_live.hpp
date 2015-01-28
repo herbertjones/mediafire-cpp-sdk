@@ -87,6 +87,8 @@ public:
 
     void Debug(const std::string & str);
 
+    void WaitForAnyAsyncOperationsToComplete();
+
     template <typename Head, typename... Tail>
     inline void Log(const Head head, Tail&&...tail)
     {
@@ -118,6 +120,7 @@ protected:
     boost::asio::deadline_timer timeout_timer_;
     mf::api::SessionMaintainer stm_;
     std::set<mf::api::SessionMaintainer::Request> requests_;
+    bool async_wait_logged_;
 };
 
 std::string RandomAlphaNum(int length);

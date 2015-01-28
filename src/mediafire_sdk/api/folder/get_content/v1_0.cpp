@@ -80,6 +80,8 @@ bool LinksFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
 
     // create_content_parse_single optional no default
     {
@@ -161,6 +163,8 @@ bool FileFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->deleted_datetime = boost::posix_time::not_a_date_time;
     value->mimetype = "";
     value->shared_by_user = SharedByUser::Unshared;
@@ -417,6 +421,8 @@ bool FolderFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->deleted_datetime = boost::posix_time::not_a_date_time;
     value->shared_by_user = SharedByUser::Unshared;
     value->shared_with_user = SharedWithUser::UserIsOwner;

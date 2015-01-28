@@ -27,11 +27,13 @@ struct Error
 {
     std::error_code error_code;
     std::string description;
+    boost::optional<std::string> hash;
 };
 struct Complete
 {
     std::string quickkey;
     std::string filename;
+    std::string hash;
     boost::optional<uint32_t> new_revision;
 };
 }  // namespace upload_state

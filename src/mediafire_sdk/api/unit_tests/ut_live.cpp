@@ -10,6 +10,8 @@
 #include "boost/random/uniform_int_distribution.hpp"
 #include "boost/test/unit_test.hpp"
 
+#include "mediafire_sdk/api/device/get_status.hpp"
+
 namespace posix_time = boost::posix_time;
 namespace api = mf::api;
 
@@ -43,7 +45,8 @@ Fixture::Fixture()
         : credentials_(globals::connection1),
           http_config_(mf::http::HttpConfig::Create()),
           timeout_timer_(*http_config_->GetWorkIoService()),
-          stm_(http_config_, constants::host)
+          stm_(http_config_, constants::host),
+          async_wait_logged_(false)
 {
     stm_.SetLoginCredentials(credentials_);
 }
@@ -103,9 +106,38 @@ void Fixture::Fail(const char * errorString) { Fail(std::string(errorString)); }
 
 void Fixture::Success()
 {
-    Stop();
-
     std::cout << TestName() << ": Success" << std::endl;
+
+    WaitForAnyAsyncOperationsToComplete();
+}
+
+void Fixture::WaitForAnyAsyncOperationsToComplete()
+{
+    timeout_timer_.cancel();
+
+    Call(api::device::get_status::Request(),
+         [&](const api::device::get_status::Response & response)
+         {
+             if (response.error_code)
+             {
+                 // Ignore error, try again
+                 WaitForAnyAsyncOperationsToComplete();
+             }
+             else if (response.async_jobs_in_progress
+                      == api::device::get_status::AsyncJobs::Stopped)
+             {
+                 Stop();
+             }
+             else
+             {
+                 if (!async_wait_logged_)
+                 {
+                     async_wait_logged_ = true;
+                     Log("Waiting for asynchronous operation to complete.");
+                 }
+                 WaitForAnyAsyncOperationsToComplete();
+             }
+         });
 }
 
 void Fixture::ChangeCredentials(const api::Credentials & credentials)

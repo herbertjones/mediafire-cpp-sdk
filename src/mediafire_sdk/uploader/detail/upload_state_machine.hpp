@@ -413,29 +413,31 @@ public:
     struct CompleteWithSuccess : public msm::front::terminate_state<>
     {
         template <typename FSM>
-        void on_entry(event::AlreadyUploaded const & evt, FSM& fsm)
+        void on_entry(event::AlreadyUploaded const & evt, FSM & fsm)
         {
-            assert( ! evt.quickkey.empty() );
-
-            fsm.SetCountState(CountState::None);
-
-            CALLBACK_INTERFACE_FSM(HandleComplete);
-
-            fsm.SendStatus(
-                    us::Complete{evt.quickkey, evt.filename, boost::none});
-        }
-
-        template <typename Event, typename FSM>
-        void on_entry(Event const & evt, FSM& fsm)
-        {
-            assert( ! evt.quickkey.empty() );
+            assert(!evt.quickkey.empty());
 
             fsm.SetCountState(CountState::None);
 
             CALLBACK_INTERFACE_FSM(HandleComplete);
 
             fsm.SendStatus(us::Complete{
-                    evt.quickkey, evt.filename, evt.new_device_revision});
+                    evt.quickkey, evt.filename, fsm.hash_, boost::none});
+        }
+
+        template <typename Event, typename FSM>
+        void on_entry(Event const & evt, FSM & fsm)
+        {
+            assert(!evt.quickkey.empty());
+
+            fsm.SetCountState(CountState::None);
+
+            CALLBACK_INTERFACE_FSM(HandleComplete);
+
+            fsm.SendStatus(us::Complete{evt.quickkey,
+                                        evt.filename,
+                                        fsm.hash_,
+                                        evt.new_device_revision});
         }
     };
 
@@ -448,7 +450,13 @@ public:
 
             CALLBACK_INTERFACE_FSM(HandleComplete);
 
-            fsm.SendStatus(us::Error{ evt.error_code, evt.description });
+            // Report hash if we have it.
+            boost::optional<std::string> hash;
+            if (!fsm.hash_.empty())
+                hash = fsm.hash_;
+
+            fsm.SendStatus(us::Error{
+                    evt.error_code, evt.description, std::move(hash)});
         }
     };
 

@@ -39,6 +39,8 @@ bool ProductFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
     value->is_recurring = Recurring::NonRecurring;
     value->recurring_units = 0;
     value->free_months = 0;

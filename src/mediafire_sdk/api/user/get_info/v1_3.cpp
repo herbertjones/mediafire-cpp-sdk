@@ -39,6 +39,8 @@ bool FacebookFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
 
     // create_content_parse_single optional no default
     {
@@ -195,6 +197,8 @@ bool TwitterFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
 
     // create_content_parse_single optional no default
     {
@@ -291,6 +295,8 @@ bool GmailFromPropertyBranch(
     }
     using mf::api::GetIfExists;
     using mf::api::GetValueIfExists;
+    if (pt.size() == 0)  // Stop if branch is empty
+        return false;
 
     // create_content_parse_single optional no default
     {
