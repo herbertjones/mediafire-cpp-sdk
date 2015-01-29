@@ -239,7 +239,7 @@ struct DoSimpleUpload
             FSM & fsm
         )
     {
-        std::string url = "http://www.mediafire.com/api/upload/simple.php";
+        std::string url = "http://www.mediafire.com/api/1.3/upload/simple.php";
 
         std::map< std::string, std::string > query_map;
 
@@ -465,7 +465,8 @@ struct DoChunkUpload
             FSM & fsm
         )
     {
-        std::string url = "http://www.mediafire.com/api/upload/resumable.php";
+        std::string url
+                = "http://www.mediafire.com/api/1.3/upload/resumable.php";
 
         std::map< std::string, std::string > query_map;
 
