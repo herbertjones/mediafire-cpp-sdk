@@ -1,0 +1,34 @@
+{
+    "api": "/api/1.3/upload/add_web_upload",
+    "version": "1.3",
+    "input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "url",
+            "api_path": "url",
+            "description" : "The URL to the file to be saved."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "filename",
+            "api_path": "filename",
+            "description" : "The name plus extension of the file to be created. The name should be 3 to 255 characters in length. "
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folder_key",
+            "api_path": "folder_key",
+            "description" : "The destination folder key. If not passed the API will use the cloud root folder."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "upload_key",
+            "api_path": "response.upload_key",
+            "description" : "An alpha-numeric key used with upload/poll_upload to determine the status of the file upload. "
+        }
+    ]
+}

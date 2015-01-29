@@ -1,0 +1,168 @@
+{
+    "api": "/api/1.3/upload/get_web_uploads",
+    "version": "1.3",
+    "enums": [
+        {
+            "cpp_name": "Filter",
+            "members": [
+                {
+                    "cpp_name": "ActiveOnly",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "ActiveAndInactive",
+                    "api_value": "yes"
+                }
+            ]
+        },
+        {
+            "cpp_name": "Activity",
+            "members": [
+                {
+                    "cpp_name": "Inactive",
+                    "api_value": "no"
+                },
+                {
+                    "cpp_name": "Active",
+                    "api_value": "yes"
+                }
+            ]
+        },
+        {
+            "cpp_name": "Status",
+            "members": [
+                {
+                    "cpp_name": "Unknown",
+                    "api_value": ""
+                },
+                {
+                    "cpp_name": "Entered",
+                    "api_value": "1"
+                },
+                {
+                    "cpp_name": "Started",
+                    "api_value": "2"
+                },
+                {
+                    "cpp_name": "Transferring",
+                    "api_value": "3"
+                },
+                {
+                    "cpp_name": "Downloaded",
+                    "api_value": "4"
+                },
+                {
+                    "cpp_name": "VerificationWaiting",
+                    "api_value": "5"
+                },
+                {
+                    "cpp_name": "Verifying",
+                    "api_value": "6"
+                },
+                {
+                    "cpp_name": "Complete",
+                    "api_value": "99"
+                }
+            ]
+        }
+    ],
+    "return_structs": [
+        {
+            "cpp_name": "WebUpload",
+            "members": [
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "uploadkey",
+                    "api_path": "uploadkey"
+                },
+                {
+                    "cpp_type": "Activity",
+                    "cpp_name": "activity",
+                    "api_path": "active"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "quickkey",
+                    "api_path": "quickkey",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "filename",
+                    "api_path": "filename"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "created_datetime",
+                    "api_path": "created",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "Status",
+                    "cpp_name": "status_code",
+                    "api_path": "status_code",
+                    "default_value": "Unknown",
+                    "description" : "On completion, success or failure depends on the error code being 0."
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "status_text",
+                    "api_path": "status",
+                    "default_value": "\"\""
+                },
+                {
+                    "cpp_type": "int32_t",
+                    "cpp_name": "error_code",
+                    "api_path": "error_status",
+                    "default_value": "0"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "url",
+                    "api_path": "url"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "eta",
+                    "api_path": "eta",
+                    "description" : "Textual description of time remaining."
+                },
+                {
+                    "cpp_type": "uint64_t",
+                    "cpp_name": "filesize",
+                    "api_path": "size",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "int32_t",
+                    "cpp_name": "precent_complete",
+                    "api_path": "precent_complete",
+                    "default_value": "0"
+                }
+            ]
+        }
+    ],
+    "optional_input_params": [
+        {
+            "cpp_type": "Filter",
+            "cpp_name": "filter",
+            "api_path": "all_web_uploads",
+            "description" : "Response may contain only requests actively downloading, or all in the queue.  The default is to return only active requests."
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "upload_key",
+            "api_path": "upload_key",
+            "description" : "Limit response to a single upload key.  The filter is still active, which may filter the response if not set to ActiveAndInactive."
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "WebUpload",
+            "cpp_name": "web_uploads",
+            "api_path": "response.web_uploads",
+            "json_type": "array",
+            "description" : "List of web uploads."
+        }
+    ]
+}
