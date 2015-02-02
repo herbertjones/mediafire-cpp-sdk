@@ -105,8 +105,8 @@ public:
         /** API response field "size" */
         boost::optional<uint64_t> filesize;
 
-        /** API response field "precent_complete" */
-        int32_t precent_complete;
+        /** API response field "percentage" */
+        int32_t percent_complete;
     };
     /** List of web uploads. */
     std::vector<WebUpload> web_uploads;

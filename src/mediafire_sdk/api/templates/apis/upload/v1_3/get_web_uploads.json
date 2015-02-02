@@ -135,8 +135,8 @@
                 },
                 {
                     "cpp_type": "int32_t",
-                    "cpp_name": "precent_complete",
-                    "api_path": "precent_complete",
+                    "cpp_name": "percent_complete",
+                    "api_path": "percentage",
                     "default_value": "0"
                 }
             ]

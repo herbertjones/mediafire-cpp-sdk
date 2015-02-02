@@ -55,7 +55,7 @@ bool WebUploadFromPropertyBranch(
     value->status_code = Status::Unknown;
     value->status_text = "";
     value->error_code = 0;
-    value->precent_complete = 0;
+    value->percent_complete = 0;
 
     // create_content_parse_single required
     if ( ! GetIfExists(
@@ -194,8 +194,8 @@ bool WebUploadFromPropertyBranch(
     // create_content_parse_single optional with default
     GetIfExists(
             pt,
-            "precent_complete",
-            &value->precent_complete);
+            "percentage",
+            &value->percent_complete);
 
     // get_data_type_struct_extractor conclusion
     return true;
