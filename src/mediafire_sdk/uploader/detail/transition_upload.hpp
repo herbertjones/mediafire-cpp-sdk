@@ -172,22 +172,10 @@ void HandleUploadResponse(
     if (response.error_code)
     {
         // Prefer doupload error if sent
-        int error = 0;
-        if ( mf::api::GetIfExists( response.pt, "response.doupload.result",
-                &error ) )
-        {
-            fsm.ProcessEvent(event::Error{
-                std::error_code( error, upload_response_category() ),
-                "Upload rejected"
-                });
-        }
-        else
-        {
-            fsm.ProcessEvent(event::Error{
-                response.error_code,
-                (response.error_string?*response.error_string:"Upload rejected")
-                });
-        }
+        fsm.ProcessEvent(
+                event::Error{response.error_code,
+                             (response.error_string ? *response.error_string
+                                                    : "Upload rejected")});
     }
     else
     {
@@ -205,9 +193,8 @@ void HandleUploadResponse(
                     &error ) )
             {
                 fsm.ProcessEvent(event::Error{
-                    std::error_code( error, upload_response_category() ),
-                    "Upload rejected"
-                    });
+                        std::error_code(error, upload_response_category()),
+                        "Upload rejected"});
             }
             else
             {
@@ -322,7 +309,7 @@ struct DoSimpleUpload
 
         // Add data to send as POST.
         auto pipe = std::make_shared<UploadPostDataPipe>(file_io, 0,
-            fsm.filesize());
+                                                         fsm.filesize());
         auto url = BuildUrl(fsm);
 
         auto fsmp = fsm.AsFrontShared();
@@ -384,24 +371,11 @@ void HandleChunkResponse(
 
     if (response.error_code)
     {
-        // Prefer doupload error
-        int error = 0;
-        if ( mf::api::GetIfExists( response.pt, "response.doupload.result",
-                &error ) )
-        {
-            fsm.ProcessEvent(event::Error{
-                std::error_code( error, upload_response_category() ),
-                "Upload rejected"
-                });
-        }
-        else
-        {
-            // Upload has unique negative values.
-            fsm.ProcessEvent(event::Error{
-                response.error_code,
-                (response.error_string?*response.error_string:"Upload rejected")
-                });
-        }
+        // Upload has unique negative values.
+        fsm.ProcessEvent(
+                event::Error{response.error_code,
+                             (response.error_string ? *response.error_string
+                                                    : "Upload rejected")});
     }
     else
     {
@@ -419,9 +393,8 @@ void HandleChunkResponse(
                     &error ) )
             {
                 fsm.ProcessEvent(event::Error{
-                    std::error_code( error, upload_response_category() ),
-                    "Upload rejected"
-                    });
+                        std::error_code(error, upload_response_category()),
+                        "Upload rejected"});
             }
             else
             {
@@ -445,7 +418,7 @@ struct DoChunkUpload
             TargetState&
         )
     {
-        boost::optional<uint32_t> next_chunk = fsm.NextChunkToUpload();
+        const boost::optional<uint32_t> next_chunk = fsm.NextChunkToUpload();
         if (next_chunk)
         {
             UploadNextChunk(*next_chunk, fsm);
@@ -512,6 +485,8 @@ struct DoChunkUpload
         )
     {
         assert(http_request);
+        assert(fsm.chunkRanges().size() > chunk_id);
+        assert(fsm.chunkHashes().size() > chunk_id);
 
         int begin, end;
         std::tie(begin, end) = fsm.chunkRanges()[chunk_id];
@@ -549,7 +524,7 @@ struct DoChunkUpload
 
     template <typename FSM>
     void UploadNextChunk(
-            uint32_t chunk_id,
+            const uint32_t chunk_id,
             FSM & fsm
         )
     {
