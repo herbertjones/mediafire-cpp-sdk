@@ -100,7 +100,7 @@ struct OpenFile
     {
         auto & state = src_evt.state;
         auto ec = std::error_code();
-        auto file_io = mf::utils::FileIO::Open(state->filepath, "r", &ec);
+        auto file_io = mf::utils::FileIO::Open(state->filepath, "rb", &ec);
 
         if (ec)
         {

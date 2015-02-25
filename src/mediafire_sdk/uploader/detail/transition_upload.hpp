@@ -304,7 +304,7 @@ struct DoSimpleUpload
         )
     {
         auto ec = std::error_code();
-        auto file_io = mf::utils::FileIO::Open(fsm.Path(), "r", &ec);
+        auto file_io = mf::utils::FileIO::Open(fsm.Path(), "rb", &ec);
         if (ec)
         {
             fsm.ProcessEvent(event::Error{ec, "Unable to open file."});
@@ -554,7 +554,7 @@ struct DoChunkUpload
         )
     {
         auto ec = std::error_code();
-        auto file_io = mf::utils::FileIO::Open(fsm.Path(), "r", &ec);
+        auto file_io = mf::utils::FileIO::Open(fsm.Path(), "rb", &ec);
         if (ec)
         {
             fsm.ProcessEvent(event::Error{ec, "Unable to open file."});
