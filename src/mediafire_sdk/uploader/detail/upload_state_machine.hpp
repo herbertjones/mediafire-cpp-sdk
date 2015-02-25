@@ -415,48 +415,57 @@ public:
         template <typename FSM>
         void on_entry(event::AlreadyUploaded const & evt, FSM & fsm)
         {
+            auto fsmp = fsm.AsFrontShared();  // Ensures fsm isn't deleted by
+                                              // callback
+
             assert(!evt.quickkey.empty());
 
-            fsm.SetCountState(CountState::None);
+            fsmp->SetCountState(CountState::None);
+
+            fsmp->SendStatus(us::Complete{
+                    evt.quickkey, evt.filename, fsmp->hash_, boost::none});
 
             CALLBACK_INTERFACE_FSM(HandleComplete);
-
-            fsm.SendStatus(us::Complete{
-                    evt.quickkey, evt.filename, fsm.hash_, boost::none});
         }
 
         template <typename Event, typename FSM>
         void on_entry(Event const & evt, FSM & fsm)
         {
+            auto fsmp = fsm.AsFrontShared();  // Ensures fsm isn't deleted by
+                                              // callback
+
             assert(!evt.quickkey.empty());
 
-            fsm.SetCountState(CountState::None);
+            fsmp->SetCountState(CountState::None);
 
+            fsmp->SendStatus(us::Complete{evt.quickkey,
+                                          evt.filename,
+                                          fsmp->hash_,
+                                          evt.new_device_revision});
             CALLBACK_INTERFACE_FSM(HandleComplete);
 
-            fsm.SendStatus(us::Complete{evt.quickkey,
-                                        evt.filename,
-                                        fsm.hash_,
-                                        evt.new_device_revision});
         }
     };
 
     struct CompleteWithError : public msm::front::terminate_state<>
     {
         template <typename Event, typename FSM>
-        void on_entry(Event const & evt, FSM& fsm)
+        void on_entry(Event const & evt, FSM & fsm)
         {
-            fsm.SetCountState(CountState::None);
+            auto fsmp = fsm.AsFrontShared();  // Ensures fsm isn't deleted by
+                                              // callback
 
-            CALLBACK_INTERFACE_FSM(HandleComplete);
+            fsmp->SetCountState(CountState::None);
 
             // Report hash if we have it.
             boost::optional<std::string> hash;
-            if (!fsm.hash_.empty())
-                hash = fsm.hash_;
+            if (!fsmp->hash_.empty())
+                hash = fsmp->hash_;
 
-            fsm.SendStatus(us::Error{
+            fsmp->SendStatus(us::Error{
                     evt.error_code, evt.description, std::move(hash)});
+
+            CALLBACK_INTERFACE_FSM(HandleComplete);
         }
     };
 

@@ -65,7 +65,7 @@ public:
 
     void operator()(us::EnqueuedForUpload &) const {}
 
-    void operator()(us::Uploading & status) const
+    void operator()(us::Uploading &) const
     {
         std::cout << id_str_ << "Upload started." << std::endl;
     }
