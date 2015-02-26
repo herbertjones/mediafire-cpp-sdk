@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(SessionTokenOverSessionMaintainerLive)
 
 BOOST_AUTO_TEST_CASE(UserGetInfo)
 {
-    using api::user::get_info::Linked::Yes;
+    using api::user::get_info::Linked;
 
     Call(api::user::get_info::Request(),
          [&](const api::user::get_info::Response & response)
@@ -80,11 +80,11 @@ BOOST_AUTO_TEST_CASE(UserGetInfo)
              else
              {
                  Log("Has facebook:",
-                     response.facebook && response.facebook->linked == Yes);
+                     response.facebook && response.facebook->linked == Linked::Yes);
                  Log("Has twitter:",
-                     response.twitter && response.twitter->linked == Yes);
+                     response.twitter && response.twitter->linked == Linked::Yes);
                  Log("Has gmail:",
-                     response.gmail && response.gmail->linked == Yes);
+                     response.gmail && response.gmail->linked == Linked::Yes);
                  Log("Email:", response.email);
                  Log("Display name:", response.display_name);
                  Log("Ekey:", response.ekey);
