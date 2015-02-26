@@ -37,5 +37,11 @@ struct SessionTokenData
     int secret_key;
 };
 
+enum class ActionResult
+{
+    Success,
+    Failure
+};
+
 }  // namespace api
 }  // namespace mf

@@ -147,3 +147,10 @@ target_link_libraries(ut_live_folder ut_live)
 file(COPY check_expected.sh DESTINATION .)
 file(COPY ut_live_general-expected-failures.txt DESTINATION .)
 
+# --- ut_clone_cloud_tree ----------------------------------
+add_executable(ut_clone_cloud_tree
+    ut_clone_cloud_tree.cpp)
+
+target_link_libraries(ut_clone_cloud_tree
+    mf_api_sdk
+)
