@@ -128,6 +128,10 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Privacy = enum Privacy;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

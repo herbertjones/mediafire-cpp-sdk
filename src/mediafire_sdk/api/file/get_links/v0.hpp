@@ -177,6 +177,11 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Recurring = enum Recurring;
+    using LinkType = enum LinkType;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

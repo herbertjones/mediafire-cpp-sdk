@@ -1428,6 +1428,18 @@ def get_enums(api):
     return '\n' + '\n'.join(ret)
 
 
+def get_hpp_namespaced_enums(api):
+    '''Bring enums into the Request class namespace.'''
+
+    if 'enums' not in api:
+        return ''
+    ret = []
+    for (enum_cpp_name, enum_members) in parse_enum_params(api['enums']):
+        ret.append('    using ' + enum_cpp_name + ' = enum ' + enum_cpp_name + ';')
+    comment = '\n    // Enums in class namespace for usage with templates\n'
+    return comment + '\n'.join(ret) + '\n\n'
+
+
 def get_explicit(api):
     '''Class constructor should be explicit when only one parameter.'''
 
@@ -1613,6 +1625,7 @@ def create_templates(api, target_path):
         = get_hpp_ctor_documentation(api)
     replacements['__HPP_FILENAME__'] = version_str + '.hpp'
     replacements['__HPP_RELATIVE_FILENAME__'] = relative_pathname + '.hpp'
+    replacements['__HPP_NAMESPACED_ENUMS__'] = get_hpp_namespaced_enums(api)
     replacements['__HPP_OPTIONAL_SETTERS__'] = get_hpp_optional_setters(api)
     replacements['__HPP_POST_DATA_TEMPLATE__'] \
         = get_hpp_post_data_template(api)

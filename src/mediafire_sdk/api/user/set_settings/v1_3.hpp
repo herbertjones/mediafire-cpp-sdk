@@ -128,6 +128,11 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using ShareLinkStatus = enum ShareLinkStatus;
+    using CollectMetadata = enum CollectMetadata;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

@@ -111,6 +111,10 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using AtHead = enum AtHead;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

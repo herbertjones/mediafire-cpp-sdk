@@ -198,6 +198,16 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using DownloadPage = enum DownloadPage;
+    using EmailValidation = enum EmailValidation;
+    using InstantUploads = enum InstantUploads;
+    using AutoBandwidth = enum AutoBandwidth;
+    using StorageLimit = enum StorageLimit;
+    using ShareLinkStatus = enum ShareLinkStatus;
+    using CollectMetadata = enum CollectMetadata;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

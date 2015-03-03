@@ -290,6 +290,14 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Gender = enum Gender;
+    using AccountType = enum AccountType;
+    using Validated = enum Validated;
+    using LimitExceeded = enum LimitExceeded;
+    using Linked = enum Linked;
+
 private:
     std::shared_ptr<Impl> impl_;
 };
