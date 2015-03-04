@@ -171,6 +171,9 @@ BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
 
     stm.SetLoginCredentials(api::credentials::Email{username, password});
 
+    std::vector<std::string> folderkeys = {root_folderkey};
+
+
     auto coro = api::CloneCloudTree::Create(
             &stm,
             [&io_service](api::ActionResult result,
@@ -189,7 +192,7 @@ BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
 
                 io_service.stop();
             },
-            root_folderkey);
+            folderkeys);
 
     io_service.run();
 }

@@ -22,7 +22,32 @@ CloneCloudTreeVersioned<RequestType>::CloneCloudTreeVersioned(
         : Base(stm, callback, ConcurrentRequests)
 {
     // Add root folderkey.
-    folders_to_scan_.push_back(folderkey);
+    folders_to_scan_.push_back(
+            std::make_pair(folderkey, FilesFoldersOrBoth::Both));
+}
+
+template <typename RequestType>
+CloneCloudTreeVersioned<RequestType>::CloneCloudTreeVersioned(
+        mf::api::SessionMaintainer * stm,
+        typename Base::Callback callback,
+        std::vector<std::string> folderkeys)
+        : Base(stm, callback, ConcurrentRequests)
+{
+    for (auto & folderkey : folderkeys)
+    {
+        folders_to_scan_.push_back(
+                std::make_pair(folderkey, FilesFoldersOrBoth::Both));
+    }
+}
+
+template <typename RequestType>
+CloneCloudTreeVersioned<RequestType>::CloneCloudTreeVersioned(
+        mf::api::SessionMaintainer * stm,
+        typename Base::Callback callback,
+        FolderWorkList work_list)
+        : Base(stm, callback, ConcurrentRequests)
+{
+    folders_to_scan_.swap(work_list);
 }
 
 // This adds coroutine keywords.  Use unyield to remove them in header files.
@@ -43,16 +68,7 @@ void CloneCloudTreeVersioned<RequestType>::operator()()
             folder_actions_.clear();
             file_actions_.clear();
 
-            for (const auto & next_folderkey : folders_to_scan_)
-            {
-                // Get folders first
-                this->EnqueueAction(folder_actions_, next_folderkey,
-                                    FilesFoldersOrBoth::Folders);
-
-                // Then get files
-                this->EnqueueAction(file_actions_, next_folderkey,
-                                    FilesFoldersOrBoth::Files);
-            }
+            EnqueueWork();
 
             // Don't rescan these.
             folders_to_scan_.clear();
@@ -70,6 +86,27 @@ void CloneCloudTreeVersioned<RequestType>::operator()()
 
 // This removes coroutine keywords.
 #include "boost/asio/unyield.hpp"
+
+template <typename RequestType>
+void CloneCloudTreeVersioned<RequestType>::EnqueueWork()
+{
+    for (const auto & work : folders_to_scan_)
+    {
+        if (work.second != FilesFoldersOrBoth::Files)
+        {
+            // Get folders first
+            this->EnqueueAction(folder_actions_, work.first,
+                                FilesFoldersOrBoth::Folders);
+        }
+
+        if (work.second != FilesFoldersOrBoth::Folders)
+        {
+            // Then get files
+            this->EnqueueAction(file_actions_, work.first,
+                                FilesFoldersOrBoth::Files);
+        }
+    }
+}
 
 template <typename RequestType>
 typename CloneCloudTreeVersioned<RequestType>::ResponseResult
@@ -121,7 +158,8 @@ CloneCloudTreeVersioned<RequestType>::HandleResponse()
             {
                 folders.push_back(
                         std::make_pair(folder_action->Folderkey(), folder));
-                folders_to_scan_.push_back(folder.folderkey);
+                folders_to_scan_.push_back(std::make_pair(
+                        folder.folderkey, FilesFoldersOrBoth::Both));
             }
         }
     }
