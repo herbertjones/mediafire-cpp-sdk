@@ -55,6 +55,10 @@ public:
      * sorted in order retrieved. */
     std::vector<std::pair<std::string, Folder>> folders;
 
+    /** When an error occurs, currently untraversed folders will end up here, so
+     * that continued processing can be done. */
+    std::vector<std::pair<std::string, FilesFoldersOrBoth>> untraversed_folders;
+
     enum Defaults
     {
         /** Will by default try to make this many concurrent requests to the
@@ -91,6 +95,13 @@ protected:
      * @brief Internal callback.
      */
     void operator()();
+
+    enum class ResponseResult
+    {
+        Success,
+        ErrorHandled
+    };
+    ResponseResult HandleResponse();
 
     std::vector<GetFolderContent::Pointer> folder_actions_;
     std::vector<GetFolderContent::Pointer> file_actions_;

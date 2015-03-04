@@ -26,6 +26,7 @@ set(UTILS_SOURCES
 )
 set(UTILS_HEADERS
 
+    container_algorithms.hpp
     base64.hpp
     fileio.hpp
     forward_declarations/asio.hpp

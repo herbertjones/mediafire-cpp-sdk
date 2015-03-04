@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../clone_cloud_tree.hpp"
+#include "mediafire_sdk/utils/container_algorithms.hpp"
 
 namespace mf
 {
@@ -46,11 +47,11 @@ void CloneCloudTreeVersioned<RequestType>::operator()()
             {
                 // Get folders first
                 this->EnqueueAction(folder_actions_, next_folderkey,
-                                    GetFolderContentType::Folders);
+                                    FilesFoldersOrBoth::Folders);
 
                 // Then get files
                 this->EnqueueAction(file_actions_, next_folderkey,
-                                    GetFolderContentType::Files);
+                                    FilesFoldersOrBoth::Files);
             }
 
             // Don't rescan these.
@@ -58,30 +59,10 @@ void CloneCloudTreeVersioned<RequestType>::operator()()
 
             yield this->WaitForEnqueued();
 
-            // Handle result after yield
-            for (auto & folder_action : folder_actions_)
+            if (HandleResponse() == ResponseResult::ErrorHandled)
             {
-                if (folder_action->GetActionResult() != ActionResult::Success)
-                    return Base::ReturnFailure(folder_action);
-
-                for (const auto & folder : folder_action->folders)
-                {
-                    folders.push_back(
-                            std::make_pair(folder_action->Folderkey(), folder));
-                    folders_to_scan_.push_back(folder.folderkey);
-                }
-            }
-
-            for (auto & file_action : file_actions_)
-            {
-                if (file_action->GetActionResult() != ActionResult::Success)
-                    return Base::ReturnFailure(file_action);
-
-                for (const auto & file : file_action->files)
-                {
-                    files.push_back(
-                            std::make_pair(file_action->Folderkey(), file));
-                }
+                // Error reported in function.
+                return;
             }
         }
     }
@@ -89,6 +70,93 @@ void CloneCloudTreeVersioned<RequestType>::operator()()
 
 // This removes coroutine keywords.
 #include "boost/asio/unyield.hpp"
+
+template <typename RequestType>
+typename CloneCloudTreeVersioned<RequestType>::ResponseResult
+CloneCloudTreeVersioned<RequestType>::HandleResponse()
+{
+    std::error_code error_code;
+    boost::optional<std::string> error_description;
+
+    std::vector<std::string> failed_file_traversal;
+    std::vector<std::string> failed_folder_traversal;
+
+    for (auto & file_action : file_actions_)
+    {
+        if (file_action->GetActionResult() != ActionResult::Success)
+        {
+            if (!error_code)
+            {
+                error_code = file_action->GetErrorCode();
+                error_description = file_action->GetErrorDescription();
+            }
+
+            // Record that folder was unprocessed.
+            failed_file_traversal.push_back(file_action->Folderkey());
+        }
+        else
+        {
+            for (const auto & file : file_action->files)
+                files.push_back(std::make_pair(file_action->Folderkey(), file));
+        }
+    }
+
+    // Handle result after yield
+    for (auto & folder_action : folder_actions_)
+    {
+        if (folder_action->GetActionResult() != ActionResult::Success)
+        {
+            if (!error_code)
+            {
+                error_code = folder_action->GetErrorCode();
+                error_description = folder_action->GetErrorDescription();
+            }
+
+            // Record that folder was unprocessed.
+            failed_folder_traversal.push_back(folder_action->Folderkey());
+        }
+        else
+        {
+            for (const auto & folder : folder_action->folders)
+            {
+                folders.push_back(
+                        std::make_pair(folder_action->Folderkey(), folder));
+                folders_to_scan_.push_back(folder.folderkey);
+            }
+        }
+    }
+
+    if (error_code)
+    {
+        std::sort(failed_file_traversal.begin(), failed_file_traversal.end());
+        std::sort(failed_folder_traversal.begin(),
+                  failed_folder_traversal.end());
+        std::vector<std::string> failed_both;
+
+        mf::utils::RepartitionIntersection(
+                failed_file_traversal, failed_folder_traversal, failed_both);
+
+        for (const auto & folderkey : failed_file_traversal)
+            untraversed_folders.push_back(
+                    std::make_pair(folderkey, FilesFoldersOrBoth::Files));
+        for (const auto & folderkey : failed_folder_traversal)
+            untraversed_folders.push_back(
+                    std::make_pair(folderkey, FilesFoldersOrBoth::Folders));
+        for (const auto & folderkey : failed_both)
+            untraversed_folders.push_back(
+                    std::make_pair(folderkey, FilesFoldersOrBoth::Both));
+
+        // Report failure
+        Base::ReturnFailure(error_code, error_description);
+
+        // Stop processing
+        return ResponseResult::ErrorHandled;
+    }
+    else
+    {
+        return ResponseResult::Success;
+    }
+}
 
 }  // namespace api
 }  // namespace mf

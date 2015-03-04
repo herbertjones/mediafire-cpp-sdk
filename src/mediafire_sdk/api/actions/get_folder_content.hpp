@@ -19,15 +19,6 @@ namespace mf
 namespace api
 {
 
-/** Input to GetFolderContent.  Determines what type of data is to be
- * collected.*/
-enum class GetFolderContentType
-{
-    Folders,
-    Files,
-    FilesAndFolders
-};
-
 /**
  * @class GetFolderContentVersioned
  * @brief Action to retrieve cloud directory hierarchy metadata from a single
@@ -90,7 +81,7 @@ protected:
     GetFolderContentVersioned(mf::api::SessionMaintainer * stm,
                               typename Base::Callback callback,
                               std::string folderkey,
-                              GetFolderContentType type);
+                              FilesFoldersOrBoth type);
 
     friend class detail::Coroutine<GetFolderContentVersioned<Request>>;
     friend class detail::
@@ -113,7 +104,7 @@ protected:
     HandledFailure HandleFolderResponse();
 
     const std::string folderkey_;
-    const GetFolderContentType type_;
+    const FilesFoldersOrBoth type_;
 
     uint32_t chunk_number_;
 

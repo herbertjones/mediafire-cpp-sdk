@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(UTGetContentFiles)
 
                 io_service.stop();
             },
-            root_folderkey, api::GetFolderContentType::Files);
+            root_folderkey, api::FilesFoldersOrBoth::Files);
 
     io_service.run();
 }
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(UTGetContentFolders)
 
                 io_service.stop();
             },
-            root_folderkey, api::GetFolderContentType::Folders);
+            root_folderkey, api::FilesFoldersOrBoth::Folders);
 
     io_service.run();
 }
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(UTGetContentFilesAndFolders)
 
                 io_service.stop();
             },
-            root_folderkey, api::GetFolderContentType::FilesAndFolders);
+            root_folderkey, api::FilesFoldersOrBoth::Both);
 
     io_service.run();
 }
@@ -178,8 +178,7 @@ BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
             {
                 if (result == api::ActionResult::Failure)
                 {
-                    std::cout << "Failed. " <<
-                    action->GetErrorCode().message()
+                    std::cout << "Failed. " << action->GetErrorCode().message()
                               << ": " << action->GetErrorDescription()
                               << std::endl;
                 }

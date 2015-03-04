@@ -18,7 +18,7 @@ GetFolderContentVersioned<RequestType>::GetFolderContentVersioned(
         mf::api::SessionMaintainer * stm,
         typename Base::Callback callback,
         std::string folderkey,
-        GetFolderContentType type)
+        FilesFoldersOrBoth type)
         : Base(stm,
                callback,
                2 /* there can never be more than 2 concurrent requests */),
@@ -33,7 +33,7 @@ GetFolderContentVersioned<RequestType>::GetFolderContentVersioned(
 template <typename RequestType>
 bool GetFolderContentVersioned<RequestType>::EnqueueFileRequest()
 {
-    if (file_request_remaining_ && type_ != GetFolderContentType::Folders)
+    if (file_request_remaining_ && type_ != FilesFoldersOrBoth::Folders)
     {
         current_file_request_.reset(new Request{
                 folderkey_,                  // Folderkey
@@ -55,7 +55,7 @@ bool GetFolderContentVersioned<RequestType>::EnqueueFileRequest()
 template <typename RequestType>
 bool GetFolderContentVersioned<RequestType>::EnqueueFolderRequest()
 {
-    if (folder_request_remaining_ && type_ != GetFolderContentType::Files)
+    if (folder_request_remaining_ && type_ != FilesFoldersOrBoth::Files)
     {
         current_folder_request_.reset(new Request{
                 folderkey_,                    // Folderkey
@@ -78,7 +78,7 @@ template <typename RequestType>
 typename GetFolderContentVersioned<RequestType>::HandledFailure
 GetFolderContentVersioned<RequestType>::HandleFileResponse()
 {
-    if (file_request_remaining_ && type_ != GetFolderContentType::Folders)
+    if (file_request_remaining_ && type_ != FilesFoldersOrBoth::Folders)
     {
         // Check response on return.
         if (file_response_.error_code)
@@ -107,7 +107,7 @@ template <typename RequestType>
 typename GetFolderContentVersioned<RequestType>::HandledFailure
 GetFolderContentVersioned<RequestType>::HandleFolderResponse()
 {
-    if (folder_request_remaining_ && type_ != GetFolderContentType::Files)
+    if (folder_request_remaining_ && type_ != FilesFoldersOrBoth::Files)
     {
         // Check response on return.
         if (folder_response_.error_code)
