@@ -11,6 +11,7 @@
 #include "boost/test/unit_test.hpp"
 
 #include "mediafire_sdk/api/device/get_status.hpp"
+#include "mediafire_sdk/utils/lambda_visitor.hpp"
 
 namespace posix_time = boost::posix_time;
 namespace api = mf::api;
@@ -48,6 +49,10 @@ Fixture::Fixture()
           stm_(http_config_, constants::host),
           async_wait_logged_(false)
 {
+    stm_.SetSessionStateChangeCallback(
+            boost::bind(&Fixture::HandleSessionStateChange, this, _1));
+    stm_.SetConnectionStateChangeCallback(
+            boost::bind(&Fixture::HandleConnectionStateChange, this, _1));
     stm_.SetLoginCredentials(credentials_);
 }
 
@@ -171,6 +176,55 @@ void Fixture::HandleTimeout(const boost::system::error_code & err)
         for (const api::SessionMaintainer::Request & request : requests_)
             request->Cancel();
     }
+}
+
+void Fixture::HandleConnectionStateChange(
+        mf::api::ConnectionState new_connection_state)
+{
+    auto visitor = mf::utils::make_lambda_visitor<void>(
+            [](const mf::api::connection_state::Uninitialized &)
+            {
+            },
+            [](const mf::api::connection_state::Unconnected & state)
+            {
+                std::cout << "Connection state: Unconnected\n"
+                          << "Reason: " << state.error_code.message()
+                          << std::endl;
+            },
+            [](const mf::api::connection_state::Connected &)
+            {
+            });
+
+    boost::apply_visitor(visitor, new_connection_state);
+}
+
+void Fixture::HandleSessionStateChange(mf::api::SessionState new_session_state)
+{
+    class Visitor : public boost::static_visitor<>
+    {
+    public:
+        void operator()(const mf::api::session_state::Uninitialized &) {}
+
+        void operator()(const mf::api::session_state::Initialized &) {}
+
+        void operator()(
+                const mf::api::session_state::CredentialsFailure & state)
+        {
+            std::cout << "Session state: Error\n"
+                      << "Reason: " << state.error_code.message() << std::endl;
+        }
+
+        void operator()(const mf::api::session_state::ProlongedError & state)
+        {
+            std::cout << "Session state: ProlongedError"
+                      << "Reason: " << state.error_code.message() << std::endl;
+        }
+
+        void operator()(const mf::api::session_state::Running &) {}
+    };
+
+    Visitor visitor;
+    boost::apply_visitor(visitor, new_session_state);
 }
 
 std::string RandomAlphaNum(int length)

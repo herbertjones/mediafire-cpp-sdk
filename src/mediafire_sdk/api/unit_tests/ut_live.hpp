@@ -90,7 +90,7 @@ public:
     void WaitForAnyAsyncOperationsToComplete();
 
     template <typename Head, typename... Tail>
-    inline void Log(const Head head, Tail&&...tail)
+    inline void Log(const Head head, Tail &&... tail)
     {
         std::ostringstream ss;
         ss << head;
@@ -114,6 +114,11 @@ protected:
         ss << ' ' << head;
         LogStep(ss, tail...);
     }
+
+    void HandleConnectionStateChange(
+            mf::api::ConnectionState new_connection_state);
+
+    void HandleSessionStateChange(mf::api::SessionState new_session_state);
 
     mf::api::Credentials credentials_;
     mf::http::HttpConfig::Pointer http_config_;

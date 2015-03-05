@@ -32,6 +32,7 @@ set(UTILS_HEADERS
     io_service_connection-inl.hpp
     io_service_connection.hpp
     io_service_connection_helper.hpp
+    lambda_visitor.hpp
     md5_hasher.hpp
     mutex.hpp
     sha1_hasher.hpp
