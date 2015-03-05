@@ -1,11 +1,14 @@
 /**
- * @file utils/lambda_visitor.hpp
- * @brief Useful util for dealing with visitor pattern.
+ * @file utils/detail/variant.hpp
+ * @brief Implementation for variant helpers.
  * @copyright Copyright 2015 Mediafire
  *
- * As seen on Stack Overflow
+ * Parts taken from Stack Overflow
  */
 #pragma once
+
+#include <algorithm>
+#include <type_traits>
 
 #include "boost/variant/apply_visitor.hpp"
 #include "boost/variant/static_visitor.hpp"
@@ -14,19 +17,12 @@ namespace mf
 {
 namespace utils
 {
+namespace detail
+{
 
 template <typename ReturnT, typename... Lambdas>
 struct lambda_visitor;
 
-/**
- * @brief Build a struct with
- *
- * Long description...
- *
- * @param[in] type Description
- *
- * @return Return description
- */
 template <typename ReturnT, typename L1, typename... Lambdas>
 struct lambda_visitor<ReturnT, L1, Lambdas...>
         : public L1, public lambda_visitor<ReturnT, Lambdas...>
@@ -65,12 +61,20 @@ struct lambda_visitor<ReturnT> : public boost::static_visitor<ReturnT>
     lambda_visitor() : boost::static_visitor<ReturnT>() {}
 };
 
-template <typename ReturnT, typename... Lambdas>
-lambda_visitor<ReturnT, Lambdas...> make_lambda_visitor(Lambdas... lambdas)
+template <typename T>
+struct return_trait : public return_trait<decltype(&T::operator())>
 {
+};
+// For generic types, directly use the result of the signature of its
+// 'operator()'
 
-    return {lambdas...};
-}
+template <typename ClassType, typename ReturnType, typename... Args>
+struct return_trait<ReturnType (ClassType::*)(Args...) const>
+// we specialize for pointers to member function
+{
+    typedef ReturnType result_type;
+};
 
+}  // namespace detail
 }  // namespace utils
 }  // namespace mf

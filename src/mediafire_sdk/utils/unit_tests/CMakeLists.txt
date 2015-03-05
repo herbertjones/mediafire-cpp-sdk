@@ -75,3 +75,14 @@ target_link_libraries(ut_url_encode
     ${PTHREAD_LIBRARY}
 )
 add_test(ut_url_encode ut_url_encode)
+
+# --- ut_variant ----------------------------------------
+add_executable(ut_variant
+    ut_variant.cpp
+)
+target_link_libraries(ut_variant
+    ${WINSOCK_LIBRARY}
+    mf_sdk_utils
+    ${Boost_LIBRARIES}
+)
+add_test(ut_variant ut_variant)
