@@ -33,7 +33,6 @@ public:
 
     void operator()() override
     {
-        auto ref = shared_from_this(); // Hold a reference to our object so that it exists until after coroutine has exited
         coro_();
     }
 
@@ -58,14 +57,14 @@ private:
     {
         [this](pull_type & yield)
         {
-            auto ref = shared_from_this(); // Hold a reference to our object until the coroutine is complete, otherwise handler will have invalid reference to this
+            auto self = shared_from_this(); // Hold a reference to our object until the coroutine is complete, otherwise handler will have invalid reference to this
 
             int chunk_num = 1;
             bool chunks_remaining = true;
             while (chunks_remaining)
             {
                 std::function<void(const ApiResponseType & response)> HandleFolderGetContents =
-                    [this, &chunks_remaining](const ApiResponseType & response)
+                    [this, self, &chunks_remaining](const ApiResponseType & response)
                     {
                         folders_.insert(std::end(folders_), std::begin(response.folders), std::end(response.folders));
                         files_.insert(std::end(files_), std::begin(response.files), std::end(response.files));

@@ -36,7 +36,7 @@ private:
     {
         [this](pull_type & yield)
         {
-            auto ref = shared_from_this(); // Hold reference to ourselves until coroutine is complete
+            auto self = shared_from_this(); // Hold reference to ourselves until coroutine is complete
 
             WorkManager<std::shared_ptr<GetFolderContents>> work_manager(stm_->HttpConfig()->GetDefaultCallbackIoService()); // Use this to avoid shoving too much work into io_service
             work_manager.SetMaxConcurrentWork(10);
@@ -53,7 +53,7 @@ private:
 
                     // Queue the folders
                     GetFolderContents::CallbackType HandleGetFolderContentsFolders =
-                    [this](const std::vector<File> & files, const std::vector<Folder> & folders)
+                    [this, self](const std::vector<File> & files, const std::vector<Folder> & folders)
                     {
                         folders_.insert(std::end(folders_), std::begin(folders), std::end(folders));
 
@@ -71,7 +71,7 @@ private:
 
                     // Queue the files
                     GetFolderContents::CallbackType HandleGetFolderContentsFiles =
-                    [this](const std::vector<File> & files, const std::vector<Folder> & folders)
+                    [this, self](const std::vector<File> & files, const std::vector<Folder> & folders)
                     {
                         files_.insert(std::end(files_), std::begin(files), std::end(files));
 
