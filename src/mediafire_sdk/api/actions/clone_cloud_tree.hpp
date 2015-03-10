@@ -1,173 +1,121 @@
-/**
- * @file api/actions/clone_cloud_tree.hpp
- * @author Herbert Jones
- * @brief Co-routine to
- * @copyright Copyright 2015 Mediafire
- */
 #pragma once
 
-#include <utility>
-#include <vector>
+#include <memory>
 
-#include "boost/asio/coroutine.hpp"
+#include "work_manager.hpp"
+#include "get_folder_contents.hpp"
 
-#include "detail/coroutine.hpp"
-#include "get_folder_content.hpp"
+#include "mediafire_sdk/api/session_maintainer.hpp"
+
+#include "coroutine.hpp"
 
 namespace mf
 {
 namespace api
 {
 
-/**
- * @class CloneCloudTreeVersioned
- * @brief Action to sync cloud directory hierarchy metadata.
- * @template RequestType The API folder/get_contents Request class to use.  Pass
- *                       in the class of the desired API version.
- *
- * This is the unversioned template.  Use GetFolderContent to use the current
- * API version.
- *
- * Create an object via the Create() static method.  The arguments are the same
- * as the constructor.
- */
-template <typename RequestType>
-class CloneCloudTreeVersioned
-        : public detail::
-                  ConcurrentCoroutine<CloneCloudTreeVersioned<RequestType>>
+class CloneCloudTree : public Coroutine
 {
 public:
-    using Request = RequestType;
-    using Response = typename Request::ResponseType;
+    using File = GetFolderContents::File;
+    using Folder = GetFolderContents::Folder;
 
-    using Base = detail::ConcurrentCoroutine<CloneCloudTreeVersioned<Request>>;
+    using CallbackType = std::function<void(const std::vector<File> &, const std::vector<Folder> &)>;
 
-    using Folder = typename Response::Folder;
-    using File = typename Response::File;
+private:
+    SessionMaintainer * stm_;
 
-    using FolderWorkList
-            = std::vector<std::pair<std::string, FilesFoldersOrBoth>>;
+    CallbackType callback_;
 
-    virtual ~CloneCloudTreeVersioned() {}
+    std::vector<File> files_;
+    std::vector<Folder> folders_;
 
-    /** Retrieved file data.  Pair first is parent folderkey.  Items are sorted
-     * in order retrieved. */
-    std::vector<std::pair<std::string, File>> files;
+    std::deque<std::string> new_folder_keys_;
 
-    /** Retrieved folder data.  Pair first is parent folderkey.  Items are
-     * sorted in order retrieved. */
-    std::vector<std::pair<std::string, Folder>> folders;
-
-    /** When an error occurs, currently untraversed folders will end up here, so
-     * that continued processing can be done. */
-    FolderWorkList untraversed_folders;
-
-    enum Defaults
+    push_type coro_
     {
-        /** Will by default try to make this many concurrent requests to the
-         * API.  Use SetMaxConcurrent to override. */
-        ConcurrentRequests = 10
+        [this](pull_type & yield)
+        {
+            auto ref = shared_from_this(); // Hold reference to ourselves until coroutine is complete
+
+            WorkManager<std::shared_ptr<GetFolderContents>> work_manager(stm_->HttpConfig()->GetDefaultCallbackIoService()); // Use this to avoid shoving too much work into io_service
+            work_manager.SetMaxConcurrentWork(10);
+
+            int num_queued = 0;
+            while (true)
+            {
+                if (!new_folder_keys_.empty())
+                {
+                    // Queue some work
+
+                    std::string folder_key = new_folder_keys_.front();
+                    new_folder_keys_.pop_front();
+
+                    // Queue the folders
+                    GetFolderContents::CallbackType HandleGetFolderContentsFolders =
+                    [this](const std::vector<File> & files, const std::vector<Folder> & folders)
+                    {
+                        folders_.insert(std::end(folders_), std::begin(folders), std::end(folders));
+
+                        for (const auto & folder : folders)
+                        {
+                            new_folder_keys_.push_back(folder.folderkey);
+                        }
+
+                        (*this)();
+                    };
+
+                    std::shared_ptr<GetFolderContents> get_contents_folders = GetFolderContents::Create(stm_, folder_key, GetFolderContents::ContentType::Folders, std::move(HandleGetFolderContentsFolders));
+
+                    work_manager.QueueWork(get_contents_folders);
+
+                    // Queue the files
+                    GetFolderContents::CallbackType HandleGetFolderContentsFiles =
+                    [this](const std::vector<File> & files, const std::vector<Folder> & folders)
+                    {
+                        files_.insert(std::end(files_), std::begin(files), std::end(files));
+
+                        (*this)();
+                    };
+
+                    std::shared_ptr<GetFolderContents> get_contents_files = GetFolderContents::Create(stm_, folder_key, GetFolderContents::ContentType::Files, std::move(HandleGetFolderContentsFiles));
+                    
+                    work_manager.QueueWork(get_contents_files);
+                    
+                    num_queued += 2;
+                }
+                else
+                {
+                    // No work to queue
+
+                    if (num_queued > 0)
+                    {
+                        yield();
+                        // Handler returned
+                        --num_queued;
+                    }
+                    else
+                    {
+                        break; // All handlers we queued returned
+                    }
+                }
+            }
+
+            callback_(files_, folders_);
+        }
     };
 
-protected:
-    /**
-     * @brief Constructor
-     *
-     * This constructor creates an object.  As it is protected, the Create
-     * static method must be used.  Its arguments are the same as this, but
-     * returns a shared pointer.  Once started, the shared object will be kept
-     * alive until the callback returns success or failure, or the io_service is
-     * destroyed.
-     *
-     * @param[in] stm Session manager
-     * @param[in] callback This is called with the result of the operation.
-     *                     Its signature is:
-     *                     void(ActionResult, Pointer)
-     * @param[in] folderkey The folderkey where to begin syncing.
-     *
-     * @return Return description
-     */
-    CloneCloudTreeVersioned(mf::api::SessionMaintainer * stm,
-                            typename Base::Callback callback,
-                            std::string folderkey);
 
-    /**
-     * @brief Constructor
-     *
-     * This constructor creates an object.  As it is protected, the Create
-     * static method must be used.  Its arguments are the same as this, but
-     * returns a shared pointer.  Once started, the shared object will be kept
-     * alive until the callback returns success or failure, or the io_service is
-     * destroyed.
-     *
-     * @param[in] stm Session manager
-     * @param[in] callback This is called with the result of the operation.
-     *                     Its signature is:
-     *                     void(ActionResult, Pointer)
-     * @param[in] folderkeys Folderkey where to begin syncing.
-     *
-     * @return Return description
-     */
-    CloneCloudTreeVersioned(mf::api::SessionMaintainer * stm,
-                            typename Base::Callback callback,
-                            std::vector<std::string> folderkeys);
+    CloneCloudTree(SessionMaintainer * stm, const std::string & folder_key, CallbackType && callback) : stm_(stm), callback_(std::move(callback)) { new_folder_keys_.push_back(folder_key); }
 
-    /**
-     * @brief Constructor
-     *
-     * This constructor creates an object.  As it is protected, the Create
-     * static method must be used.  Its arguments are the same as this, but
-     * returns a shared pointer.  Once started, the shared object will be kept
-     * alive until the callback returns success or failure, or the io_service is
-     * destroyed.
-     *
-     * @param[in] stm Session manager
-     * @param[in] callback This is called with the result of the operation.
-     *                     Its signature is:
-     *                     void(ActionResult, Pointer)
-     * @param[in] folderkeys Folderkey where to begin syncing.
-     *
-     * @return Return description
-     */
-    CloneCloudTreeVersioned(mf::api::SessionMaintainer * stm,
-                            typename Base::Callback callback,
-                            FolderWorkList work_list);
-
-    friend class detail::Coroutine<CloneCloudTreeVersioned>;
-    friend class detail::ConcurrentCoroutine<CloneCloudTreeVersioned>;
-
-    /**
-     * @brief Internal callback.
-     */
-    void operator()();
-
-    enum class ResponseResult
+public:
+    static std::shared_ptr<CloneCloudTree> Create(SessionMaintainer * stm, const std::string & folder_key, CallbackType && call_back)
     {
-        Success,
-        ErrorHandled
-    };
-    ResponseResult HandleResponse();
+        return std::shared_ptr<CloneCloudTree>(new CloneCloudTree(stm, folder_key, std::move(call_back)));
+    }
 
-    void EnqueueWork();
-
-    std::vector<GetFolderContent::Pointer> folder_actions_;
-    std::vector<GetFolderContent::Pointer> file_actions_;
-    FolderWorkList folders_to_scan_;
+    void operator()() override { coro_(); }
 };
 
-/**
- * @class CloneCloudTree
- * @brief See CloneCloudTreeVersioned
- *
- * This is a convenience class that is always set to use the default API.
- */
-class CloneCloudTree
-        : public CloneCloudTreeVersioned<folder::get_content::Request>
-{
-};
-
-}  // namespace api
-}  // namespace mf
-
-// Template members at bottom as they need definitions, but must be included.
-#include "detail/clone_cloud_tree_impl.hpp"
+} // namespace mf
+} // namespace api

@@ -56,13 +56,10 @@ set(API_HEADERS
     user/get_session_token/v1_3.hpp
     user/renew_session_token.hpp
 
-    actions/detail/coroutine.hpp
-    actions/detail/coroutine_base.hpp
-    actions/detail/concurrent_coroutine.hpp
-    actions/detail/clone_cloud_tree_impl.hpp
-    actions/detail/get_folder_content_impl.hpp
+    actions/work_manager.hpp
+    actions/get_folder_contents.hpp
     actions/clone_cloud_tree.hpp
-    actions/get_folder_content.hpp
+    actions/coroutine.hpp
 
     app_constants.hpp
     connection_state.hpp

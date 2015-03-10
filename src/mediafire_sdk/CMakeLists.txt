@@ -103,6 +103,8 @@ endif(USE_SYSTEM_ZLIB)
 
 find_package(Boost 1.50 REQUIRED
     chrono
+    context
+    coroutine
     date_time
     filesystem
     iostreams
