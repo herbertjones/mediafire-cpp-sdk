@@ -142,3 +142,8 @@ target_link_libraries(ut_live_folder ut_live)
 #add_test(ut_live
 #    ut_live "${CMAKE_CURRENT_SOURCE_DIR}/test_sources"
 #)
+
+# Copy expected script and data files
+file(COPY check_expected.sh DESTINATION .)
+file(COPY ut_live_general-expected-failures.txt DESTINATION .)
+

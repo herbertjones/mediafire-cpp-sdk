@@ -1,0 +1,15 @@
+# This file contains a list of lines that the unit test for the API may output without
+# due to known issues.
+#
+# Please only report errors that are not in this list and make sure to add failures to
+# this list once a STARS task is created.
+
+# file/verify not working
+# STARS 27317
+fatal error in "VerifyRestoreFile": Hash on restored file incorrect!
+
+# file/upload is not creating new revisions reliably
+# STARS 27316
+fatal error in "VerifyNewVersionExists": There should be at least two file versions after replacement upload.
+fatal error in "RestoreFile": file/restore: The revision you requested is invalid or cannot be restored
+
