@@ -1039,10 +1039,8 @@ BOOST_AUTO_TEST_CASE(ConfirmCopyMove)
                 //std::cout << "files: " << response.total_files << std::endl;
                 //std::cout << "folders: " << response.total_folders << std::endl;
 
-                BOOST_REQUIRE(response.total_files);
-                BOOST_REQUIRE(response.total_folders);
-                BOOST_CHECK_EQUAL(*response.total_files, 6);
-                BOOST_CHECK_EQUAL(*response.total_folders, 1);
+                BOOST_CHECK_EQUAL(response.file_count, 3);
+                BOOST_CHECK_EQUAL(response.folder_count, 1);
             }
         });
 
