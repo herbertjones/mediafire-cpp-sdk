@@ -30,6 +30,10 @@ set(API_SOURCES
     user/get_session_token/v1_3.cpp
     user/renew_session_token.cpp
 
+    actions/get_folder_contents_impl.hpp
+    actions/clone_cloud_tree_impl.hpp
+    actions/work_manager.cpp
+
     app_constants.cpp
     connection_state.cpp
     credentials.cpp

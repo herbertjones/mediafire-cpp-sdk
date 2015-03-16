@@ -38,47 +38,8 @@ uint32_t folder_count = 0;
 
 namespace api = mf::api;
 
-BOOST_AUTO_TEST_CASE(UTFolderGetContents2)
+BOOST_AUTO_TEST_CASE(UTGetContentFiles)
 {
-//    boost::asio::io_service io_service;
-//    auto http_config = mf::http::HttpConfig::Create();
-//    http_config->SetWorkIoService(&io_service);
-//
-//    api::SessionMaintainer stm(http_config);
-//
-//    stm.SetLoginCredentials(api::credentials::Email{username, password});
-//
-//    using ResponseType = mf::api::folder::get_content::Response;
-//    using ResponseTypeFiles = std::vector<ResponseType::File>;
-//    using ResponseTypeFolders = std::vector<ResponseType::Folder>;
-//
-//    mf::api::GetFolderContents::CallbackType HandleGetFolderContents =
-//        [this, &io_service](const ResponseTypeFiles & response_files, const ResponseTypeFolders & response_folders)
-//        {
-//            for (const auto & file : response_files)
-//            {
-//                std::cout << "File: " << file.quickkey << std::endl;
-//            }
-//
-//            for (const auto & folder : response_folders)
-//            {
-//                std::cout << "Folder: " << folder.folderkey << std::endl;
-//            }
-//
-//            io_service.stop();
-//        };
-//
-//    auto get_folder_contents = mf::api::GetFolderContents::Create(&stm, "", std::move(HandleGetFolderContents));
-//    get_folder_contents->operator()();
-//
-//    io_service.run();
-}
-
-BOOST_AUTO_TEST_CASE(UTCloudCloneTree2)
-{
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
-
     boost::asio::io_service io_service;
     auto http_config = mf::http::HttpConfig::Create();
     http_config->SetWorkIoService(&io_service);
@@ -87,18 +48,137 @@ BOOST_AUTO_TEST_CASE(UTCloudCloneTree2)
 
     stm.SetLoginCredentials(api::credentials::Email{username, password});
 
-    mf::api::CloneCloudTree::CallbackType HandleCloneCloudTree =
-    [this, &io_service](const std::vector<mf::api::CloneCloudTree::File> & response_files, const std::vector<mf::api::CloneCloudTree::Folder> & response_folders)
-    {
-        for (const auto & file : response_files)
-        {
-            std::cout << "File: " << file.quickkey << std::endl;
-        }
+    using RequestType = mf::api::folder::get_content::Request;
+    using ResponseType = RequestType::ResponseType;
+    using ResponseTypeFiles = std::vector<ResponseType::File>;
+    using ResponseTypeFolders = std::vector<ResponseType::Folder>;
 
-        for (const auto & folder : response_folders)
-        {
-            std::cout << "Folder: " << folder.folderkey << std::endl;
-        }
+    using GetFolderContentType = mf::api::GetFolderContents<RequestType>;
+
+    GetFolderContentType::CallbackType HandleGetFolderContents =
+            [this, &io_service](
+                    const ResponseTypeFiles & response_files,
+                    const ResponseTypeFolders & response_folders,
+                    const std::vector<GetFolderContentType::ErrorType> & errors)
+    {
+        if (!errors.empty())
+            BOOST_FAIL("GetFolderContents returned errors");
+
+        BOOST_CHECK(response_folders.empty());
+
+        io_service.stop();
+    };
+
+    auto get_folder_contents = GetFolderContentType::Create(
+            &stm,
+            "",
+            GetFolderContentType::FilesOrFoldersOrBoth::Files,
+            std::move(HandleGetFolderContents));
+    get_folder_contents->operator()();
+
+    io_service.run();
+}
+
+BOOST_AUTO_TEST_CASE(UTGetContentFolders)
+{
+    boost::asio::io_service io_service;
+    auto http_config = mf::http::HttpConfig::Create();
+    http_config->SetWorkIoService(&io_service);
+
+    api::SessionMaintainer stm(http_config);
+
+    stm.SetLoginCredentials(api::credentials::Email{username, password});
+
+    using RequestType = mf::api::folder::get_content::Request;
+    using ResponseType = RequestType::ResponseType;
+    using ResponseTypeFiles = std::vector<ResponseType::File>;
+    using ResponseTypeFolders = std::vector<ResponseType::Folder>;
+
+    using GetFolderContentType = mf::api::GetFolderContents<RequestType>;
+
+    GetFolderContentType::CallbackType HandleGetFolderContents =
+            [this, &io_service](
+                    const ResponseTypeFiles & response_files,
+                    const ResponseTypeFolders & response_folders,
+                    const std::vector<GetFolderContentType::ErrorType> & errors)
+    {
+        if (!errors.empty())
+            BOOST_FAIL("GetFolderContents returned errors");
+
+        BOOST_CHECK(response_files.empty());
+
+        io_service.stop();
+    };
+
+    auto get_folder_contents = GetFolderContentType::Create(
+            &stm,
+            "",
+            GetFolderContentType::FilesOrFoldersOrBoth::Folders,
+            std::move(HandleGetFolderContents));
+    get_folder_contents->operator()();
+
+    io_service.run();
+}
+
+BOOST_AUTO_TEST_CASE(UTGetContentFilesAndFolders)
+{
+    boost::asio::io_service io_service;
+    auto http_config = mf::http::HttpConfig::Create();
+    http_config->SetWorkIoService(&io_service);
+
+    api::SessionMaintainer stm(http_config);
+
+    stm.SetLoginCredentials(api::credentials::Email{username, password});
+
+    using RequestType = mf::api::folder::get_content::Request;
+    using ResponseType = RequestType::ResponseType;
+    using ResponseTypeFiles = std::vector<ResponseType::File>;
+    using ResponseTypeFolders = std::vector<ResponseType::Folder>;
+
+    using GetFolderContentType = mf::api::GetFolderContents<RequestType>;
+
+    GetFolderContentType::CallbackType HandleGetFolderContents =
+            [this, &io_service](
+                    const ResponseTypeFiles & response_files,
+                    const ResponseTypeFolders & response_folders,
+                    const std::vector<GetFolderContentType::ErrorType> & errors)
+    {
+        if (!errors.empty())
+            BOOST_FAIL("GetFolderContents returned errors");
+
+        io_service.stop();
+    };
+
+    auto get_folder_contents = GetFolderContentType::Create(
+            &stm,
+            "",
+            GetFolderContentType::FilesOrFoldersOrBoth::Both,
+            std::move(HandleGetFolderContents));
+    get_folder_contents->operator()();
+
+    io_service.run();
+}
+
+BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
+{
+    boost::asio::io_service io_service;
+    auto http_config = mf::http::HttpConfig::Create();
+    http_config->SetWorkIoService(&io_service);
+
+    api::SessionMaintainer stm(http_config);
+
+    stm.SetLoginCredentials(api::credentials::Email{username, password});
+
+    using CloneCloudTreeType
+            = mf::api::CloneCloudTree<mf::api::folder::get_content::Request>;
+
+    CloneCloudTreeType::CallbackType HandleCloneCloudTree = [this, &io_service](
+            const std::vector<CloneCloudTreeType::File> & response_files,
+            const std::vector<CloneCloudTreeType::Folder> & response_folders,
+            const std::vector<CloneCloudTreeType::ErrorType> & errors)
+    {
+        if (!errors.empty())
+            BOOST_FAIL("GetFolderContents returned errors");
 
         std::cout << "File Count: " << response_files.size() << std::endl;
         std::cout << "Folder count: " << response_folders.size() << std::endl;
@@ -106,173 +186,14 @@ BOOST_AUTO_TEST_CASE(UTCloudCloneTree2)
         io_service.stop();
     };
 
-    auto clone_cloud_tree = mf::api::CloneCloudTree::Create(&stm, "", std::move(HandleCloneCloudTree));
+    // Setup the work manager to limit the number of things posted onto
+    // io_service.
+    auto work_manager = mf::api::WorkManager::Create(&io_service);
+    work_manager->SetMaxConcurrentWork(4);
+
+    auto clone_cloud_tree = CloneCloudTreeType::Create(
+            &stm, "", work_manager, std::move(HandleCloneCloudTree));
     clone_cloud_tree->operator()();
 
     io_service.run();
-
-    end = std::chrono::system_clock::now();
-
-    std::chrono::duration<double> elapsed_seconds = end-start;
-
-    std::cout << elapsed_seconds.count() << std::endl;
-}
-
-BOOST_AUTO_TEST_CASE(UTGetContentFiles)
-{
-//    boost::asio::io_service io_service;
-//    auto http_config = mf::http::HttpConfig::Create();
-//    http_config->SetWorkIoService(&io_service);
-//
-//    api::SessionMaintainer stm(http_config);
-//
-//    stm.SetLoginCredentials(api::credentials::Email{username, password});
-//
-//    auto coro = api::GetFolderContent::Create(
-//            &stm,
-//            [&io_service, this](api::ActionResult result,
-//                                api::GetFolderContent::Pointer action)
-//            {
-//                if (result == api::ActionResult::Failure)
-//                {
-//                    std::ostringstream ss;
-//                    ss << "Failed with error: "
-//                       << action->GetErrorCode().message();
-//                    BOOST_FAIL(ss.str());
-//                }
-//                else
-//                {
-//                    // Should not retrieve folders
-//                    BOOST_CHECK_EQUAL(0, action->folders.size());
-//
-//                    std::cout << "File count: " << action->files.size()
-//                              << std::endl;
-//
-//                    globals::file_count = action->files.size();
-//                }
-//
-//                io_service.stop();
-//            },
-//            root_folderkey, api::FilesFoldersOrBoth::Files);
-//
-//    io_service.run();
-}
-
-BOOST_AUTO_TEST_CASE(UTGetContentFolders)
-{
-//    boost::asio::io_service io_service;
-//    auto http_config = mf::http::HttpConfig::Create();
-//    http_config->SetWorkIoService(&io_service);
-//
-//    api::SessionMaintainer stm(http_config);
-//
-//    stm.SetLoginCredentials(api::credentials::Email{username, password});
-//
-//    auto coro = api::GetFolderContent::Create(
-//            &stm,
-//            [&io_service, this](api::ActionResult result,
-//                                api::GetFolderContent::Pointer action)
-//            {
-//                if (result == api::ActionResult::Failure)
-//                {
-//                    std::ostringstream ss;
-//                    ss << "Failed with error: "
-//                       << action->GetErrorCode().message();
-//                    BOOST_FAIL(ss.str());
-//                }
-//                else
-//                {
-//                    // Should not retrieve files
-//                    BOOST_CHECK_EQUAL(0, action->files.size());
-//
-//                    std::cout << "Folder count: " << action->folders.size()
-//                              << std::endl;
-//
-//                    globals::folder_count = action->folders.size();
-//                }
-//
-//                io_service.stop();
-//            },
-//            root_folderkey, api::FilesFoldersOrBoth::Folders);
-//
-//    io_service.run();
-}
-
-BOOST_AUTO_TEST_CASE(UTGetContentFilesAndFolders)
-{
-//    boost::asio::io_service io_service;
-//    auto http_config = mf::http::HttpConfig::Create();
-//    http_config->SetWorkIoService(&io_service);
-//
-//    api::SessionMaintainer stm(http_config);
-//
-//    stm.SetLoginCredentials(api::credentials::Email{username, password});
-//
-//    auto coro = api::GetFolderContent::Create(
-//            &stm,
-//            [&io_service, this](api::ActionResult result,
-//                                api::GetFolderContent::Pointer action)
-//            {
-//                if (result == api::ActionResult::Failure)
-//                {
-//                    std::ostringstream ss;
-//                    ss << "Failed with error: "
-//                       << action->GetErrorCode().message();
-//                    BOOST_FAIL(ss.str());
-//                }
-//                else
-//                {
-//                    // Should not retrieve files
-//                    BOOST_CHECK_EQUAL(globals::file_count,
-//                                      action->files.size());
-//                    BOOST_CHECK_EQUAL(globals::folder_count,
-//                                      action->folders.size());
-//
-//                    std::cout << "File count: " << action->files.size()
-//                              << std::endl;
-//                    std::cout << "Folder count: " << action->folders.size()
-//                              << std::endl;
-//                }
-//
-//                io_service.stop();
-//            },
-//            root_folderkey, api::FilesFoldersOrBoth::Both);
-//
-//    io_service.run();
-}
-
-BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
-{
-//    boost::asio::io_service io_service;
-//    auto http_config = mf::http::HttpConfig::Create();
-//    http_config->SetWorkIoService(&io_service);
-//
-//    api::SessionMaintainer stm(http_config);
-//
-//    stm.SetLoginCredentials(api::credentials::Email{username, password});
-//
-//    std::vector<std::string> folderkeys = {root_folderkey};
-//
-//
-//    auto coro = api::CloneCloudTree::Create(
-//            &stm,
-//            [&io_service](api::ActionResult result,
-//                          api::CloneCloudTree::Pointer action)
-//            {
-//                if (result == api::ActionResult::Failure)
-//                {
-//                    std::cout << "Failed. " << action->GetErrorCode().message()
-//                              << ": " << action->GetErrorDescription()
-//                              << std::endl;
-//                }
-//                else
-//                {
-//                    std::cout << "CloneCloudTree done." << std::endl;
-//                }
-//
-//                io_service.stop();
-//            },
-//            folderkeys);
-//
-//    io_service.run();
 }
