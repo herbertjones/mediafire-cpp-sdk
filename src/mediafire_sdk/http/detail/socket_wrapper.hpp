@@ -1,7 +1,6 @@
 /**
  * @file socket_wrapper.hpp
  * @author Herbert Jones
- * @brief Brief message...
  * @copyright Copyright 2014 Mediafire
  */
 #pragma once
