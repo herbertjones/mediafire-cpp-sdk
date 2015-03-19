@@ -19,10 +19,10 @@ std::shared_ptr<CloneCloudTree<TRequest>> CloneCloudTree<TRequest>::Create(
         SessionMaintainer * stm,
         const std::string & folder_key,
         std::shared_ptr<WorkManager> work_manager,
-        CallbackType && call_back)
+        CallbackType && callback)
 {
     return std::shared_ptr<CloneCloudTree>(new CloneCloudTree(
-            stm, folder_key, work_manager, std::move(call_back)));
+            stm, folder_key, work_manager, std::move(callback)));
 }
 
 template <typename TRequest>

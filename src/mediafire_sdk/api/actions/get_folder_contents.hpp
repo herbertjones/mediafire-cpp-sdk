@@ -51,10 +51,10 @@ public:
         std::string error_string;
     };
 
-    using CallbackType
-            = std::function<void(std::vector<typename ApiResponseType::File>,
-                                 std::vector<typename ApiResponseType::Folder>,
-                                 std::vector<ErrorType>)>;
+    using CallbackType = std::function<void(
+            const std::vector<typename ApiResponseType::File> &,
+            const std::vector<typename ApiResponseType::Folder> &,
+            const std::vector<ErrorType> &)>;
 
 public:
     /**
@@ -95,7 +95,13 @@ private:
 
     FilesOrFoldersOrBoth files_or_folders_or_both_;
 
-    CallbackType callback_;
+    CallbackType callback_ =
+            [](const std::vector<typename ApiResponseType::File> &,
+               const std::vector<typename ApiResponseType::Folder> &,
+               const std::vector<ErrorType> &)
+    {
+        std::cout << "WARNING: Default callback" << std::endl;
+    };
 
     bool file_chunks_remaining_ = false;
     bool folder_chunks_remaining_ = false;

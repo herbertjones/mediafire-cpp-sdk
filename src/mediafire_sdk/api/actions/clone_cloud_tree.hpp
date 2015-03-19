@@ -51,7 +51,6 @@ private:
             {
                 auto self = shared_from_this();  // Hold reference to ourselves
                                                  // until coroutine is complete
-
                 while (!new_folder_keys_.empty())
                 {
                     std::string folder_key = new_folder_keys_.front();

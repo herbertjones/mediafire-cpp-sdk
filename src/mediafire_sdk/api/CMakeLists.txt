@@ -30,8 +30,6 @@ set(API_SOURCES
     user/get_session_token/v1_3.cpp
     user/renew_session_token.cpp
 
-    actions/get_folder_contents_impl.hpp
-    actions/clone_cloud_tree_impl.hpp
     actions/work_manager.cpp
 
     app_constants.cpp
@@ -60,10 +58,21 @@ set(API_HEADERS
     user/get_session_token/v1_3.hpp
     user/renew_session_token.hpp
 
-    actions/work_manager.hpp
-    actions/get_folder_contents.hpp
-    actions/clone_cloud_tree.hpp
     actions/coroutine.hpp
+    actions/work_manager.hpp
+
+    actions/clone_cloud_tree.hpp
+    actions/clone_cloud_tree_impl.hpp
+    actions/get_folder_contents.hpp
+    actions/get_folder_contents_impl.hpp
+    actions/poll_changes.hpp
+    actions/poll_changes_impl.hpp
+    actions/get_info_folder.hpp
+    actions/get_info_folder_impl.hpp
+    actions/get_info_file.hpp
+    actions/get_info_file_impl.hpp
+    actions/get_changes_device.hpp
+    actions/get_changes_device_impl.hpp
 
     app_constants.hpp
     connection_state.hpp

@@ -154,3 +154,35 @@ add_executable(ut_clone_cloud_tree
 target_link_libraries(ut_clone_cloud_tree
     mf_api_sdk
 )
+
+# --- ut_poll_changes --------------------------------------
+add_executable(ut_poll_changes
+    ut_poll_changes.cpp)
+
+target_link_libraries(ut_poll_changes
+    mf_api_sdk
+)
+
+# --- ut_get_info_folder --------------------------------------
+add_executable(ut_get_info_folder
+    ut_get_info_folder.cpp)
+
+target_link_libraries(ut_get_info_folder
+    mf_api_sdk
+)
+
+# --- ut_get_info_file --------------------------------------
+add_executable(ut_get_info_file
+    ut_get_info_file.cpp)
+
+target_link_libraries(ut_get_info_file
+    mf_api_sdk
+)
+
+# --- ut_get_changes_device --------------------------------------
+add_executable(ut_get_changes_device
+    ut_get_changes_device.cpp)
+
+target_link_libraries(ut_get_changes_device
+    mf_api_sdk
+)
