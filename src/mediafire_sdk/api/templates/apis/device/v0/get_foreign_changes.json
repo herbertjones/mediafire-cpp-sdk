@@ -1,0 +1,112 @@
+{
+    "api": "/api/device/get_foreign_changes",
+    "version": "0",
+    "return_structs": [
+    {
+        "cpp_name": "File",
+        "members": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "quickkey",
+            "api_path": "quickkey"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "parent_folderkey",
+            "api_path": "parent_folderkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "revision"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "created",
+            "default_value": "boost::posix_time::not_a_date_time"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Folder",
+        "members": [
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "folderkey",
+            "api_path": "folderkey"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "parent_folderkey",
+            "api_path": "parent_folderkey",
+            "optional": true
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "revision"
+        },
+        {
+            "cpp_type": "boost::posix_time::ptime",
+            "cpp_name": "created_datetime",
+            "api_path": "created",
+            "default_value": "boost::posix_time::not_a_date_time"
+        }
+        ]
+    }
+    ],
+        "input_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "revision",
+            "api_path": "revision"
+        },
+        {
+            "cpp_type": "std::string",
+            "cpp_name": "contact_key",
+            "api_path": "contact_key"
+        }
+    ],
+        "return_params": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "device_revision",
+            "api_path": "response.device_revision"
+        },
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "changes_list_block",
+            "api_path": "response.changes_list_block"
+        },
+        {
+            "cpp_type": "File",
+            "cpp_name": "updated_files",
+            "api_path": "response.updated.files",
+            "json_type": "array",
+            "optional": true
+        },
+        {
+            "cpp_type": "File",
+            "cpp_name": "deleted_files",
+            "api_path": "response.deleted.files",
+            "json_type": "array",
+            "optional": true
+        },
+        {
+            "cpp_type": "Folder",
+            "cpp_name": "updated_folders",
+            "api_path": "response.updated.folders",
+            "json_type": "array",
+            "optional": true
+        },
+        {
+            "cpp_type": "Folder",
+            "cpp_name": "deleted_folders",
+            "api_path": "response.deleted.folders",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}
