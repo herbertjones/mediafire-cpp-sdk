@@ -10,7 +10,7 @@
 #include "boost/asio/ssl/impl/src.hpp"  // Define once in program
 #endif
 
-#define BOOST_TEST_MODULE CloneCloudTree
+#define BOOST_TEST_MODULE PollChanges
 #include "boost/test/unit_test.hpp"
 
 #if !defined(TEST_USER_1_USERNAME) || !defined(TEST_USER_1_PASSWORD)
