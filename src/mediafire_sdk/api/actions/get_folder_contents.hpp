@@ -95,14 +95,7 @@ private:
 
     FilesOrFoldersOrBoth files_or_folders_or_both_;
 
-    CallbackType callback_ =
-            [](const std::vector<typename ApiResponseType::File> &,
-               const std::vector<typename ApiResponseType::Folder> &,
-               const std::vector<ErrorType> &)
-    {
-        std::cout << "WARNING: Default callback" << std::endl;
-    };
-
+    CallbackType callback_;
     bool file_chunks_remaining_ = false;
     bool folder_chunks_remaining_ = false;
 
