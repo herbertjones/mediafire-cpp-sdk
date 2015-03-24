@@ -1,6 +1,6 @@
 #pragma once
 
-#include <deque>
+#include <queue>
 #include <memory>
 
 #include "boost/asio.hpp"
@@ -63,10 +63,10 @@ private:
 
     boost::asio::io_service * io_service_;
 
-    std::deque<WorkYieldPair>
+    std::queue<WorkYieldPair>
             work_queue_;  // Queue of work to be posted onto io_service
 
-    int num_work_in_io_service_ = 0;
+    int num_work_in_progress_ = 0;
 
     int max_concurrent_work_ = 10;  // Default to 10
 };

@@ -25,7 +25,7 @@ void WorkManager::QueueWork(
         std::shared_ptr<Coroutine> coroutine,
         boost::coroutines::coroutine<void>::pull_type * yield)
 {
-    work_queue_.push_back(WorkYieldPair(coroutine, yield));
+    work_queue_.push(WorkYieldPair(coroutine, yield));
 }
 
 void WorkManager::SetMaxConcurrentWork(int max_work)
@@ -37,35 +37,49 @@ void WorkManager::ExecuteWork()
 {
     auto self = shared_from_this();
 
-    std::vector<boost::coroutines::coroutine<void>::pull_type *> yield_vector;
-    while (num_work_in_io_service_ < max_concurrent_work_
-           && !work_queue_.empty())
+    std::queue<boost::coroutines::coroutine<void>::pull_type *> yield_queue;
+
+    while (true)
     {
-        ++num_work_in_io_service_;
+        bool queue_more_work = false; // Flag to keep track of whether or not to queue more work. This is needed because if we were to call ExecuteWork recursively, we would blow up the stack if we have too much work to queue.
 
-        auto work_yield_pair = work_queue_.front();
-        work_queue_.pop_front();
-
-        // Post work onto io_service
-        auto work = work_yield_pair.first;
-        io_service_->post([work, this, self]()
-                          {
-                              work->operator()();
-                              --num_work_in_io_service_;
-                          });
-
-        // Enqueue the yield so we can yield after posting as much work as
-        // possible
-        yield_vector.push_back(work_yield_pair.second);
-    }
-
-    for (auto & yield : yield_vector)
-    {
-        if (yield != nullptr)
+        while (num_work_in_progress_ < max_concurrent_work_
+               && !work_queue_.empty())
         {
-            yield->operator()();
-            ExecuteWork();  // Post more work if available
+            ++num_work_in_progress_;
+
+            auto work_yield_pair = work_queue_.front();
+            work_queue_.pop();
+
+            // Post work onto io_service
+            auto work = work_yield_pair.first;
+            io_service_->post([work, this, self]()
+                              {
+                                  work->operator()();
+                              });
+
+            // Enqueue the yield so we can yield after posting as much work as
+            // possible
+            yield_queue.push(work_yield_pair.second);
+
+            queue_more_work = true;
         }
+
+        if (!yield_queue.empty())
+        {
+            auto yield = yield_queue.front();
+            yield_queue.pop();
+
+            if (yield != nullptr)
+            {
+                yield->operator()();
+            }
+
+            --num_work_in_progress_;
+        }
+
+        if (yield_queue.empty() && !queue_more_work)
+            break;
     }
 }
 
