@@ -202,3 +202,43 @@ add_executable(ut_poll_foreign_changes
 target_link_libraries(ut_poll_foreign_changes
     mf_api_sdk
 )
+
+# --- ut_move_file --------------------------------------
+add_executable(ut_move_file
+    ut_move_file.cpp)
+
+target_link_libraries(ut_move_file
+    mf_api_sdk
+)
+
+# --- ut_move_folder --------------------------------------
+add_executable(ut_move_folder
+    ut_move_folder.cpp)
+
+target_link_libraries(ut_move_folder
+    mf_api_sdk
+)
+
+# --- ut_delete_file --------------------------------------
+add_executable(ut_delete_file
+    ut_delete_file.cpp)
+
+target_link_libraries(ut_delete_file
+    mf_api_sdk
+)
+
+# --- ut_delete_folder --------------------------------------
+add_executable(ut_delete_folder
+    ut_delete_folder.cpp)
+
+target_link_libraries(ut_delete_folder
+    mf_api_sdk
+)
+
+# --- ut_create_folder --------------------------------------
+add_executable(ut_create_folder
+    ut_create_folder.cpp)
+
+target_link_libraries(ut_create_folder
+    mf_api_sdk
+)
