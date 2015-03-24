@@ -2,15 +2,6 @@ namespace mf
 {
 namespace api
 {
-
-// template <class TGetChangesRequest>
-// PollChanges<TGetChangesRequest>::ErrorType::ErrorType(
-//        const std::error_code & error_code,
-//        const std::string & error_string)
-//        : error_code(error_code), error_string(error_string)
-//{
-//}
-
 template <typename TDeviceGetStatusRequest,
           typename TDeviceGetChangesRequest,
           typename TFolderGetInfoRequest,
