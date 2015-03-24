@@ -26,7 +26,7 @@ const std::string password = TEST_USER_1_PASSWORD;
 
 namespace api = mf::api;
 
-BOOST_AUTO_TEST_CASE(UTGetInfoFolder)
+BOOST_AUTO_TEST_CASE(UTGetChangesDevice)
 {
     boost::asio::io_service io_service;
     auto http_config = mf::http::HttpConfig::Create();
@@ -42,17 +42,17 @@ BOOST_AUTO_TEST_CASE(UTGetInfoFolder)
 
     GetChangesDeviceType::CallbackType HandleGetChangesDevice = [this,
                                                                  &io_service](
-            const std::vector<GetChangesDeviceType::GetChangesFile> &
+            const std::vector<GetChangesDeviceType::File> &
                     updated_files,
-            const std::vector<GetChangesDeviceType::GetChangesFolder> &
+            const std::vector<GetChangesDeviceType::Folder> &
                     updated_folders,
-            const std::vector<GetChangesDeviceType::GetChangesFile> &
+            const std::vector<GetChangesDeviceType::File> &
                     deleted_files,
-            const std::vector<GetChangesDeviceType::GetChangesFolder> &
+            const std::vector<GetChangesDeviceType::Folder> &
                     deleted_folders,
-            const std::vector<GetChangesDeviceType::GetStatusErrorType> &
+            const std::vector<GetChangesDeviceType::DeviceGetStatusErrorType> &
                     get_status_errors,
-            const std::vector<GetChangesDeviceType::GetChangesErrorType> &
+            const std::vector<GetChangesDeviceType::DeviceGetChangesErrorType> &
                     get_changes_errors)
     {
         if (!get_status_errors.empty() || !get_changes_errors.empty())

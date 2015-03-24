@@ -73,6 +73,10 @@ set(API_HEADERS
     actions/get_info_file_impl.hpp
     actions/get_changes_device.hpp
     actions/get_changes_device_impl.hpp
+    actions/poll_foreign_changes.hpp
+    actions/poll_foreign_changes_impl.hpp
+    actions/get_foreign_changes_device.hpp
+    actions/get_foreign_changes_device_impl.hpp
 
     app_constants.hpp
     connection_state.hpp

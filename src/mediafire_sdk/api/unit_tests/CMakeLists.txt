@@ -186,3 +186,19 @@ add_executable(ut_get_changes_device
 target_link_libraries(ut_get_changes_device
     mf_api_sdk
 )
+
+# --- ut_get_foreign_changes_device --------------------------------------
+add_executable(ut_get_foreign_changes_device
+    ut_get_foreign_changes_device.cpp)
+
+target_link_libraries(ut_get_foreign_changes_device
+    mf_api_sdk
+)
+
+# --- ut_poll_foreign_changes --------------------------------------
+add_executable(ut_poll_foreign_changes
+    ut_poll_foreign_changes.cpp)
+
+target_link_libraries(ut_poll_foreign_changes
+    mf_api_sdk
+)
