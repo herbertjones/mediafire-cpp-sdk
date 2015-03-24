@@ -186,11 +186,6 @@ private:
                         }
                         else
                         {
-//                            for (const auto & folder : response.updated_folders)
-//                            {
-//                                std::cout << folder.folderkey << " " << start_revision << " " << contact_key_ << std::endl;
-//                            }
-
                             updated_files_.insert(
                                     std::end(updated_files_),
                                     std::begin(response.updated_files),
