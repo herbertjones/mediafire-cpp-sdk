@@ -12,12 +12,14 @@
 #include "boost/variant.hpp"
 #include "mediafire_sdk/utils/variant.hpp"
 
-#define BOOST_TEST_MODULE UrlEncode
+#define BOOST_TEST_MODULE UtilsVariant
 #include "boost/test/unit_test.hpp"
 
 using VariantOf2 = boost::variant<int, std::string>;
 using VariantOf3 = boost::variant<int, double, std::string>;
 using mf::utils::Match;
+using mf::utils::MatchPartial;
+using mf::utils::MatchPartialWithDefault;
 
 BOOST_AUTO_TEST_CASE(test_1)
 {
@@ -90,6 +92,60 @@ BOOST_AUTO_TEST_CASE(test_4)
                     {
                         return 3;
                     });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_1)
+{
+    VariantOf2 v(0);
+
+    int ret = 0;
+
+    MatchPartial(v, [&](const std::string &)
+                 {
+                     ret = 1;
+                 });
+
+    BOOST_CHECK_EQUAL(ret, 0);
+}
+
+BOOST_AUTO_TEST_CASE(partial_2)
+{
+    VariantOf2 v(0);
+
+    int ret = 0;
+
+    MatchPartial(v, [&](const int &)
+                 {
+                     ret = 1;
+                 });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_default_1)
+{
+    VariantOf2 v(0);
+
+    // This works as int can cast to double.
+    int ret = MatchPartialWithDefault(v, 1, [](const std::string &)
+                                      {
+                                          return 3;
+                                      });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_default_2)
+{
+    VariantOf2 v(3.0);
+
+    // This works as int can cast to double.
+    int ret = MatchPartialWithDefault(v, 1, [](const std::string &)
+                                      {
+                                          return 2;
+                                      });
 
     BOOST_CHECK_EQUAL(ret, 1);
 }

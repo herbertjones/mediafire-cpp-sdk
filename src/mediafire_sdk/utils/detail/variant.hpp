@@ -75,6 +75,80 @@ struct return_trait<ReturnType (ClassType::*)(Args...) const>
     typedef ReturnType result_type;
 };
 
+/**
+ * @brief Make visitor for boost::variant by series of lambdas.
+ *
+ * Keep logic near apply_visitor by placing the lambdas to process a variant
+ * with the function that iterates its types.
+ *
+ * @template ReturnT Return type
+ * @param[in] lambdas Lambdas that handle all the types of the variant they
+ *                    expect the process.
+ *
+ * @return New visitor for passing to apply_visitor.
+ */
+template <typename ReturnT, typename... Lambdas>
+detail::lambda_visitor<ReturnT, Lambdas...> make_lambda_visitor(
+        Lambdas... lambdas)
+{
+    return {lambdas...};
+}
+
+template <typename... Lambdas>
+struct partial_lambda_visitor : public lambda_visitor<void, Lambdas...>
+{
+    using lambda_visitor<void, Lambdas...>::operator();
+
+    partial_lambda_visitor(Lambdas... lambdas)
+            : lambda_visitor<void, Lambdas...>(lambdas...)
+    {
+    }
+
+    // Non-matching events
+    template <typename T>
+    void operator()(const T &) const
+    {
+    }
+};
+
+template <typename... Lambdas>
+partial_lambda_visitor<Lambdas...> make_partial_lambda_visitor(
+        Lambdas... lambdas)
+{
+    return {lambdas...};
+}
+
+template <typename ResultT, typename... Lambdas>
+struct partial_lambda_visitor_with_default
+        : public lambda_visitor<ResultT, Lambdas...>
+{
+    using lambda_visitor<ResultT, Lambdas...>::operator();
+
+    partial_lambda_visitor_with_default(ResultT default_result,
+                                        Lambdas... lambdas)
+            : lambda_visitor<ResultT, Lambdas...>(lambdas...),
+              default_result_(std::move(default_result))
+    {
+    }
+
+    // Non-matching events
+    template <typename T>
+    ResultT operator()(const T &) const
+    {
+        return default_result_;
+    }
+
+    ResultT default_result_;
+};
+
+template <typename ResultT, typename... Lambdas>
+partial_lambda_visitor_with_default<ResultT, Lambdas...>
+make_partial_lambda_visitor_with_default(ResultT default_result,
+                                         Lambdas... lambdas)
+{
+    return {default_result, lambdas...};
+}
+
 }  // namespace detail
 }  // namespace utils
 }  // namespace mf
