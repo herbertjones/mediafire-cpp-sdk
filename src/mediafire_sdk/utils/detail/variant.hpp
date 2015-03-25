@@ -12,6 +12,7 @@
 
 #include "boost/variant/apply_visitor.hpp"
 #include "boost/variant/static_visitor.hpp"
+#include "boost/variant/variant.hpp"
 
 namespace mf
 {
@@ -118,6 +119,37 @@ partial_lambda_visitor<Lambdas...> make_partial_lambda_visitor(
     return {lambdas...};
 }
 
+template <typename... Lambdas>
+struct partial_recursive_lambda_visitor
+        : public lambda_visitor<void, Lambdas...>
+{
+    using lambda_visitor<void, Lambdas...>::operator();
+
+    partial_recursive_lambda_visitor(Lambdas... lambdas)
+            : lambda_visitor<void, Lambdas...>(lambdas...)
+    {
+    }
+
+    // Non-matching events
+    template <typename T>
+    void operator()(const T &) const
+    {
+    }
+
+    template <typename... T>
+    void operator()(const boost::variant<T...> & variant) const
+    {
+        return boost::apply_visitor(*this, variant);
+    }
+};
+
+template <typename... Lambdas>
+partial_recursive_lambda_visitor<Lambdas...>
+        make_partial_recursive_lambda_visitor(Lambdas... lambdas)
+{
+    return {lambdas...};
+}
+
 template <typename ResultT, typename... Lambdas>
 struct partial_lambda_visitor_with_default
         : public lambda_visitor<ResultT, Lambdas...>
@@ -145,6 +177,43 @@ template <typename ResultT, typename... Lambdas>
 partial_lambda_visitor_with_default<ResultT, Lambdas...>
 make_partial_lambda_visitor_with_default(ResultT default_result,
                                          Lambdas... lambdas)
+{
+    return {default_result, lambdas...};
+}
+
+template <typename ResultT, typename... Lambdas>
+struct partial_recursive_lambda_visitor_with_default
+        : public lambda_visitor<ResultT, Lambdas...>
+{
+    using lambda_visitor<ResultT, Lambdas...>::operator();
+
+    partial_recursive_lambda_visitor_with_default(ResultT default_result,
+                                                  Lambdas... lambdas)
+            : lambda_visitor<ResultT, Lambdas...>(lambdas...),
+              default_result_(std::move(default_result))
+    {
+    }
+
+    // Non-matching events
+    template <typename T>
+    ResultT operator()(const T &) const
+    {
+        return default_result_;
+    }
+
+    template <typename... T>
+    ResultT operator()(const boost::variant<T...> & variant) const
+    {
+        return boost::apply_visitor(*this, variant);
+    }
+
+    ResultT default_result_;
+};
+
+template <typename ResultT, typename... Lambdas>
+partial_recursive_lambda_visitor_with_default<ResultT, Lambdas...>
+make_partial_recursive_lambda_visitor_with_default(ResultT default_result,
+                                                   Lambdas... lambdas)
 {
     return {default_result, lambdas...};
 }

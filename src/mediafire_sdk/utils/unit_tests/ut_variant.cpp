@@ -17,8 +17,23 @@
 
 using VariantOf2 = boost::variant<int, std::string>;
 using VariantOf3 = boost::variant<int, double, std::string>;
+
+struct One
+{
+};
+struct Two
+{
+};
+struct Three
+{
+};
+
+using VariantWithInnerVariant = boost::variant<One, boost::variant<Two, Three>>;
+
 using mf::utils::Match;
 using mf::utils::MatchPartial;
+using mf::utils::MatchPartialRecursive;
+using mf::utils::MatchPartialRecursiveWithDefault;
 using mf::utils::MatchPartialWithDefault;
 
 BOOST_AUTO_TEST_CASE(test_1)
@@ -148,4 +163,97 @@ BOOST_AUTO_TEST_CASE(partial_default_2)
                                       });
 
     BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_1)
+{
+    VariantWithInnerVariant v(Three{});
+
+    // using VariantWithInnerVariant
+    //     = boost::variant<int, boost::variant<double, std::string>>;
+
+    int ret = 0;
+
+    MatchPartialRecursive(v,
+                          [&](const Three &)  // Inner variant match
+                          {
+                              ret = 1;
+                          });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_2)
+{
+    VariantWithInnerVariant v(One{});
+
+    int ret = 0;
+
+    MatchPartialRecursive(v,
+                          [&](const One &)  // Outer variant match
+                          {
+                              ret = 1;
+                          });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_3)
+{
+    VariantWithInnerVariant v(Three{});
+
+    int ret = 0;
+
+    MatchPartialRecursive(v,
+                          [&](const One &)  // Shouldn't match
+                          {
+                              ret = 1;
+                          });
+
+    BOOST_CHECK_EQUAL(ret, 0);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_with_default_1)
+{
+    VariantWithInnerVariant v(Three{});
+
+    // using VariantWithInnerVariant
+    //     = boost::variant<int, boost::variant<double, std::string>>;
+
+    int ret = MatchPartialRecursiveWithDefault(
+            v, 0,
+            [&](const Three &)  // Inner variant match
+            {
+                return 1;
+            });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_with_default_2)
+{
+    VariantWithInnerVariant v(One{});
+
+    int ret = MatchPartialRecursiveWithDefault(
+            v, 0,
+            [&](const One &)  // Outer variant match
+            {
+                return 1;
+            });
+
+    BOOST_CHECK_EQUAL(ret, 1);
+}
+
+BOOST_AUTO_TEST_CASE(partial_recursive_with_default_3)
+{
+    VariantWithInnerVariant v(Three{});
+
+    int ret = MatchPartialRecursiveWithDefault(
+            v, 0,
+            [&](const One &)  // Shouldn't match
+            {
+                return 1;
+            });
+
+    BOOST_CHECK_EQUAL(ret, 0);
 }
