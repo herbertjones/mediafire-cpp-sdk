@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(UTCreateFolder)
     };
 
     auto create_folder = CreateFolderType::Create(
-            &stm, "TestFolderCreationName", std::move(HandleCreateFolder));
+            &stm, "TestFolderCreationName", "TestParentFolderKey", std::move(HandleCreateFolder));
 
     // No way to actually test this since it will modify an account, we just
     // need to make sure everything compile.

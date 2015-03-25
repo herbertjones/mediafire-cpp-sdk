@@ -44,6 +44,7 @@ public:
      **/
     static std::shared_ptr<CreateFolder> Create(SessionMaintainer * stm,
                                                 const std::string & folder_name,
+                                                const std::string & parent_folder_key,
                                                 CallbackType && callback);
 
     /**
@@ -57,12 +58,15 @@ private:
      **/
     CreateFolder(SessionMaintainer * stm,
                  const std::string & folder_name,
+                 const std::string & parent_folder_key,
                  CallbackType && callback);
 
 private:
     SessionMaintainer * stm_;
 
     std::string folder_name_;
+
+    std::string parent_folder_key_;
 
     CallbackType callback_;
 
@@ -101,7 +105,10 @@ private:
                     (*this)();
                 };
 
-                stm_->Call(RequestType(folder_name_), HandleCreateFolder);
+                auto request = RequestType(folder_name_);
+                request.SetParentFolderkey(parent_folder_key_);
+
+                stm_->Call(request, HandleCreateFolder);
 
                 yield();
 
