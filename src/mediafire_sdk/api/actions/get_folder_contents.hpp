@@ -27,13 +27,13 @@ public:
 
 public:
     // Some convenience typedefs
-    using ApiRequestType = TRequest;
-    using ApiResponseType = typename ApiRequestType::ResponseType;
+    using RequestType = TRequest;
+    using ResponseType = typename RequestType::ResponseType;
 
-    using ContentType = typename ApiRequestType::ContentType;
+    using ContentType = typename RequestType::ContentType;
 
-    using File = typename ApiResponseType::File;
-    using Folder = typename ApiResponseType::Folder;
+    using File = typename ResponseType::File;
+    using Folder = typename ResponseType::Folder;
 
     // The struct for the errors we might return
     struct ErrorType
@@ -52,9 +52,9 @@ public:
     };
 
     using CallbackType = std::function<void(
-            const std::vector<typename ApiResponseType::File> &,
-            const std::vector<typename ApiResponseType::Folder> &,
-            const std::vector<ErrorType> &)>;
+            const std::vector<typename ResponseType::File> & files,
+            const std::vector<typename ResponseType::Folder> & folders,
+            const std::vector<ErrorType> & errors)>;
 
 public:
     /**
@@ -126,9 +126,9 @@ private:
                                     == FilesOrFoldersOrBoth::Both)
                         && file_chunks_remaining_)
                     {
-                        std::function<void(const ApiResponseType & response)>
+                        std::function<void(const ResponseType & response)>
                                 HandleFolderGetContentsFiles
-                                = [this, self](const ApiResponseType & response)
+                                = [this, self](const ResponseType & response)
                         {
                             if (response.error_code)
                             {
@@ -165,7 +165,7 @@ private:
                             (*this)();
                         };
 
-                        stm_->Call(ApiRequestType(folder_key_,
+                        stm_->Call(RequestType(folder_key_,
                                                   files_chunk_num,
                                                   ContentType::Files),
                                    HandleFolderGetContentsFiles);
@@ -180,9 +180,9 @@ private:
                                     == FilesOrFoldersOrBoth::Both)
                         && folder_chunks_remaining_)
                     {
-                        std::function<void(const ApiResponseType & response)>
+                        std::function<void(const ResponseType & response)>
                                 HandleFolderGetContentsFolder
-                                = [this, self](const ApiResponseType & response)
+                                = [this, self](const ResponseType & response)
                         {
                             if (response.error_code)
                             {
@@ -219,7 +219,7 @@ private:
                             (*this)();
                         };
 
-                        stm_->Call(ApiRequestType(folder_key_,
+                        stm_->Call(RequestType(folder_key_,
                                                   folders_chunk_num,
                                                   ContentType::Folders),
                                    HandleFolderGetContentsFolder);
