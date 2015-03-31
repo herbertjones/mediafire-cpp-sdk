@@ -50,6 +50,22 @@ enum class SharedByUser
     Shared
 };
 
+enum class ExplicitShare
+{
+    /** API value "0" */
+    No,
+    /** API value "1" */
+    Yes
+};
+
+enum class Permission
+{
+    /** API value "1" */
+    Allowed,
+    /** API value "0" */
+    Denied
+};
+
 /**
  * @class Response
  * @brief Response from API request "file/get_info"
@@ -62,6 +78,20 @@ public:
         mimetype(""),
         shared_by_user(SharedByUser::Unshared)
     {}
+    struct Permissions
+    {
+        /** API response field "value" */
+        uint32_t value;
+
+        /** API response field "explicit" */
+        ExplicitShare explicit_share;
+
+        /** API response field "read" */
+        Permission read_permission;
+
+        /** API response field "write" */
+        Permission write_permission;
+    };
     /** API response field "response.file_info.quickkey" */
     std::string quickkey;
 
@@ -101,8 +131,8 @@ public:
     /** API response field "response.file_info.shared_by_user" */
     SharedByUser shared_by_user;
 
-    /** API response field "response.file_info.permissions.value" */
-    boost::optional<uint32_t> permissions;
+    /** API response field "response.file_info.permissions" */
+    boost::optional<Permissions> permissions;
 
     /** API response field "response.file_info.parent_folderkey" */
     boost::optional<std::string> parent_folderkey;

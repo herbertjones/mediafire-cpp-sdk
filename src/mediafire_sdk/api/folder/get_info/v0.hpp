@@ -52,6 +52,22 @@ enum class SharedByUser
     Shared
 };
 
+enum class ExplicitShare
+{
+    /** API value "0" */
+    No,
+    /** API value "1" */
+    Yes
+};
+
+enum class Permission
+{
+    /** API value "1" */
+    Allowed,
+    /** API value "0" */
+    Denied
+};
+
 /**
  * @class Response
  * @brief Response from API request "folder/get_info"
@@ -64,6 +80,20 @@ public:
         deleted_datetime(boost::posix_time::not_a_date_time),
         shared_by_user(SharedByUser::Unshared)
     {}
+    struct Permissions
+    {
+        /** API response field "value" */
+        uint32_t value;
+
+        /** API response field "explicit" */
+        ExplicitShare explicit_share;
+
+        /** API response field "read" */
+        Permission read_permission;
+
+        /** API response field "write" */
+        Permission write_permission;
+    };
     /** API response field "response.folder_info.folderkey" */
     std::string folderkey;
 
@@ -109,8 +139,8 @@ public:
     /** API response field "response.folder_info.shared_by_user" */
     SharedByUser shared_by_user;
 
-    /** API response field "response.folder_info.permissions" */
-    boost::optional<uint32_t> permissions;
+    /** API response field "permissions" */
+    boost::optional<Permissions> permissions;
 
     /** API response field "response.folder_info.owner_name" */
     boost::optional<std::string> owner_name;

@@ -1,7 +1,6 @@
 {
-    "api": "/api/1.0/folder/get_content",
-    "version": "1.0",
-    "default_version": false,
+    "api": "/api/folder/get_content",
+    "version": "0",
     "enums": [
     {
         "cpp_name": "ContentType",
@@ -131,6 +130,32 @@
             "api_value": "yes"
         }
         ]
+    },
+    {
+        "cpp_name": "ExplicitShare",
+        "members": [
+        {
+            "cpp_name": "No",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "Yes",
+            "api_value": "1"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Permission",
+        "members": [
+        {
+            "cpp_name": "Allowed",
+            "api_value": "1"
+        },
+        {
+            "cpp_name": "Denied",
+            "api_value": "0"
+        }
+        ]
     }
     ],
     "return_structs": [
@@ -166,6 +191,31 @@
                 "cpp_name": "view",
                 "api_path": "view",
                 "optional": true
+            }
+            ]
+        },
+        {
+            "cpp_name": "Permissions",
+            "members": [
+            {
+                "cpp_type": "uint32_t",
+                "cpp_name": "value",
+                "api_path": "value"
+            },
+            {
+                "cpp_type": "ExplicitShare",
+                "cpp_name": "explicit_share",
+                "api_path": "explicit"
+            },
+            {
+                "cpp_type": "Permission",
+                "cpp_name": "read_permission",
+                "api_path": "read"
+            },
+            {
+                "cpp_type": "Permission",
+                "cpp_name": "write_permission",
+                "api_path": "write"
             }
             ]
         },
@@ -236,9 +286,9 @@
                 "api_path": "password_protected"
             },
             {
-                "cpp_type": "uint32_t",
+                "cpp_type": "Permissions",
                 "cpp_name": "permissions",
-                "api_path": "permissions.value",
+                "api_path": "permissions",
                 "optional": true
             },
             {
@@ -326,9 +376,9 @@
                 "api_path": "name"
             },
             {
-                "cpp_type": "uint32_t",
+                "cpp_type": "Permissions",
                 "cpp_name": "permissions",
-                "api_path": "permissions.value",
+                "api_path": "permissions",
                 "optional": true
             },
             {

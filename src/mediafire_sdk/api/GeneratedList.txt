@@ -27,7 +27,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     file/file_delete/v0.cpp
     file/file_delete/v1_3.cpp
     file/get_info/v0.cpp
-    file/get_info/v1_3.cpp
+    file/get_info/v1_1.cpp
     file/get_links/v0.cpp
     file/get_links/v1_3.cpp
     file/get_versions/v0.cpp
@@ -49,7 +49,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     folder/copy/v0.cpp
     folder/create/v0.cpp
     folder/folder_delete/v0.cpp
-    folder/get_content/v1_0.cpp
+    folder/get_content/v0.cpp
     folder/get_content/v1_2.cpp
     folder/get_info/v0.cpp
     folder/move/v0.cpp
@@ -149,7 +149,7 @@ set(API_TEMPLATE_GENERATED_HEADERS
     file/file_delete/v1_3.hpp
     file/get_info.hpp
     file/get_info/v0.hpp
-    file/get_info/v1_3.hpp
+    file/get_info/v1_1.hpp
     file/get_links.hpp
     file/get_links/v0.hpp
     file/get_links/v1_3.hpp
@@ -184,7 +184,7 @@ set(API_TEMPLATE_GENERATED_HEADERS
     folder/folder_delete.hpp
     folder/folder_delete/v0.hpp
     folder/get_content.hpp
-    folder/get_content/v1_0.hpp
+    folder/get_content/v0.hpp
     folder/get_content/v1_2.hpp
     folder/get_info.hpp
     folder/get_info/v0.hpp

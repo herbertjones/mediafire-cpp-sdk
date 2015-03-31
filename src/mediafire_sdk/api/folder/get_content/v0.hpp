@@ -1,6 +1,6 @@
 /**
  * @file api/folder/get_content.hpp
- * @brief API request: /api/1.0/folder/get_content
+ * @brief API request: /api/folder/get_content
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace folder {
 /** API action "folder/get_content" */
 namespace get_content {
-/** API path "/api/1.0/folder/get_content" */
-namespace v1_0 {
+/** API path "/api/folder/get_content" */
+namespace v0 {
 
 enum class ContentType
 {
@@ -386,7 +386,7 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_0
+}  // namespace v0
 
 }  // namespace get_content
 }  // namespace folder

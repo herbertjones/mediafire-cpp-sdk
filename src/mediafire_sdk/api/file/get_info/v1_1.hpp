@@ -1,6 +1,6 @@
 /**
  * @file api/file/get_info.hpp
- * @brief API request: /api/1.3/file/get_info
+ * @brief API request: /api/1.1/file/get_info
  *
  * @copyright Copyright 2014 Mediafire
  *
@@ -23,8 +23,8 @@ namespace api {
 namespace file {
 /** API action "file/get_info" */
 namespace get_info {
-/** API path "/api/1.3/file/get_info" */
-namespace v1_3 {
+/** API path "/api/1.1/file/get_info" */
+namespace v1_1 {
 
 enum class ExplicitShare
 {
@@ -243,7 +243,7 @@ public:
 private:
     std::shared_ptr<Impl> impl_;
 };
-}  // namespace v1_3
+}  // namespace v1_1
 
 }  // namespace get_info
 }  // namespace file

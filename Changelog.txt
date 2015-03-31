@@ -1,0 +1,7 @@
+
+0.1
+First release
+
+Add permissions structs to the Legacy APIs file/get_info, folder/get_content, folder/get_info.
+Move file/get_info to 1.1 where it was last changed instead of 1.3.
+Move folder/get_content from 1.0 to Legacy.

@@ -1,8 +1,6 @@
 {
     "api": "/api/file/get_info",
     "version": "0",
-    "_comment" : "This version must be the default until STARS #27247 is fixed",
-    "default_version": true,
     "enums": [
     {
         "cpp_name": "Privacy",
@@ -40,6 +38,59 @@
         {
             "cpp_name": "Shared",
             "api_value": "1"
+        }
+        ]
+    },
+    {
+        "cpp_name": "ExplicitShare",
+        "members": [
+        {
+            "cpp_name": "No",
+            "api_value": "0"
+        },
+        {
+            "cpp_name": "Yes",
+            "api_value": "1"
+        }
+        ]
+    },
+    {
+        "cpp_name": "Permission",
+        "members": [
+        {
+            "cpp_name": "Allowed",
+            "api_value": "1"
+        },
+        {
+            "cpp_name": "Denied",
+            "api_value": "0"
+        }
+        ]
+    }
+    ],
+    "return_structs": [
+    {
+        "cpp_name": "Permissions",
+        "members": [
+        {
+            "cpp_type": "uint32_t",
+            "cpp_name": "value",
+            "api_path": "value"
+        },
+        {
+            "cpp_type": "ExplicitShare",
+            "cpp_name": "explicit_share",
+            "api_path": "explicit"
+        },
+        {
+            "cpp_type": "Permission",
+            "cpp_name": "read_permission",
+            "api_path": "read"
+        },
+        {
+            "cpp_type": "Permission",
+            "cpp_name": "write_permission",
+            "api_path": "write"
         }
         ]
     }
@@ -122,9 +173,9 @@
             "default_value": "Unshared"
         },
         {
-            "cpp_type": "uint32_t",
+            "cpp_type": "Permissions",
             "cpp_name": "permissions",
-            "api_path": "response.file_info.permissions.value",
+            "api_path": "response.file_info.permissions",
             "optional": true
         },
         {
