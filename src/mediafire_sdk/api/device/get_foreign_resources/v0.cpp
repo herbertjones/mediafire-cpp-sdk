@@ -374,13 +374,10 @@ const std::string api_path("/api/device/get_foreign_resources");
 class Impl : public SessionTokenApiBase<Response>
 {
 public:
-    Impl(
-            uint32_t chunk_number,
-            ContentType content_type
-        );
+    Impl();
 
-    uint32_t chunk_number_;
-    ContentType content_type_;
+    boost::optional<uint32_t> chunk_number_;
+    boost::optional<ContentType> content_type_;
     boost::optional<std::string> filter_;
     boost::optional<SyncToDesktopFilter> sync_to_desktop_filter_;
     virtual void BuildUrl(
@@ -398,12 +395,7 @@ public:
     }
 };
 
-Impl::Impl(
-        uint32_t chunk_number,
-        ContentType content_type
-    ) :
-    chunk_number_(chunk_number),
-    content_type_(content_type)
+Impl::Impl()
 {
 }
 
@@ -469,8 +461,10 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 {
     std::map<std::string, std::string> parts;
 
-    parts["chunk"] = AsString(chunk_number_);
-    parts["type"] = AsString(content_type_);
+    if (chunk_number_)
+        parts["chunk"] = AsString(*chunk_number_);
+    if (content_type_)
+        parts["type"] = AsString(*content_type_);
     if (filter_)
         parts["filter"] = *filter_;
     if (sync_to_desktop_filter_)
@@ -483,11 +477,8 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 
 // Request ---------------------------------------------------------------------
 
-Request::Request(
-        uint32_t chunk_number,
-        ContentType content_type
-    ) :
-    impl_(new Impl(chunk_number, content_type))
+Request::Request() :
+    impl_(new Impl())
 {
 }
 
@@ -526,6 +517,16 @@ void Request::SetSessionToken(
     )
 {
     impl_->SetSessionToken(session_token, time, secret_key);
+}
+
+void Request::SetChunkNumber(uint32_t chunk_number)
+{
+    impl_->chunk_number_ = chunk_number;
+}
+
+void Request::SetContentType(ContentType content_type)
+{
+    impl_->content_type_ = content_type;
 }
 
 void Request::SetFilter(std::string filter)

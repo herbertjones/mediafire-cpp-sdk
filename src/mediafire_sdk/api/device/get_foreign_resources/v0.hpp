@@ -160,14 +160,22 @@ class Request
 public:
     /**
      * API request "device/get_foreign_resources"
-     *
-     * @param chunk_number API parameter "chunk"
-     * @param content_type API parameter "type"
      */
-    Request(
-            uint32_t chunk_number,
-            ContentType content_type
-        );
+    Request();
+
+    /**
+     * Optional API parameter "chunk"
+     *
+     * @param chunk_number Set parameter "chunk" in API request.
+     */
+    void SetChunkNumber(uint32_t chunk_number);
+
+    /**
+     * Optional API parameter "type"
+     *
+     * @param content_type Set parameter "type" in API request.
+     */
+    void SetContentType(ContentType content_type);
 
     /**
      * Optional API parameter "filter"

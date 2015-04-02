@@ -197,7 +197,7 @@
             ]
         }
     ],
-        "input_params": [
+        "optional_input_params": [
         {
             "cpp_type": "uint32_t",
             "cpp_name": "chunk_number",
@@ -207,9 +207,7 @@
             "cpp_type": "ContentType",
             "cpp_name": "content_type",
             "api_path": "type"
-        }
-    ],
-        "optional_input_params": [
+        },
         {
             "cpp_type": "std::string",
             "cpp_name": "filter",
