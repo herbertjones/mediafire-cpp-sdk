@@ -491,9 +491,7 @@ void SessionMaintainerLocker::ChangeConnectionStateInternal(
     }
 }
 
-void SessionMaintainerLocker::HandleTimedOutRequest(
-        STRequestWeak weak_request
-    )
+void SessionMaintainerLocker::HandleTimedOutRequest(STRequestWeak weak_request)
 {
     STRequest request = weak_request.lock();
 
@@ -502,33 +500,34 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
         if (request->UsesSessionToken())
         {
             mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
-            std::deque< STRequest >::iterator it = std::find(
-                waiting_st_requests_.begin(), waiting_st_requests_.end(),
-                request);
+            std::deque<STRequest>::iterator it
+                    = std::find(waiting_st_requests_.begin(),
+                                waiting_st_requests_.end(), request);
             if (it != waiting_st_requests_.end())
             {
                 waiting_st_requests_.erase(it);
 
                 DEBUG_TOKEN_COUNT();
 
+                std::ostringstream ss;
+                ss << "No session token was available before the timeout was"
+                      " reached.  Current state: " << session_state_;
+
                 // In case of Fail calling mutex
                 lock.unlock();
 
                 request->Fail(
-                    make_error_code(
-                        api::api_code::SessionTokenUnavailableTimeout ),
-                    "No session token was available before the timeout was"
-                    " reached."
-                );
+                        make_error_code(
+                                api::api_code::SessionTokenUnavailableTimeout),
+                        ss.str());
             }
         }
         else
         {
             mf::utils::unique_lock<mf::utils::mutex> lock(mutex_);
-            std::deque< STRequest >::iterator it = std::find(
-                waiting_non_st_requests_.begin(),
-                waiting_non_st_requests_.end(),
-                request);
+            std::deque<STRequest>::iterator it
+                    = std::find(waiting_non_st_requests_.begin(),
+                                waiting_non_st_requests_.end(), request);
             if (it != waiting_non_st_requests_.end())
             {
                 waiting_non_st_requests_.erase(it);
@@ -537,10 +536,10 @@ void SessionMaintainerLocker::HandleTimedOutRequest(
                 lock.unlock();
 
                 request->Fail(
-                    make_error_code(
-                        api::api_code::ConnectionUnavailableTimeout ),
-                    "connection unavailable before the timeout was reached."
-                );
+                        make_error_code(
+                                api::api_code::ConnectionUnavailableTimeout),
+                        "connection unavailable before the timeout was "
+                        "reached.");
             }
         }
     }

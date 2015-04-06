@@ -116,6 +116,8 @@ typedef boost::variant
     , session_state::Running
     > SessionState;
 
+std::ostream & operator<<(std::ostream & out,
+                          const mf::api::SessionState & state);
+
 }  // namespace api
 }  // namespace mf
-
