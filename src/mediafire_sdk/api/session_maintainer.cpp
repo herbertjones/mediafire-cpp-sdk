@@ -286,6 +286,7 @@ void SessionMaintainer::AttemptRequests()
     ATTEMPT_REQUEST_DEBUG("Session state: "
         << GetSessionState() << " is running: " << IsRunning(GetSessionState())
         << "\n")
+
     while ( IsRunning(GetSessionState())
         && (request_pair = locker_->NextWaitingSessionTokenRequest()) )
     {
@@ -349,13 +350,13 @@ void SessionMaintainer::RequestNeededSessionTokens(
 
         if (credentials)
         {
-            if (haveBadCredentials)
+            if (haveBadCredentials && locker_->StartRequestSessionToken())
             {  // Request only one token
                 RequestSessionToken(*credentials);
             }
             else
             {  // Request as many tokens as we need
-                while (locker_->PermitSessionTokenCheckout())
+                while (locker_->StartRequestSessionToken())
                 {
                     RequestSessionToken(*credentials);
 #ifdef OUTPUT_DEBUG
@@ -376,6 +377,8 @@ void SessionMaintainer::RequestNeededSessionTokens(
     //      because we know that we will keep retrying.
 }
 
+/** Warning: Do not call without calling StartRequestSessionToken first and
+ * receiving true from it. - hjones on 2015-04-06 */
 void SessionMaintainer::RequestSessionToken(
         const Credentials & credentials
     )

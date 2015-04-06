@@ -273,9 +273,11 @@ private:
 
     void AttemptRequests();
     void AttemptConnection();
-    void RequestSessionToken(
-            const Credentials & credentials
-        );
+
+    /** Warning: Do not call without calling StartRequestSessionToken first and
+     * receiving true from it. - hjones on 2015-04-06 */
+    void RequestSessionToken(const Credentials & credentials);
+
     enum class BadCredentialBehavior
     {
         Force,

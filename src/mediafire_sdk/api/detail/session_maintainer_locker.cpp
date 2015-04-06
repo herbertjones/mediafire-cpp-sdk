@@ -216,54 +216,41 @@ void SessionMaintainerLocker::AddInProgressRequest(
     DEBUG_TOKEN_COUNT();
 }
 
-bool SessionMaintainerLocker::PermitSessionTokenCheckout()
+bool SessionMaintainerLocker::StartRequestSessionToken()
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
-    if (
-        (  // Have at least one session token at all times
-           in_progress_session_token_requests_ == 0
-           &&
-           session_tokens_.size()
-           + checked_out_tokens_.size() == 0
-        )
-        ||
-        (  // And if already has one, get as many session tokens as needed
-           (  /* Are there more requests than session tokens and session
-                 token requests?  No check against checked out tokens, as
-                 we allow maximum concurrent requests. */
-              waiting_st_requests_.size()
-              >
-              in_progress_session_token_requests_
-              + session_tokens_.size()
-           )
-           &&
-           ( /* Are there less session token requests than maximum
-                concurrent session token requests allowed? */
-             in_progress_session_token_requests_
-             <
-             SessionMaintainer::max_in_progress_token_requests
-           )
-           &&
-           ( /* Are there less session token requests and session tokens
-                than the maximum allowed session tokens? */
-             in_progress_session_token_requests_
-             + session_tokens_.size()
-             + checked_out_tokens_.size()
-             <
-             SessionMaintainer::max_tokens
-           )
-           )
-           )
-           {
-               ++in_progress_session_token_requests_;
-               return true;
-           }
+    if ((  // Have at least one session token at all times
+                in_progress_session_token_requests_ == 0
+                && session_tokens_.size() + checked_out_tokens_.size() == 0)
+        || (  // And if already has one, get as many session tokens as needed
+                   (/* Are there more requests than session tokens and session
+                       token requests?  No check against checked out tokens, as
+                       we allow maximum concurrent requests. */
+                    waiting_st_requests_.size()
+                    > in_progress_session_token_requests_
+                              + session_tokens_.size())
+                   && (/* Are there less session token requests than maximum
+                          concurrent session token requests allowed? */
+                       in_progress_session_token_requests_
+                       < SessionMaintainer::max_in_progress_token_requests)
+                   && (/* Are there less session token requests and session
+                          tokens
+                          than the maximum allowed session tokens? */
+                       in_progress_session_token_requests_
+                               + session_tokens_.size()
+                               + checked_out_tokens_.size()
+                       < SessionMaintainer::max_tokens)))
+    {
+        ++in_progress_session_token_requests_;
+        return true;
+    }
     return false;
 }
 
 void SessionMaintainerLocker::DecrementSessionTokenInProgressCount()
 {
     mf::utils::lock_guard<mf::utils::mutex> lock(mutex_);
+    assert(in_progress_session_token_requests_ > 0);
     --in_progress_session_token_requests_;
 }
 

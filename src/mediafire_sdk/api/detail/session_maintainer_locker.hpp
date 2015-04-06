@@ -59,7 +59,7 @@ public:
 
     void AddInProgressRequest( STRequest request, SessionTokenData token );
 
-    bool PermitSessionTokenCheckout();
+    bool StartRequestSessionToken();
 
     void DecrementSessionTokenInProgressCount();
 
