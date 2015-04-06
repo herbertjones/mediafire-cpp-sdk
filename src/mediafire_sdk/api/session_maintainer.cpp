@@ -43,46 +43,6 @@ using mf::api::ConnectionState;
 
 const uint32_t skProlongedFailureThreshold = 10;
 
-#ifdef OUTPUT_DEBUG // Debug code
-std::ostream& operator<<(
-        std::ostream& out,
-        const mf::api::SessionState & state
-    )
-{
-    class DebugVisitor : public boost::static_visitor<std::string>
-    {
-    public:
-        std::string operator()(session_state::Uninitialized) const
-        {
-            return "session_state::Uninitialized";
-        }
-
-        std::string operator()(session_state::Initialized) const
-        {
-            return "session_state::Initialized";
-        }
-
-        std::string operator()(session_state::CredentialsFailure) const
-        {
-            return "session_state::CredentialsFailure";
-        }
-
-        std::string operator()(session_state::ProlongedError) const
-        {
-            return "session_state::ProlongedError";
-        }
-
-        std::string operator()(session_state::Running) const
-        {
-            return "session_state::Running";
-        }
-    };
-
-    out << boost::apply_visitor( DebugVisitor(), state );
-    return out;
-}
-#endif
-
 bool IsUninitialized(const SessionState & state)
 {
     return (boost::get<session_state::Uninitialized>(&state));
@@ -293,16 +253,18 @@ void SessionMaintainer::UpdateConnectionStateFromErrorCode(
 }
 
 #ifdef OUTPUT_DEBUG
-#  define ATTEMPT_REQUEST_DEBUG(x) std::cout << "SessionMaintainer::AttemptRequests: " << x;
+#define ATTEMPT_REQUEST_DEBUG(x)                                               \
+    std::cout << "SessionMaintainer::AttemptRequests: " << x;
 #else
 #  define ATTEMPT_REQUEST_DEBUG(x)
 #endif
+
 void SessionMaintainer::AttemptRequests()
 {
     ATTEMPT_REQUEST_DEBUG("-- BEGIN --\n")
 
     // If disconnected, just attempt to reconnect
-    if ( IsUnconnected(GetConnectionState()) )
+    if (IsUnconnected(GetConnectionState()))
     {
         AttemptConnection();
         return;
@@ -354,54 +316,51 @@ void SessionMaintainer::AttemptConnection()
 {
     auto running_ptr = is_running_;
 
-    hl::HttpRequest::Pointer http_request =
-        requester_.Call(
+    hl::HttpRequest::Pointer http_request = requester_.Call(
             system::get_status::Request(),
-            [this, running_ptr](
-                    const system::get_status::Response & response
-                )
+            [this, running_ptr](const system::get_status::Response & response)
             {
                 if (*running_ptr == Running::Yes)
                     HandleCheckConnectionStatusResponse(response);
             },
-            RequestStarted::No
-        );
+            RequestStarted::No);
     http_request->Start();
 }
 
 void SessionMaintainer::HandleCheckConnectionStatusResponse(
-        const system::get_status::Response& response
-    )
+        const system::get_status::Response & response)
 {
     UpdateConnectionStateFromErrorCode(response.error_code);
-    if ( IsConnected(GetConnectionState()) )
+    if (IsConnected(GetConnectionState()))
         AttemptRequests();
     // else Connection still down- Keep waiting
 }
 
 /// Requests as many session tokens as allowed by the SessionTokenLocker.
 void SessionMaintainer::RequestNeededSessionTokens(
-        BadCredentialBehavior badCredentialBehavior
-    )
+        BadCredentialBehavior badCredentialBehavior)
 {
     bool haveBadCredentials = IsCredentialsError(GetSessionState());
-    if ( ! haveBadCredentials ||
-            badCredentialBehavior == BadCredentialBehavior::Force )
+    if (!haveBadCredentials
+        || badCredentialBehavior == BadCredentialBehavior::Force)
     {
-        const boost::optional<Credentials> credentials( locker_->GetCredenials() );
+        const boost::optional<Credentials> credentials(
+                locker_->GetCredenials());
+
         if (credentials)
         {
-            if ( haveBadCredentials )
-            {   // Request only one token
+            if (haveBadCredentials)
+            {  // Request only one token
                 RequestSessionToken(*credentials);
             }
             else
-            {   // Request as many tokens as we need
-                while ( locker_->PermitSessionTokenCheckout() )
+            {  // Request as many tokens as we need
+                while (locker_->PermitSessionTokenCheckout())
                 {
                     RequestSessionToken(*credentials);
 #ifdef OUTPUT_DEBUG
-                    std::cout << BOOST_CURRENT_FUNCTION << ": Requested session token.\n";
+                    std::cout << BOOST_CURRENT_FUNCTION
+                              << ": Requested session token.\n";
 #endif
                 }
             }
@@ -428,18 +387,15 @@ void SessionMaintainer::RequestSessionToken(
 
     auto running_ptr = is_running_;
 
-    hl::HttpRequest::Pointer http_request =
-        requester_.Call(
+    hl::HttpRequest::Pointer http_request = requester_.Call(
             user::get_session_token::Request(credentials),
             [this, running_ptr, credentials](
-                    const user::get_session_token::Response & response
-                )
+                    const user::get_session_token::Response & response)
             {
                 if (*running_ptr == Running::Yes)
                     HandleSessionTokenResponse(response, credentials);
             },
-            RequestStarted::No
-        );
+            RequestStarted::No);
 
     // The timeout for these can be shorter.
     /// @note The following line was commented out because a shorter timeout for
@@ -454,8 +410,7 @@ void SessionMaintainer::RequestSessionToken(
 
 void SessionMaintainer::HandleSessionTokenResponse(
         const user::get_session_token::Response & response,
-        const Credentials & old_credentials
-    )
+        const Credentials & old_credentials)
 {
     locker_->DecrementSessionTokenInProgressCount();
 
@@ -467,33 +422,34 @@ void SessionMaintainer::HandleSessionTokenResponse(
 
     UpdateConnectionStateFromErrorCode(response.error_code);
 
-    if ( response.error_code )
+    if (response.error_code)
     {
-#       ifdef OUTPUT_DEBUG // Debug code
+#ifdef OUTPUT_DEBUG  // Debug code
         std::cout << "SessionMaintainer: Session token request failed: "
-            << response.error_code.message() << "\n"
-            << response.debug << std::endl;
-#       endif
+                  << response.error_code.message() << "\n" << response.debug
+                  << std::endl;
+#endif
 
         // Increment failure count
         locker_->IncrementFailureCount();
 
-        if ( IsInvalidCredentialsError(response.error_code) )
+        if (IsInvalidCredentialsError(response.error_code))
         {
             // Fail and set timeout before retry.
             session_token_failure_timer_.expires_from_now(
-                boost::posix_time::milliseconds(
-                    session_token_credential_failure_wait_timeout_ms) );
+                    boost::posix_time::milliseconds(
+                            session_token_credential_failure_wait_timeout_ms));
 
-            if ( ! IsUninitialized(session_state) && ! IsCredentialsError(session_state) )
-            {   // State is valid.
+            if (!IsUninitialized(session_state)
+                && !IsCredentialsError(session_state))
+            {  // State is valid.
 
                 const boost::optional<Credentials> credentials(
-                    locker_->GetCredenials() );
+                        locker_->GetCredenials());
 
                 // Equality check ensures this isn't an old request
-                if ( credentials &&
-                    mf::utils::AreVariantsEqual(old_credentials, *credentials))
+                if (credentials && mf::utils::AreVariantsEqual(old_credentials,
+                                                               *credentials))
                 {
                     session_state::CredentialsFailure new_state;
                     new_state.session_token_response = response;
@@ -501,57 +457,52 @@ void SessionMaintainer::HandleSessionTokenResponse(
 
                     // If the pkey was sent, then the password may have been
                     // changed.  Let the class user figure this out if so.
-                    if ( ! response.pkey.empty() )
+                    if (!response.pkey.empty())
                         new_state.pkey = response.pkey;
 
                     // This async call used the same credentials we currently
                     // have!  This means the username and password is bad.
-                    locker_->SetSessionStateSafe(
-                        new_state,
-                        session_state_change_count
-                        );
+                    locker_->SetSessionStateSafe(new_state,
+                                                 session_state_change_count);
                 }
             }
         }
         else
-        {   // Non-credential error
-            bool accountIsLocked = ( response.error_code == errc::AccountTemporarilyLocked );
+        {  // Non-credential error
+            bool accountIsLocked
+                    = (response.error_code == errc::AccountTemporarilyLocked);
 
-            uint32_t wait_time = ( accountIsLocked ?
-                    session_token_account_locked_wait_timeout_ms :
-                    session_token_failure_wait_timeout_ms
-                );
+            uint32_t wait_time
+                    = (accountIsLocked
+                               ? session_token_account_locked_wait_timeout_ms
+                               : session_token_failure_wait_timeout_ms);
 
             // Fail and set timeout before retry.
             session_token_failure_timer_.expires_from_now(
-                boost::posix_time::milliseconds(wait_time) );
+                    boost::posix_time::milliseconds(wait_time));
 
-            if ( locker_->GetFailureCount() >= skProlongedFailureThreshold || accountIsLocked )
+            if (locker_->GetFailureCount() >= skProlongedFailureThreshold
+                || accountIsLocked)
             {
                 // Can only proceed to ProlongedError from Initialized, but will
                 // continue to re-emit ProlongedError as long as we keep getting
                 // errors. The locker will only emit a state change if the
                 // actual error changes.
-                if ( IsInitialized(session_state) || IsProlongedError(session_state) )
+                if (IsInitialized(session_state)
+                    || IsProlongedError(session_state))
                 {
                     session_state::ProlongedError new_state;
                     new_state.session_token_response = response;
                     new_state.error_code = response.error_code;
-                    locker_->SetSessionStateSafe(
-                        new_state,
-                        session_state_change_count
-                        );
+                    locker_->SetSessionStateSafe(new_state,
+                                                 session_state_change_count);
                 }
             }
         }
 
-        session_token_failure_timer_.async_wait(
-                boost::bind(
-                    &SessionMaintainer::HandleSessionTokenFailureTimeout,
-                    this,
-                    boost::asio::placeholders::error
-                )
-            );
+        session_token_failure_timer_.async_wait(boost::bind(
+                &SessionMaintainer::HandleSessionTokenFailureTimeout, this,
+                boost::asio::placeholders::error));
     }
     else
     {
@@ -564,30 +515,28 @@ void SessionMaintainer::HandleSessionTokenResponse(
 
         locker_->ResetFailureCount();
 
-        SessionTokenData st = {
-            response.session_token,
-            response.pkey,
-            response.time,
-            response.secret_key };
+        SessionTokenData st = {response.session_token,
+                               response.pkey,
+                               response.time,
+                               response.secret_key};
 
-        if ( locker_->AddSessionToken(std::move(st), old_credentials) )
+        if (locker_->AddSessionToken(std::move(st), old_credentials))
         {
             // Always move to running if we have a good session token and we are
             // not uninitialized.
-            if ( !IsUninitialized(session_state) && !IsRunning(session_state) )
+            if (!IsUninitialized(session_state) && !IsRunning(session_state))
             {
                 session_state::Running new_state = {response};
 
-                locker_->SetSessionStateSafe(
-                    new_state,
-                    session_state_change_count );
+                locker_->SetSessionStateSafe(new_state,
+                                             session_state_change_count);
             }
         }
         else
         {
 #ifdef OUTPUT_DEBUG
             std::cout << "SessionMaintainer: Adding session token failed."
-                << std::endl;
+                      << std::endl;
 #endif
         }
 

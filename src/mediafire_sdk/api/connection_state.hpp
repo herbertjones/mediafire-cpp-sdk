@@ -14,13 +14,18 @@
 
 #include "mediafire_sdk/api/user/get_session_token.hpp"
 
-namespace mf {
-namespace api {
-namespace connection_state {
+namespace mf
+{
+namespace api
+{
+namespace connection_state
+{
 
 // States
 /** Initial uninitialized connection state */
-struct Uninitialized {};
+struct Uninitialized
+{
+};
 /** connection to remote server has been disrupted. */
 struct Unconnected
 {
@@ -28,7 +33,9 @@ struct Unconnected
     std::error_code error_code;
 };
 /** State when connection established with remote server. */
-struct Connected {};
+struct Connected
+{
+};
 
 // Comparison operators
 /**
@@ -39,7 +46,7 @@ struct Connected {};
  *
  * @return True if equal.
  */
-bool operator==(const Uninitialized& lhs, const Uninitialized& rhs);
+bool operator==(const Uninitialized & lhs, const Uninitialized & rhs);
 
 /**
  * @brief Compare two Unconnected.
@@ -49,7 +56,7 @@ bool operator==(const Uninitialized& lhs, const Uninitialized& rhs);
  *
  * @return True if equal.
  */
-bool operator==(const Unconnected& lhs, const Unconnected& rhs);
+bool operator==(const Unconnected & lhs, const Unconnected & rhs);
 
 /**
  * @brief Compare two Connected.
@@ -59,16 +66,16 @@ bool operator==(const Unconnected& lhs, const Unconnected& rhs);
  *
  * @return True if equal.
  */
-bool operator==(const Connected& lhs, const Connected& rhs);
+bool operator==(const Connected & lhs, const Connected & rhs);
 
 }  // namespace connection_state
 
 /** Union like structure which holds all possible connection states. */
-typedef boost::variant
-    < connection_state::Uninitialized
-    , connection_state::Unconnected
-    , connection_state::Connected
-    > ConnectionState;
+typedef boost::variant<connection_state::Uninitialized,
+                       connection_state::Unconnected,
+                       connection_state::Connected> ConnectionState;
+
+std::ostream & operator<<(std::ostream & out, const ConnectionState & state);
 
 }  // namespace api
 }  // namespace mf

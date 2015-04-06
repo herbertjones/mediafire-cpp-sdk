@@ -511,7 +511,8 @@ void SessionMaintainerLocker::HandleTimedOutRequest(STRequestWeak weak_request)
 
                 std::ostringstream ss;
                 ss << "No session token was available before the timeout was"
-                      " reached.  Current state: " << session_state_;
+                      " reached.  Session state: " << session_state_
+                   << "  Connection state: " << connection_state_;
 
                 // In case of Fail calling mutex
                 lock.unlock();
