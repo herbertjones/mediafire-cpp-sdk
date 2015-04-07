@@ -12,17 +12,11 @@ namespace mf
 namespace api
 {
 
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
+template <typename TDeviceGetForeignChangesRequest>
 class GetForeignChangesDevice : public Coroutine
 {
 public:
     // Some convenience typedefss
-
-    // device/get_status
-    using DeviceGetStatusRequestType = TDeviceGetStatusRequest;
-    using DeviceGetStatusResponseType =
-            typename DeviceGetStatusRequestType::ResponseType;
 
     // device/get_changes
     using DeviceGetForeignChangesRequestType = TDeviceGetForeignChangesRequest;
@@ -32,26 +26,16 @@ public:
     using File = typename DeviceGetForeignChangesResponseType::File;
     using Folder = typename DeviceGetForeignChangesResponseType::Folder;
 
-    // The struct for the errors we might return
-    struct DeviceGetStatusErrorType
-    {
-        DeviceGetStatusErrorType(const std::error_code & error_code,
-                                 const std::string & error_string);
-
-        std::error_code error_code;
-        std::string error_string;
-    };
-
     // The struct for the errors we might returnu
     struct DeviceGetForeignChangesErrorType
     {
-        DeviceGetForeignChangesErrorType(uint32_t start_revision,
-                                         const std::string & contact_key,
+        DeviceGetForeignChangesErrorType(const std::string & contact_key,
+                                         uint32_t start_revision,
                                          const std::error_code & error_code,
                                          const std::string & error_string);
 
-        uint32_t start_revision;
         std::string contact_key;
+        uint32_t start_revision;
         std::error_code error_code;
         std::string error_string;
     };
@@ -61,7 +45,6 @@ public:
             const std::vector<Folder> & updated_folders,
             const std::vector<File> & deleted_files,
             const std::vector<Folder> & deleted_folders,
-            const std::vector<DeviceGetStatusErrorType> & get_status_errors,
             const std::vector<DeviceGetForeignChangesErrorType> &
                     get_changes_errors)>;
 
@@ -74,8 +57,8 @@ public:
      **/
     static std::shared_ptr<GetForeignChangesDevice> Create(
             SessionMaintainer * stm,
-            uint32_t latest_known_revision,
             const std::string & contact_key,
+            uint32_t latest_known_revision,
             CallbackType && callback);
 
     /**
@@ -88,22 +71,19 @@ private:
      *  @brief  Private constructor.
      **/
     GetForeignChangesDevice(SessionMaintainer * stm,
-                            uint32_t latest_known_revision,
                             const std::string & contact_key,
+                            uint32_t latest_known_revision,
                             CallbackType && callback);
 
 private:
     SessionMaintainer * stm_;
 
-    uint32_t latest_known_revision_;
-
     std::string contact_key_;
-
-    uint32_t latest_device_revision_;
-
+    uint32_t latest_known_revision_;
     CallbackType callback_;
 
-    std::vector<DeviceGetStatusErrorType> get_status_errors_;
+    uint32_t latest_device_revision_ = std::numeric_limits<uint32_t>::max();
+
     std::vector<DeviceGetForeignChangesErrorType> get_foreign_changes_errors_;
 
     // Vectors to hold callback data
@@ -122,37 +102,6 @@ private:
                 // reference to this because
                 // the base object has
                 // disappeared from scope
-
-
-                // device/get_status
-                std::function<void(const DeviceGetStatusResponseType &
-                                           response)> HandleDeviceGetStatus =
-                        [this, self](
-                                const DeviceGetStatusResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        // If there was an error, insert into vector and
-                        // propagate at the callback.
-                        std::string error_str = "No error string provided";
-                        if (response.error_string)
-                            error_str = *response.error_string;
-
-                        get_status_errors_.push_back(DeviceGetStatusErrorType(
-                                response.error_code, error_str));
-                    }
-                    else
-                    {
-                        latest_device_revision_ = response.device_revision;
-                    }
-
-                    // Resume the coroutine
-                    (*this)();
-                };
-
-                stm_->Call(DeviceGetStatusRequestType(), HandleDeviceGetStatus);
-
-                yield();
 
                 // device/get_foreign_changes
                 uint32_t start_revision = latest_known_revision_;
@@ -179,8 +128,8 @@ private:
 
                             get_foreign_changes_errors_.push_back(
                                     DeviceGetForeignChangesErrorType(
-                                            start_revision,
                                             contact_key_,
+                                            start_revision,
                                             response.error_code,
                                             error_str));
                         }
@@ -190,12 +139,13 @@ private:
                                     std::end(updated_files_),
                                     std::begin(response.updated_files),
                                     std::end(response.updated_files));
-//                            updated_folders_.insert(
-//                                    std::end(updated_folders_),
-//                                    std::begin(response.updated_folders),
-//                                    std::end(response.updated_folders));
+                            //                            updated_folders_.insert(
+                            //                                    std::end(updated_folders_),
+                            //                                    std::begin(response.updated_folders),
+                            //                                    std::end(response.updated_folders));
 
-                            // HACK around the API including "trash" inside updated_folders
+                            // HACK around the API including "trash" inside
+                            // updated_folders
                             for (const auto & folder : response.updated_folders)
                                 if (folder.folderkey != "trash")
                                     updated_folders_.push_back(folder);
@@ -208,6 +158,9 @@ private:
                                     std::end(deleted_folders_),
                                     std::begin(response.deleted_folders),
                                     std::end(response.deleted_folders));
+
+                            latest_device_revision_
+                                    = response.device_revision;
                         }
 
                         // Resume the coroutine
@@ -230,7 +183,6 @@ private:
                           updated_folders_,
                           deleted_files_,
                           deleted_folders_,
-                          get_status_errors_,
                           get_foreign_changes_errors_);
             }};
 };

@@ -53,6 +53,7 @@ public:
     };
 
     using CallbackType = std::function<void(
+            uint32_t latest_device_revision,
             const std::vector<File> & updated_files,
             const std::vector<Folder> & updated_folders,
             const std::vector<File> & deleted_files,
@@ -204,7 +205,8 @@ private:
                 }
 
                 // Coroutine is done, so call the callback.
-                callback_(updated_files_,
+                callback_(latest_device_revision_,
+                          updated_files_,
                           updated_folders_,
                           deleted_files_,
                           deleted_folders_,

@@ -36,7 +36,8 @@ BOOST_AUTO_TEST_CASE(UTPollChanges)
 
     api::SessionMaintainer stm(http_config);
 
-    stm.SetLoginCredentials(api::credentials::Email{username, password});
+    stm.SetLoginCredentials(
+            api::credentials::Email{"hcmftest+1@gmail.com", "abc123"});
 
     using DeviceGetStatusType = mf::api::device::get_status::Request;
     using DeviceGetChangesType = mf::api::device::get_changes::Request;
@@ -64,6 +65,7 @@ BOOST_AUTO_TEST_CASE(UTPollChanges)
             typename PollChangesType::GetInfoFolderErrorType;
 
     auto HandlePollChanges = [this, &io_service](
+            uint32_t latest_device_revision,
             const std::vector<File> & deleted_files,
             const std::vector<Folder> & deleted_folders,
             const std::vector<FileInfo> & updated_files_info,

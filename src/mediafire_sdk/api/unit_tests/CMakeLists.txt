@@ -242,3 +242,11 @@ add_executable(ut_create_folder
 target_link_libraries(ut_create_folder
     mf_api_sdk
 )
+
+# --- ut_get_foreign_resources_device ------------------------
+add_executable(ut_get_foreign_resources_device
+    ut_get_foreign_resources_device.cpp)
+
+target_link_libraries(ut_get_foreign_resources_device
+    mf_api_sdk
+)

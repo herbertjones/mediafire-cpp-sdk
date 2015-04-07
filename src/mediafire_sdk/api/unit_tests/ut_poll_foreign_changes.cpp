@@ -47,9 +47,7 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
     using FileGetInfoType = mf::api::file::get_info::Request;
 
     using PollForeignChangesType
-            = mf::api::PollForeignChanges<DeviceGetStatusType,
-                                          ContactFetchType,
-                                          DeviceGetForeignChangesType,
+            = mf::api::PollForeignChanges<DeviceGetForeignChangesType,
                                           FolderGetInfoType,
                                           FileGetInfoType>;
 
@@ -60,9 +58,6 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
     using FileInfo = typename PollForeignChangesType::FileInfo;
 
     // Error types
-    using DeviceGetStatusErrorType =
-            typename PollForeignChangesType::DeviceGetStatusErrorType;
-    using ContactFetchErrorType = PollForeignChangesType::ContactFetchErrorType;
     using DeviceGetForeignChangesErrorType =
             typename PollForeignChangesType::DeviceGetForeignChangesErrorType;
     using GetInfoFileErrorType =
@@ -75,21 +70,13 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
             const std::vector<Folder> & deleted_folders,
             const std::vector<FileInfo> & updated_files_info,
             const std::vector<FolderInfo> & updated_folders_info,
-            const std::vector<DeviceGetStatusErrorType> & get_status_errors,
-            const std::vector<ContactFetchErrorType> & contact_fetch_errors,
             const std::vector<DeviceGetForeignChangesErrorType> &
                     get_changes_errors,
             const std::vector<GetInfoFileErrorType> & get_info_file_errors,
             const std::vector<GetInfoFolderErrorType> & get_info_folder_errors)
     {
-        if (!get_status_errors.empty())
-            BOOST_FAIL("device/get_status returned errors");
-
-        if (!contact_fetch_errors.empty())
-            BOOST_FAIL("contact/fetch returned errors");
-
         if (!get_changes_errors.empty())
-            BOOST_FAIL("device/get_changes returned errors");
+            BOOST_FAIL("device/get_foreign_changes returned errors");
 
         if (!get_info_file_errors.empty())
             BOOST_FAIL("file/get_info returned errors");
@@ -106,7 +93,8 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
         for (const auto & updated_folder_info : updated_folders_info)
         {
             std::cout << "Updated Folder Info: "
-                      << updated_folder_info.folderkey << " " << updated_folder_info.name << std::endl;
+                      << updated_folder_info.folderkey << " "
+                      << updated_folder_info.name << std::endl;
         }
 
         for (const auto & deleted_file : deleted_files)
@@ -126,7 +114,11 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
     auto work_manager = mf::api::WorkManager::Create(&io_service);
 
     auto poll_foreign_changes = PollForeignChangesType::Create(
-            &stm, 0, work_manager, std::move(HandlePollForeignChanges));
+            &stm,
+            "t4j3iee",
+            0,
+            work_manager,
+            std::move(HandlePollForeignChanges));
 
     poll_foreign_changes->operator()();
 

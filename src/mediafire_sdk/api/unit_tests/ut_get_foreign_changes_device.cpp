@@ -37,8 +37,7 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
     stm.SetLoginCredentials(api::credentials::Email{username, password});
 
     using GetForeignChangesDeviceType = mf::api::
-            GetForeignChangesDevice<mf::api::device::get_status::Request,
-                                    mf::api::device::get_foreign_changes::
+            GetForeignChangesDevice<mf::api::device::get_foreign_changes::
                                             Request>;
 
     GetForeignChangesDeviceType::CallbackType HandleGetForeignChangesDevice =
@@ -51,14 +50,12 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
                             deleted_files,
                     const std::vector<GetForeignChangesDeviceType::Folder> &
                             deleted_folders,
-                    const std::vector<GetForeignChangesDeviceType::
-                                              DeviceGetStatusErrorType> &
-                            get_status_errors,
-                    const std::vector<GetForeignChangesDeviceType::
-                                              DeviceGetForeignChangesErrorType> &
-                            get_changes_errors)
+                    const std::
+                            vector<GetForeignChangesDeviceType::
+                                           DeviceGetForeignChangesErrorType> &
+                                    get_changes_errors)
     {
-        if (!get_status_errors.empty() || !get_changes_errors.empty())
+        if (!get_changes_errors.empty())
         {
             BOOST_FAIL("GetForeignChangesDevice reported errors!");
         }
@@ -95,10 +92,10 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
         io_service.stop();
     };
 
-    auto get_folder_info = GetForeignChangesDeviceType::Create(
-            &stm, 193000, "contact_key", std::move(HandleGetForeignChangesDevice));
+    auto get_foreign_changes_device = GetForeignChangesDeviceType::Create(
+            &stm, "t4j3iee", 0, std::move(HandleGetForeignChangesDevice));
 
-    get_folder_info->operator()();
+    get_foreign_changes_device->operator()();
 
     io_service.run();
 }

@@ -42,14 +42,11 @@ BOOST_AUTO_TEST_CASE(UTGetChangesDevice)
 
     GetChangesDeviceType::CallbackType HandleGetChangesDevice = [this,
                                                                  &io_service](
-            const std::vector<GetChangesDeviceType::File> &
-                    updated_files,
-            const std::vector<GetChangesDeviceType::Folder> &
-                    updated_folders,
-            const std::vector<GetChangesDeviceType::File> &
-                    deleted_files,
-            const std::vector<GetChangesDeviceType::Folder> &
-                    deleted_folders,
+            uint32_t latest_device_revision,
+            const std::vector<GetChangesDeviceType::File> & updated_files,
+            const std::vector<GetChangesDeviceType::Folder> & updated_folders,
+            const std::vector<GetChangesDeviceType::File> & deleted_files,
+            const std::vector<GetChangesDeviceType::Folder> & deleted_folders,
             const std::vector<GetChangesDeviceType::DeviceGetStatusErrorType> &
                     get_status_errors,
             const std::vector<GetChangesDeviceType::DeviceGetChangesErrorType> &
@@ -63,25 +60,30 @@ BOOST_AUTO_TEST_CASE(UTGetChangesDevice)
         {
             for (const auto & updated_file : updated_files)
             {
-                std::cout << "Updated File: " << updated_file.quickkey << std::endl;
+                std::cout << "Updated File: " << updated_file.quickkey
+                          << std::endl;
             }
 
             for (const auto & updated_folder : updated_folders)
             {
-                std::cout << "Updated Folder: " << updated_folder.folderkey << std::endl;
+                std::cout << "Updated Folder: " << updated_folder.folderkey
+                          << std::endl;
             }
 
             for (const auto & deleted_file : deleted_files)
             {
-                std::cout << "Deleted File: " << deleted_file.quickkey << std::endl;
+                std::cout << "Deleted File: " << deleted_file.quickkey
+                          << std::endl;
             }
 
             for (const auto & deleted_folder : deleted_folders)
             {
-                std::cout << "Deleted Folder: " << deleted_folder.folderkey << std::endl;
+                std::cout << "Deleted Folder: " << deleted_folder.folderkey
+                          << std::endl;
             }
 
-            BOOST_CHECK(!updated_files.empty() || !updated_folders.empty() || !deleted_files.empty() || !deleted_folders.empty());
+            BOOST_CHECK(!updated_files.empty() || !updated_folders.empty()
+                        || !deleted_files.empty() || !deleted_folders.empty());
         }
 
         io_service.stop();

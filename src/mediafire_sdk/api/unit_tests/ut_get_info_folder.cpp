@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(UTGetInfoFolder)
     GetInfoFolderType::CallbackType HandleGetInfoFolder = [this, &io_service](
             const ResponseType & response,
             const std::vector<GetInfoFolderErrorType> &
-                    error)  // TODO: Add errors
+                    errors)  // TODO: Add errors
     {
         std::cout << response.folderkey << std::endl;
 

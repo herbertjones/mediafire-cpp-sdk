@@ -42,4 +42,4 @@ MoveFile<TRequest>::MoveFile(SessionMaintainer * stm,
 {
 }
 }  // namespace mf
-}  // namespace api
+}

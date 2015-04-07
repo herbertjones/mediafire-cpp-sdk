@@ -26,11 +26,11 @@ public:
 
         ErrorType(const std::string & folder_key,
                   const std::error_code & error_code,
-                  const std::string & error_string);
+                  const boost::optional<std::string> & error_string);
 
         std::string folder_key;
         std::error_code error_code;
-        std::string error_string;
+        boost::optional<std::string> error_string;
     };
 
     using CallbackType = std::function<void(const ResponseType & response,
@@ -87,12 +87,8 @@ private:
                 {
                     if (response.error_code)
                     {
-                        std::string error_str = "No error string provided";
-                        if (response.error_string)
-                            error_str = *response.error_string;
-
                         errors_.push_back(ErrorType(
-                                folder_key_, response.error_code, error_str));
+                                folder_key_, response.error_code, response.error_string));
                     }
                     else
                     {

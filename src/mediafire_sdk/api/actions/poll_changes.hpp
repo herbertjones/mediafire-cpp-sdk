@@ -65,6 +65,7 @@ public:
     using GetInfoFileErrorType = typename GetInfoFileType::ErrorType;
 
     using CallbackType = std::function<void(
+            uint32_t latest_device_revison,
             const std::vector<File> & deleted_files,
             const std::vector<Folder> & deleted_folders,
             const std::vector<FileInfo> & updated_files_info,
@@ -111,6 +112,8 @@ private:
 
     CallbackType callback_;
 
+    uint32_t latest_device_revision_ = 0;
+
     // Vectors to hold callback data
     std::vector<File> updated_files_;
     std::vector<Folder> updated_folders_;
@@ -137,6 +140,7 @@ private:
                                                  // disappeared from scope
 
                 auto callback = [this, self](
+                        uint32_t latest_device_revision,
                         const std::vector<File> & updated_files,
                         const std::vector<Folder> & updated_folders,
                         const std::vector<File> & deleted_files,
@@ -146,11 +150,21 @@ private:
                         const std::vector<DeviceGetChangesErrorType> &
                                 get_changes_errors)
                 {
+                    latest_device_revision_ = latest_device_revision;
+
                     get_status_errors_ = get_status_errors;
                     get_changes_errors_ = get_changes_errors;
 
                     updated_files_ = updated_files;
-                    updated_folders_ = updated_folders;
+
+                    // updated_folders_ = updated_folders;
+                    // Hack around updated_folders containing trash folder key
+                    // -_-
+
+                    for (const auto & updated_folder : updated_folders)
+                        if (updated_folder.folderkey != "trash")
+                            updated_folders_.push_back(updated_folder);
+
                     deleted_files_ = deleted_files;
                     deleted_folders_ = deleted_folders;
 
@@ -170,7 +184,7 @@ private:
                             const GetInfoFileResponseType & response,
                             const std::vector<GetInfoFileErrorType> & errors)
                     {
-                        if (response.error_code)
+                        if (!errors.empty())
                         {
                             get_info_file_errors_.insert(
                                     std::end(get_info_file_errors_),
@@ -199,7 +213,7 @@ private:
                             const GetInfoFolderResponseType & response,
                             const std::vector<GetInfoFolderErrorType> & errors)
                     {
-                        if (response.error_code)
+                        if (!errors.empty())
                         {
                             get_info_folder_errors_.insert(
                                     std::end(get_info_folder_errors_),
@@ -214,7 +228,6 @@ private:
                         (*this)();
                     };
 
-                    // Call GetFolderInfo for each updated folder
                     auto get_info_folder = GetInfoFolderType::Create(
                             stm_, folder.folderkey, std::move(callback));
                     work_manager_->QueueWork(get_info_folder, &yield);
@@ -223,7 +236,8 @@ private:
                 work_manager_->ExecuteWork();
 
                 // Coroutine is done, so call the callback.
-                callback_(deleted_files_,
+                callback_(latest_device_revision_,
+                          deleted_files_,
                           deleted_folders_,
                           updated_files_info_,
                           updated_folders_info_,

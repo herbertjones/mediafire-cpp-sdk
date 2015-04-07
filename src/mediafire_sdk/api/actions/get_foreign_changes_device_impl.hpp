@@ -3,67 +3,48 @@ namespace mf
 namespace api
 {
 
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
-GetForeignChangesDevice<TDeviceGetStatusRequest,
-                        TDeviceGetForeignChangesRequest>::
-        DeviceGetStatusErrorType::DeviceGetStatusErrorType(
-                const std::error_code & error_code,
-                const std::string & error_string)
-        : error_code(error_code), error_string(error_string)
-{
-}
-
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
-GetForeignChangesDevice<TDeviceGetStatusRequest,
-                        TDeviceGetForeignChangesRequest>::
+template <typename TDeviceGetForeignChangesRequest>
+GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::
         DeviceGetForeignChangesErrorType::DeviceGetForeignChangesErrorType(
-                uint32_t start_revision,
                 const std::string & contact_key,
+                uint32_t start_revision,
                 const std::error_code & error_code,
                 const std::string & error_string)
-        : start_revision(start_revision),
+        : contact_key(contact_key),
+          start_revision(start_revision),
           error_code(error_code),
           error_string(error_string)
 {
 }
 
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
-std::shared_ptr<GetForeignChangesDevice<TDeviceGetStatusRequest,
-                                        TDeviceGetForeignChangesRequest>>
-GetForeignChangesDevice<TDeviceGetStatusRequest,
-                        TDeviceGetForeignChangesRequest>::
-        Create(SessionMaintainer * stm,
-               uint32_t latest_known_revision,
-               const std::string & contact_key,
-               CallbackType && callback)
+template <typename TDeviceGetForeignChangesRequest>
+std::shared_ptr<GetForeignChangesDevice<TDeviceGetForeignChangesRequest>>
+GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::Create(
+        SessionMaintainer * stm,
+        const std::string & contact_key,
+
+        uint32_t latest_known_revision,
+        CallbackType && callback)
 {
     return std::shared_ptr<GetForeignChangesDevice>(new GetForeignChangesDevice(
-            stm, latest_known_revision, contact_key, std::move(callback)));
+            stm, contact_key, latest_known_revision, std::move(callback)));
 }
 
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
-void GetForeignChangesDevice<TDeviceGetStatusRequest,
-                             TDeviceGetForeignChangesRequest>::
-operator()()
+template <typename TDeviceGetForeignChangesRequest>
+void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::operator()()
 {
     coro_();
 }
 
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetForeignChangesRequest>
-GetForeignChangesDevice<TDeviceGetStatusRequest,
-                        TDeviceGetForeignChangesRequest>::
+template <typename TDeviceGetForeignChangesRequest>
+GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::
         GetForeignChangesDevice(SessionMaintainer * stm,
-                                uint32_t latest_known_revision,
                                 const std::string & contact_key,
+                                uint32_t latest_known_revision,
                                 CallbackType && callback)
         : stm_(stm),
-          latest_known_revision_(latest_known_revision),
           contact_key_(contact_key),
+          latest_known_revision_(latest_known_revision),
           callback_(callback)
 {
 }
