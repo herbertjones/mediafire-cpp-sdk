@@ -274,9 +274,13 @@ private:
     void AttemptRequests();
     void AttemptConnection();
 
-    /** Warning: Do not call without calling StartRequestSessionToken first and
-     * receiving true from it. - hjones on 2015-04-06 */
-    void RequestSessionToken(const Credentials & credentials);
+    /**
+     * @brief Try to request a session token if there are not already too many
+     *        in progress session token requests in progress.
+     *
+     * @return True if request began.
+     */
+    bool TryRequestSessionToken(const Credentials & credentials);
 
     enum class BadCredentialBehavior
     {

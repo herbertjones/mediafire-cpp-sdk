@@ -341,7 +341,7 @@ void SessionMaintainer::HandleCheckConnectionStatusResponse(
 void SessionMaintainer::RequestNeededSessionTokens(
         BadCredentialBehavior badCredentialBehavior)
 {
-    bool haveBadCredentials = IsCredentialsError(GetSessionState());
+    const bool haveBadCredentials = IsCredentialsError(GetSessionState());
     if (!haveBadCredentials
         || badCredentialBehavior == BadCredentialBehavior::Force)
     {
@@ -350,15 +350,14 @@ void SessionMaintainer::RequestNeededSessionTokens(
 
         if (credentials)
         {
-            if (haveBadCredentials && locker_->StartRequestSessionToken())
+            if (haveBadCredentials)
             {  // Request only one token
-                RequestSessionToken(*credentials);
+                TryRequestSessionToken(*credentials);
             }
             else
             {  // Request as many tokens as we need
-                while (locker_->StartRequestSessionToken())
+                while (TryRequestSessionToken(*credentials))
                 {
-                    RequestSessionToken(*credentials);
 #ifdef OUTPUT_DEBUG
                     std::cout << BOOST_CURRENT_FUNCTION
                               << ": Requested session token.\n";
@@ -377,38 +376,44 @@ void SessionMaintainer::RequestNeededSessionTokens(
     //      because we know that we will keep retrying.
 }
 
-/** Warning: Do not call without calling StartRequestSessionToken first and
- * receiving true from it. - hjones on 2015-04-06 */
-void SessionMaintainer::RequestSessionToken(
-        const Credentials & credentials
-    )
+bool SessionMaintainer::TryRequestSessionToken(const Credentials & credentials)
 {
-#   ifdef OUTPUT_DEBUG // Debug code
-    std::cout << "SessionMaintainer: Requesting new session token."
-        << std::endl;
-#   endif
+    // Must obtain permission via the mutexed request count.
+    if (!locker_->StartRequestSessionToken())
+    {
+        return false;
+    }
+    else
+    {
+#ifdef OUTPUT_DEBUG  // Debug code
+        std::cout << "SessionMaintainer: Requesting new session token."
+                  << std::endl;
+#endif
 
-    auto running_ptr = is_running_;
+        auto running_ptr = is_running_;
 
-    hl::HttpRequest::Pointer http_request = requester_.Call(
-            user::get_session_token::Request(credentials),
-            [this, running_ptr, credentials](
-                    const user::get_session_token::Response & response)
-            {
-                if (*running_ptr == Running::Yes)
-                    HandleSessionTokenResponse(response, credentials);
-            },
-            RequestStarted::No);
+        hl::HttpRequest::Pointer http_request = requester_.Call(
+                user::get_session_token::Request(credentials),
+                [this, running_ptr, credentials](
+                        const user::get_session_token::Response & response)
+                {
+                    if (*running_ptr == Running::Yes)
+                        HandleSessionTokenResponse(response, credentials);
+                },
+                RequestStarted::No);
 
-    // The timeout for these can be shorter.
-    /// @note The following line was commented out because a shorter timeout for
-    ///       session tokens will cause us to alternate between network down
-    ///       and invalid credentials if the credentials are bad but the
-    ///       network is also slow. I don't see any harm in leaving this timeout
-    ///       the same as all others. -ZCM
-    //http_request->SetTimeout(15);
+        // The timeout for these can be shorter.
+        /** @note The following line was commented out because a shorter timeout
+         * for session tokens will cause us to alternate between network down
+         * and invalid credentials if the credentials are bad but the network is
+         * also slow. I don't see any harm in leaving this timeout the same as
+         * all others. -ZCM */
+        // http_request->SetTimeout(15);
 
-    http_request->Start();
+        http_request->Start();
+
+        return true;
+    }
 }
 
 void SessionMaintainer::HandleSessionTokenResponse(
