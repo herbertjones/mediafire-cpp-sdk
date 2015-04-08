@@ -23,8 +23,8 @@
 
 namespace
 {
-const std::string username = "hcmftest+1@gmail.com";
-const std::string password = "abc123";
+const std::string username = TEST_USER_1_USERNAME;
+const std::string password = TEST_USER_1_PASSWORD;
 }  // end anonymous namespace
 
 namespace api = mf::api;
@@ -60,10 +60,10 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
     // Error types
     using DeviceGetForeignChangesErrorType =
             typename PollForeignChangesType::DeviceGetForeignChangesErrorType;
-    using GetInfoFileErrorType =
-            typename PollForeignChangesType::GetInfoFileErrorType;
-    using GetInfoFolderErrorType =
-            typename PollForeignChangesType::GetInfoFolderErrorType;
+    using FileGetInfoErrorType =
+            typename PollForeignChangesType::FileGetInfoErrorType;
+    using FolderGetInfoErrorType =
+            typename PollForeignChangesType::FolderGetInfoErrorType;
 
     auto HandlePollForeignChanges = [this, &io_service](
             const std::vector<File> & deleted_files,
@@ -72,8 +72,8 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
             const std::vector<FolderInfo> & updated_folders_info,
             const std::vector<DeviceGetForeignChangesErrorType> &
                     get_changes_errors,
-            const std::vector<GetInfoFileErrorType> & get_info_file_errors,
-            const std::vector<GetInfoFolderErrorType> & get_info_folder_errors)
+            const std::vector<FileGetInfoErrorType> & get_info_file_errors,
+            const std::vector<FolderGetInfoErrorType> & get_info_folder_errors)
     {
         if (!get_changes_errors.empty())
             BOOST_FAIL("device/get_foreign_changes returned errors");

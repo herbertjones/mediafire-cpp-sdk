@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(UTPollChanges)
     api::SessionMaintainer stm(http_config);
 
     stm.SetLoginCredentials(
-            api::credentials::Email{"hcmftest+1@gmail.com", "abc123"});
+            api::credentials::Email{username, password});
 
     using DeviceGetStatusType = mf::api::device::get_status::Request;
     using DeviceGetChangesType = mf::api::device::get_changes::Request;

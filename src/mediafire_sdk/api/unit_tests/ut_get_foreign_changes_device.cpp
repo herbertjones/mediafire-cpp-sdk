@@ -42,6 +42,7 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
 
     GetForeignChangesDeviceType::CallbackType HandleGetForeignChangesDevice =
             [this, &io_service](
+                    uint32_t latest_changes_revision,
                     const std::vector<GetForeignChangesDeviceType::File> &
                             updated_files,
                     const std::vector<GetForeignChangesDeviceType::Folder> &

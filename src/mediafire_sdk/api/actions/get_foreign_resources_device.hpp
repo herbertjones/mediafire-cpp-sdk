@@ -99,10 +99,14 @@ private:
                         files_ = response.files;
                         folders_ = response.folders;
                     }
+
+                    (*this)();
                 };
 
                 stm_->Call(DeviceGetForeignResourcesRequestType(),
                            HandleDeviceGetForeignResources);
+
+                yield();
 
                 callback_(files_, folders_, errors_);
             }};

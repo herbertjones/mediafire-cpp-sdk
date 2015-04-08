@@ -61,8 +61,8 @@ public:
             typename GetChangesDeviceType::DeviceGetStatusErrorType;
     using DeviceGetChangesErrorType =
             typename GetChangesDeviceType::DeviceGetChangesErrorType;
-    using GetInfoFolderErrorType = typename GetInfoFolderType::ErrorType;
-    using GetInfoFileErrorType = typename GetInfoFileType::ErrorType;
+    using FolderGetInfoErrorType = typename GetInfoFolderType::ErrorType;
+    using FileGetInfoErrorType = typename GetInfoFileType::ErrorType;
 
     using CallbackType = std::function<void(
             uint32_t latest_device_revison,
@@ -72,8 +72,8 @@ public:
             const std::vector<FolderInfo> & updated_folders_info,
             const std::vector<DeviceGetStatusErrorType> & get_status_errors,
             const std::vector<DeviceGetChangesErrorType> & get_changes_errors,
-            const std::vector<GetInfoFileErrorType> & get_info_file_errors,
-            const std::vector<GetInfoFolderErrorType> &
+            const std::vector<FileGetInfoErrorType> & get_info_file_errors,
+            const std::vector<FolderGetInfoErrorType> &
                     get_info_folder_errors)>;
 
 public:
@@ -122,8 +122,8 @@ private:
 
     std::vector<DeviceGetStatusErrorType> get_status_errors_;
     std::vector<DeviceGetChangesErrorType> get_changes_errors_;
-    std::vector<GetInfoFolderErrorType> get_info_folder_errors_;
-    std::vector<GetInfoFileErrorType> get_info_file_errors_;
+    std::vector<FolderGetInfoErrorType> get_info_folder_errors_;
+    std::vector<FileGetInfoErrorType> get_info_file_errors_;
 
     std::vector<GetInfoFolderResponseType> updated_folders_info_;
     std::vector<GetInfoFileResponseType> updated_files_info_;
@@ -182,7 +182,7 @@ private:
                 {
                     auto callback = [this, self](
                             const GetInfoFileResponseType & response,
-                            const std::vector<GetInfoFileErrorType> & errors)
+                            const std::vector<FileGetInfoErrorType> & errors)
                     {
                         if (!errors.empty())
                         {
@@ -211,7 +211,7 @@ private:
                 {
                     auto callback = [this, self](
                             const GetInfoFolderResponseType & response,
-                            const std::vector<GetInfoFolderErrorType> & errors)
+                            const std::vector<FolderGetInfoErrorType> & errors)
                     {
                         if (!errors.empty())
                         {

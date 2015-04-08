@@ -29,18 +29,15 @@ public:
     // The struct for the errors we might returnu
     struct DeviceGetForeignChangesErrorType
     {
-        DeviceGetForeignChangesErrorType(const std::string & contact_key,
-                                         uint32_t start_revision,
-                                         const std::error_code & error_code,
-                                         const std::string & error_string);
+        DeviceGetForeignChangesErrorType(const std::error_code & error_code,
+                                         const boost::optional<std::string> & error_string);
 
-        std::string contact_key;
-        uint32_t start_revision;
         std::error_code error_code;
-        std::string error_string;
+        boost::optional<std::string> error_string;
     };
 
     using CallbackType = std::function<void(
+            uint32_t latest_changes_revision,
             const std::vector<File> & updated_files,
             const std::vector<Folder> & updated_folders,
             const std::vector<File> & deleted_files,
@@ -79,7 +76,11 @@ private:
     SessionMaintainer * stm_;
 
     std::string contact_key_;
+
     uint32_t latest_known_revision_;
+
+    bool failed_ = false;
+
     CallbackType callback_;
 
     uint32_t latest_device_revision_ = std::numeric_limits<uint32_t>::max();
@@ -108,7 +109,7 @@ private:
                 uint32_t min_revision = latest_known_revision_ + 1;
                 uint32_t max_revision = ((min_revision / 500) + 1) * 500;
 
-                while (start_revision < latest_device_revision_)
+                while (start_revision < latest_device_revision_ && !failed_)
                 {
                     std::function<void(
                             const DeviceGetForeignChangesResponseType &
@@ -122,16 +123,13 @@ private:
                             // If there was an error, insert
                             // into vector and
                             // propagate at the callback.
-                            std::string error_str = "No error string provided ";
-                            if (response.error_string)
-                                error_str = *response.error_string;
 
                             get_foreign_changes_errors_.push_back(
                                     DeviceGetForeignChangesErrorType(
-                                            contact_key_,
-                                            start_revision,
                                             response.error_code,
-                                            error_str));
+                                            response.error_string));
+
+                            failed_ = true;
                         }
                         else
                         {
@@ -139,6 +137,7 @@ private:
                                     std::end(updated_files_),
                                     std::begin(response.updated_files),
                                     std::end(response.updated_files));
+
                             //                            updated_folders_.insert(
                             //                                    std::end(updated_folders_),
                             //                                    std::begin(response.updated_folders),
@@ -179,7 +178,8 @@ private:
                 }
 
                 // Coroutine is done, so call the callback.
-                callback_(updated_files_,
+                callback_(start_revision,
+                          updated_files_,
                           updated_folders_,
                           deleted_files_,
                           deleted_folders_,

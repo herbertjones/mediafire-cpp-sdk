@@ -6,14 +6,9 @@ namespace api
 template <typename TDeviceGetForeignChangesRequest>
 GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::
         DeviceGetForeignChangesErrorType::DeviceGetForeignChangesErrorType(
-                const std::string & contact_key,
-                uint32_t start_revision,
                 const std::error_code & error_code,
-                const std::string & error_string)
-        : contact_key(contact_key),
-          start_revision(start_revision),
-          error_code(error_code),
-          error_string(error_string)
+                const boost::optional<std::string> & error_string)
+        : error_code(error_code), error_string(error_string)
 {
 }
 
@@ -22,7 +17,6 @@ std::shared_ptr<GetForeignChangesDevice<TDeviceGetForeignChangesRequest>>
 GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::Create(
         SessionMaintainer * stm,
         const std::string & contact_key,
-
         uint32_t latest_known_revision,
         CallbackType && callback)
 {

@@ -55,18 +55,19 @@ public:
     using DeviceGetForeignChangesErrorType =
             typename GetForeignChangesDeviceType::
                     DeviceGetForeignChangesErrorType;
-    using GetInfoFolderErrorType = typename GetInfoFolderType::ErrorType;
-    using GetInfoFileErrorType = typename GetInfoFileType::ErrorType;
+    using FolderGetInfoErrorType = typename GetInfoFolderType::ErrorType;
+    using FileGetInfoErrorType = typename GetInfoFileType::ErrorType;
 
     using CallbackType = std::function<void(
+            uint32_t latest_changes_revision,
             const std::vector<File> & deleted_files,
             const std::vector<Folder> & deleted_folders,
             const std::vector<FileInfo> & updated_files_info,
             const std::vector<FolderInfo> & updated_folders_info,
             const std::vector<DeviceGetForeignChangesErrorType> &
                     get_changes_errors,
-            const std::vector<GetInfoFileErrorType> & get_info_file_errors,
-            const std::vector<GetInfoFolderErrorType> &
+            const std::vector<FileGetInfoErrorType> & get_info_file_errors,
+            const std::vector<FolderGetInfoErrorType> &
                     get_info_folder_errors)>;
 
 public:
@@ -117,11 +118,13 @@ private:
     std::vector<Folder> deleted_folders_;
 
     std::vector<DeviceGetForeignChangesErrorType> get_changes_errors_;
-    std::vector<GetInfoFolderErrorType> get_info_folder_errors_;
-    std::vector<GetInfoFileErrorType> get_info_file_errors_;
+    std::vector<FolderGetInfoErrorType> get_info_folder_errors_;
+    std::vector<FileGetInfoErrorType> get_info_file_errors_;
 
     std::vector<GetInfoFolderResponseType> updated_folders_info_;
     std::vector<GetInfoFileResponseType> updated_files_info_;
+
+    uint32_t latest_changes_revision_;
 
     push_type coro_{
             [this](pull_type & yield)
@@ -141,6 +144,7 @@ private:
                 //         files and folders
 
                 auto HandleGetForeignChangesDevice = [this, self](
+                        uint32_t latest_changes_revision,
                         const std::vector<File> & updated_files,
                         const std::vector<Folder> & updated_folders,
                         const std::vector<File> & deleted_files,
@@ -148,6 +152,7 @@ private:
                         const std::vector<DeviceGetForeignChangesErrorType> &
                                 get_changes_errors)
                 {
+                    latest_changes_revision_ = latest_changes_revision;
                     get_changes_errors_ = get_changes_errors;
 
                     updated_files_ = updated_files;
@@ -173,7 +178,7 @@ private:
                 {
                     auto callback = [this, self](
                             const GetInfoFileResponseType & response,
-                            const std::vector<GetInfoFileErrorType> & errors)
+                            const std::vector<FileGetInfoErrorType> & errors)
                     {
                         if (response.error_code)
                         {
@@ -202,7 +207,7 @@ private:
                 {
                     auto callback = [this, self](
                             const GetInfoFolderResponseType & response,
-                            const std::vector<GetInfoFolderErrorType> & errors)
+                            const std::vector<FolderGetInfoErrorType> & errors)
                     {
                         if (response.error_code)
                         {
@@ -228,7 +233,8 @@ private:
                 work_manager_->ExecuteWork();
 
                 // Coroutine is done, so call the callback.
-                callback_(deleted_files_,
+                callback_(latest_changes_revision_,
+                          deleted_files_,
                           deleted_folders_,
                           updated_files_info_,
                           updated_folders_info_,
