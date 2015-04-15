@@ -66,6 +66,7 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
             typename PollForeignChangesType::FolderGetInfoErrorType;
 
     auto HandlePollForeignChanges = [this, &io_service](
+            uint32_t latest_changes_revision,
             const std::vector<File> & deleted_files,
             const std::vector<Folder> & deleted_folders,
             const std::vector<FileInfo> & updated_files_info,

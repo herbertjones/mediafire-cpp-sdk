@@ -60,9 +60,9 @@ BOOST_AUTO_TEST_CASE(UTPollChanges)
             typename PollChangesType::DeviceGetStatusErrorType;
     using DeviceGetChangesErrorType =
             typename PollChangesType::DeviceGetChangesErrorType;
-    using GetInfoFileErrorType = typename PollChangesType::GetInfoFileErrorType;
+    using GetInfoFileErrorType = typename PollChangesType::FileGetInfoErrorType;
     using GetInfoFolderErrorType =
-            typename PollChangesType::GetInfoFolderErrorType;
+            typename PollChangesType::FolderGetInfoErrorType;
 
     auto HandlePollChanges = [this, &io_service](
             uint32_t latest_device_revision,
