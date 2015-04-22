@@ -26,6 +26,28 @@ std::shared_ptr<CloneCloudTree<TRequest>> CloneCloudTree<TRequest>::Create(
 }
 
 template <typename TRequest>
+void CloneCloudTree<TRequest>::HandleGetFolderContents(
+        const std::vector<File> & files,
+        const std::vector<Folder> & folders,
+        const std::vector<typename GetFolderContentsType::ErrorType> & errors)
+{
+    // Not much we can do with errors from
+    // folder/get_contents really, propagate them I guess
+    errors_.insert(std::end(errors_), std::begin(errors), std::end(errors));
+
+    // Append the results
+    files_.insert(std::end(files_), std::begin(files), std::end(files));
+    folders_.insert(std::end(folders_), std::begin(folders), std::end(folders));
+
+    for (const auto & folder : folders)
+    {
+        new_folder_keys_.push_back(folder.folderkey);
+    }
+
+    Resume();
+}
+
+template <typename TRequest>
 void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
 {
     auto self = shared_from_this();  // Hold reference to ourselves
@@ -50,22 +72,7 @@ void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
                                 typename GetFolderContentsType::ErrorType> &
                                 errors)
         {
-            // Not much we can do with errors from
-            // folder/get_contents really, propagate them I guess
-            errors_.insert(
-                    std::end(errors_), std::begin(errors), std::end(errors));
-
-            // Append the results
-            files_.insert(std::end(files_), std::begin(files), std::end(files));
-            folders_.insert(
-                    std::end(folders_), std::begin(folders), std::end(folders));
-
-            for (const auto & folder : folders)
-            {
-                new_folder_keys_.push_back(folder.folderkey);
-            }
-
-            Resume();
+            this->HandleGetFolderContents(files, folders, errors);
         };
 
         auto get_contents = GetFolderContentsType::Create(
@@ -80,9 +87,9 @@ void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
 
             if (new_folder_keys_.empty())
                 work_manager_->ExecuteWork();  // May insert more keys
-            // back onto
-            // new_folder_keys_
-            // continuing the loop
+                                               // back onto
+                                               // new_folder_keys_
+                                               // continuing the loop
         }
 
         ++num_loop_iterations;
@@ -95,7 +102,7 @@ template <typename TRequest>
 void CloneCloudTree<TRequest>::Cancel()
 {
     cancelled_ = true;
-    //work_manager_->Cancel();
+    work_manager_->Cancel();
 }
 
 }  // namespace api

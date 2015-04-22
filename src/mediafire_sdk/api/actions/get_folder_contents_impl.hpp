@@ -9,7 +9,7 @@ GetFolderContents<TRequest>::ErrorType::ErrorType(
         FilesOrFoldersOrBoth files_or_folders_or_both,
         uint32_t chunk_num,
         const std::error_code & error_code,
-        const std::string & error_string)
+        const boost::optional<std::string> & error_string)
         : folder_key(folder_key),
           files_or_folders_or_both(files_or_folders_or_both),
           chunk_num(chunk_num),
@@ -61,6 +61,74 @@ void GetFolderContents<TRequest>::Cancel()
 }
 
 template <class TRequest>
+void GetFolderContents<TRequest>::HandleFolderGetContentsFiles(
+        const ResponseType & response)
+{
+    if (response.error_code)
+    {
+        // If there was an error, insert into vector and
+        // propagate at the callbacks
+        errors_.push_back(ErrorType(folder_key_,
+                                    FilesOrFoldersOrBoth::Files,
+                                    response.chunk_number,
+                                    response.error_code,
+                                    response.error_string));
+    }
+    else
+    {
+        // Insert the list of files from the response
+        // into our own list
+        files_.insert(std::end(files_),
+                      std::begin(response.files),
+                      std::end(response.files));
+
+        // Set flag if the file chunks are remaining
+        if (response.chunks_remaining
+            == mf::api::folder::get_content::ChunksRemaining::LastChunk)
+            file_chunks_remaining_ = false;
+    }
+
+    // Resume the coroutine
+    Resume();
+}
+
+template <class TRequest>
+void GetFolderContents<TRequest>::HandleFolderGetContentsFolders(
+        const ResponseType & response)
+{
+    if (response.error_code)
+    {
+        // If there was an error, insert into vector and
+        // propagate at the callback.
+        std::string error_str = "No error string provided";
+        if (response.error_string)
+            error_str = *response.error_string;
+
+        errors_.push_back(ErrorType(folder_key_,
+                                    FilesOrFoldersOrBoth::Folders,
+                                    response.chunk_number,
+                                    response.error_code,
+                                    error_str));
+    }
+    else
+    {
+        // Insert the list of folders from the response
+        // into our own list
+        folders_.insert(std::end(folders_),
+                        std::begin(response.folders),
+                        std::end(response.folders));
+
+        // Set flag if folder chunks are remaining
+        if (response.chunks_remaining
+            == mf::api::folder::get_content::ChunksRemaining::LastChunk)
+            folder_chunks_remaining_ = false;
+    }
+
+    // Resume the coroutine
+    Resume();
+}
+
+template <class TRequest>
 void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
 {
     auto self = shared_from_this();  // Hold a reference to our
@@ -89,37 +157,7 @@ void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
                     HandleFolderGetContentsFiles =
                             [this, self](const ResponseType & response)
             {
-                if (response.error_code)
-                {
-                    // If there was an error, insert into vector and
-                    // propagate at the callback.
-                    std::string error_str = "No error string provided";
-                    if (response.error_string)
-                        error_str = *response.error_string;
-
-                    errors_.push_back(ErrorType(folder_key_,
-                                                FilesOrFoldersOrBoth::Files,
-                                                response.chunk_number,
-                                                response.error_code,
-                                                error_str));
-                }
-                else
-                {
-                    // Insert the list of files from the response
-                    // into our own list
-                    files_.insert(std::end(files_),
-                                  std::begin(response.files),
-                                  std::end(response.files));
-
-                    // Set flag if the file chunks are remaining
-                    if (response.chunks_remaining
-                        == mf::api::folder::get_content::ChunksRemaining::
-                                   LastChunk)
-                        file_chunks_remaining_ = false;
-                }
-
-                // Resume the coroutine
-                Resume();
+                this->HandleFolderGetContentsFiles(response);
             };
 
             stm_->Call(
@@ -136,46 +174,16 @@ void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
             && folder_chunks_remaining_)
         {
             std::function<void(const ResponseType & response)>
-                    HandleFolderGetContentsFolder =
+                    HandleFolderGetContentsFolders =
                             [this, self](const ResponseType & response)
             {
-                if (response.error_code)
-                {
-                    // If there was an error, insert into vector and
-                    // propagate at the callback.
-                    std::string error_str = "No error string provided";
-                    if (response.error_string)
-                        error_str = *response.error_string;
-
-                    errors_.push_back(ErrorType(folder_key_,
-                                                FilesOrFoldersOrBoth::Folders,
-                                                response.chunk_number,
-                                                response.error_code,
-                                                error_str));
-                }
-                else
-                {
-                    // Insert the list of folders from the response
-                    // into our own list
-                    folders_.insert(std::end(folders_),
-                                    std::begin(response.folders),
-                                    std::end(response.folders));
-
-                    // Set flag if folder chunks are remaining
-                    if (response.chunks_remaining
-                        == mf::api::folder::get_content::ChunksRemaining::
-                                   LastChunk)
-                        folder_chunks_remaining_ = false;
-                }
-
-                // Resume the coroutine
-                Resume();
+                this->HandleFolderGetContentsFolders(response);
             };
 
             stm_->Call(RequestType(folder_key_,
                                    folders_chunk_num,
                                    ContentType::Folders),
-                       HandleFolderGetContentsFolder);
+                       HandleFolderGetContentsFolders);
 
             ++yield_count;
         }

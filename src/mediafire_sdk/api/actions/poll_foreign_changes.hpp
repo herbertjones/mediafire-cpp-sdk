@@ -96,6 +96,24 @@ private:
                        std::shared_ptr<WorkManager> work_manager,
                        CallbackType && callback);
 
+    void HandleGetForeignChangesDevice(
+            uint32_t latest_changes_revision,
+            const std::vector<File> & updated_files,
+            const std::vector<Folder> & updated_folders,
+            const std::vector<File> & deleted_files,
+            const std::vector<Folder> & deleted_folders,
+            const std::vector<DeviceGetForeignChangesErrorType> &
+                    get_changes_errors);
+
+    void HandleGetInfoFile(const GetInfoFileResponseType & response,
+                           const std::vector<FileGetInfoErrorType> & errors);
+
+    void HandleGetInfoFolder(
+            const GetInfoFolderResponseType & response,
+            const std::vector<FolderGetInfoErrorType> & errors);
+
+    void CoroutineBody(pull_type & yield) override;
+
 private:
     SessionMaintainer * stm_;
 
@@ -124,8 +142,6 @@ private:
     uint32_t latest_changes_revision_;
 
     bool cancelled_ = false;
-
-    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf

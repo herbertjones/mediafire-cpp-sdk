@@ -11,7 +11,7 @@
 
 namespace
 {
-    int MAX_LOOP_ITERATIONS = 100;
+int MAX_LOOP_ITERATIONS = 100;
 }
 
 namespace mf
@@ -56,6 +56,12 @@ private:
     void CoroutineBody(pull_type & yield) override;
 
     void Cancel();
+
+    void HandleGetFolderContents(
+            const std::vector<File> & files,
+            const std::vector<Folder> & folders,
+            const std::vector<typename GetFolderContentsType::ErrorType> &
+                    errors);
 
     /**
      *  @brief Private constructor.

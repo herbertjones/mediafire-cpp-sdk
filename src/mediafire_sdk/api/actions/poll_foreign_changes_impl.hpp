@@ -56,6 +56,79 @@ template <typename TDeviceGetForeignChangesRequest,
           typename TFileGetInfoRequest>
 void PollForeignChanges<TDeviceGetForeignChangesRequest,
                         TFolderGetInfoRequest,
+                        TFileGetInfoRequest>::
+        HandleGetForeignChangesDevice(
+                uint32_t latest_changes_revision,
+                const std::vector<File> & updated_files,
+                const std::vector<Folder> & updated_folders,
+                const std::vector<File> & deleted_files,
+                const std::vector<Folder> & deleted_folders,
+                const std::vector<DeviceGetForeignChangesErrorType> &
+                        get_changes_errors)
+{
+    latest_changes_revision_ = latest_changes_revision;
+    get_changes_errors_ = get_changes_errors;
+
+    updated_files_ = updated_files;
+    updated_folders_ = updated_folders;
+    deleted_files_ = deleted_files;
+    deleted_folders_ = deleted_folders;
+
+    // Resume
+    Resume();
+}
+
+template <typename TDeviceGetForeignChangesRequest,
+          typename TFolderGetInfoRequest,
+          typename TFileGetInfoRequest>
+void PollForeignChanges<TDeviceGetForeignChangesRequest,
+                        TFolderGetInfoRequest,
+                        TFileGetInfoRequest>::
+        HandleGetInfoFile(const GetInfoFileResponseType & response,
+                          const std::vector<FileGetInfoErrorType> & errors)
+{
+    if (response.error_code)
+    {
+        get_info_file_errors_.insert(std::end(get_info_file_errors_),
+                                     std::begin(errors),
+                                     std::end(errors));
+    }
+    else
+    {
+        updated_files_info_.push_back(response);
+    }
+
+    Resume();
+}
+
+template <typename TDeviceGetForeignChangesRequest,
+          typename TFolderGetInfoRequest,
+          typename TFileGetInfoRequest>
+void PollForeignChanges<TDeviceGetForeignChangesRequest,
+                        TFolderGetInfoRequest,
+                        TFileGetInfoRequest>::
+        HandleGetInfoFolder(const GetInfoFolderResponseType & response,
+                            const std::vector<FolderGetInfoErrorType> & errors)
+{
+    if (response.error_code)
+    {
+        get_info_folder_errors_.insert(std::end(get_info_folder_errors_),
+                                       std::begin(errors),
+                                       std::end(errors));
+    }
+    else
+    {
+        updated_folders_info_.push_back(response);
+    }
+
+    Resume();
+}
+
+template <typename TDeviceGetForeignChangesRequest,
+          typename TFolderGetInfoRequest,
+          typename TFileGetInfoRequest>
+void PollForeignChanges<TDeviceGetForeignChangesRequest,
+                        TFolderGetInfoRequest,
                         TFileGetInfoRequest>::CoroutineBody(pull_type & yield)
 {
     auto self = shared_from_this();  // Hold a reference to our
@@ -81,16 +154,12 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
                          const std::vector<DeviceGetForeignChangesErrorType> &
                                  get_changes_errors)
     {
-        latest_changes_revision_ = latest_changes_revision;
-        get_changes_errors_ = get_changes_errors;
-
-        updated_files_ = updated_files;
-        updated_folders_ = updated_folders;
-        deleted_files_ = deleted_files;
-        deleted_folders_ = deleted_folders;
-
-        // Resume
-        Resume();
+        this->HandleGetForeignChangesDevice(latest_changes_revision,
+                                            updated_files,
+                                            updated_folders,
+                                            deleted_files,
+                                            deleted_folders,
+                                            get_changes_errors);
     };
 
     auto get_foreign_changes_device = GetForeignChangesDeviceType::Create(
@@ -108,26 +177,15 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
     // Get info on all the files
     for (const auto & file : updated_files_)
     {
-        auto callback =
+        auto HandleGetInfoFile =
                 [this, self](const GetInfoFileResponseType & response,
                              const std::vector<FileGetInfoErrorType> & errors)
         {
-            if (response.error_code)
-            {
-                get_info_file_errors_.insert(std::end(get_info_file_errors_),
-                                             std::begin(errors),
-                                             std::end(errors));
-            }
-            else
-            {
-                updated_files_info_.push_back(response);
-            }
-
-            Resume();
+            this->HandleGetInfoFile(response, errors);
         };
 
         auto get_info_file = GetInfoFileType::Create(
-                stm_, file.quickkey, std::move(callback));
+                stm_, file.quickkey, std::move(HandleGetInfoFile));
         work_manager_->QueueWork(get_info_file, &yield);
     }
 
@@ -139,28 +197,16 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
     // Get info on all the folders
     for (const auto & folder : updated_folders_)
     {
-        auto callback =
+        auto HandleGetInfoFolder =
                 [this, self](const GetInfoFolderResponseType & response,
                              const std::vector<FolderGetInfoErrorType> & errors)
         {
-            if (response.error_code)
-            {
-                get_info_folder_errors_.insert(
-                        std::end(get_info_folder_errors_),
-                        std::begin(errors),
-                        std::end(errors));
-            }
-            else
-            {
-                updated_folders_info_.push_back(response);
-            }
-
-            Resume();
+            this->HandleGetInfoFolder(response, errors);
         };
 
         // Call GetFolderInfo for each updated folder
         auto get_info_folder = GetInfoFolderType::Create(
-                stm_, folder.folderkey, std::move(callback));
+                stm_, folder.folderkey, std::move(HandleGetInfoFolder));
         work_manager_->QueueWork(get_info_folder, &yield);
     }
 

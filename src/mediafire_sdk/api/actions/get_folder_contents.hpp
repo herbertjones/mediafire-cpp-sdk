@@ -42,13 +42,13 @@ public:
                   FilesOrFoldersOrBoth files_or_folders_or_both,
                   uint32_t chunk_num,
                   const std::error_code & error_code,
-                  const std::string & error_string);
+                  const boost::optional<std::string> & error_string);
 
         std::string folder_key;
         FilesOrFoldersOrBoth files_or_folders_or_both;
         uint32_t chunk_num;
         std::error_code error_code;
-        std::string error_string;
+        boost::optional<std::string> error_string;
     };
 
     using CallbackType = std::function<void(
@@ -80,6 +80,11 @@ private:
                       const FilesOrFoldersOrBoth & files_or_folders_or_both,
                       CallbackType && callback);
 
+    void HandleFolderGetContentsFiles(const ResponseType & response);
+    void HandleFolderGetContentsFolders(const ResponseType & response);
+
+    void CoroutineBody(pull_type & yield) override;
+
 private:
     SessionMaintainer * stm_;
 
@@ -97,8 +102,6 @@ private:
     bool folder_chunks_remaining_ = false;
 
     bool cancelled_ = false;
-
-    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf
