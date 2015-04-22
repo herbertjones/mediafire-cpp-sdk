@@ -33,8 +33,9 @@ public:
         boost::optional<std::string> error_string;
     };
 
-    using CallbackType = std::function<void(const ResponseType & response,
-                                            const std::vector<ErrorType> & errors)>;
+    using CallbackType
+            = std::function<void(const ResponseType & response,
+                                 const std::vector<ErrorType> & errors)>;
 
 public:
     /**
@@ -47,10 +48,7 @@ public:
                                                  const std::string & folder_key,
                                                  CallbackType && callback);
 
-    /**
-     *  @brief Starts/resumes the coroutine.
-     */
-    void operator()() override;
+    void Cancel() override;
 
 private:
     /**
@@ -70,42 +68,9 @@ private:
     ResponseType response_;
     std::vector<ErrorType> errors_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this();  // Hold a reference to our
-                // object until the coroutine
-                // is complete, otherwise
-                // handler will have invalid
-                // reference to this because
-                // the base object has
-                // disappeared from scope
+    bool cancelled_ = false;
 
-                std::function<void(const ResponseType & response)>
-                        HandleFolderGetInfo =
-                                [this, self](const ResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        errors_.push_back(ErrorType(
-                                folder_key_, response.error_code, response.error_string));
-                    }
-                    else
-                    {
-                        response_ = response;
-                    }
-
-                    // Resume the coroutine
-                    (*this)();
-                };
-
-                stm_->Call(RequestType(folder_key_), HandleFolderGetInfo);
-
-                yield();
-
-                // Coroutine is done, so call the callback.
-                callback_(response_, errors_);
-            }};
+    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf

@@ -23,12 +23,6 @@ std::shared_ptr<CreateFolder<TRequest>> CreateFolder<TRequest>::Create(
 }
 
 template <class TRequest>
-void CreateFolder<TRequest>::operator()()
-{
-    coro_();
-}
-
-template <class TRequest>
 CreateFolder<TRequest>::CreateFolder(SessionMaintainer * stm,
                                      const std::string & folder_name,
                                      const std::string & parent_folder_key,
@@ -38,6 +32,53 @@ CreateFolder<TRequest>::CreateFolder(SessionMaintainer * stm,
           parent_folder_key_(parent_folder_key),
           callback_(callback)
 {
+}
+
+template <class TRequest>
+void CreateFolder<TRequest>::Cancel()
+{
+}
+
+template <class TRequest>
+void CreateFolder<TRequest>::CoroutineBody(pull_type & yield)
+{
+    auto self = shared_from_this();  // Hold a reference to our
+    // object until the coroutine
+    // is complete, otherwise
+    // handler will have invalid
+    // reference to this because
+    // the base object has
+    // disappeared from scope
+
+    std::function<void(const ResponseType & response)> HandleCreateFolder =
+            [this, self](const ResponseType & response)
+    {
+        if (response.error_code)
+        {
+            // If there was an error, insert into vector and
+            // propagate at the callback.
+
+            errors_.push_back(
+                    ErrorType(response.error_code, response.error_string));
+        }
+        else
+        {
+            response_ = response;
+        }
+
+        // Resume the coroutine
+        Resume();
+    };
+
+    auto request = RequestType(folder_name_);
+    request.SetParentFolderkey(parent_folder_key_);
+
+    stm_->Call(request, HandleCreateFolder);
+
+    yield();
+
+    // Coroutine is done, so call the callback.
+    callback_(response_, errors_);
 }
 }  // namespace mf
 }  // namespace api

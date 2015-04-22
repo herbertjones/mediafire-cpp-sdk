@@ -27,19 +27,6 @@ template <typename TDeviceGetStatusRequest,
           typename TDeviceGetChangesRequest,
           typename TFolderGetInfoRequest,
           typename TFileGetInfoRequest>
-void PollChanges<TDeviceGetStatusRequest,
-                 TDeviceGetChangesRequest,
-                 TFolderGetInfoRequest,
-                 TFileGetInfoRequest>::
-operator()()
-{
-    coro_();
-}
-
-template <typename TDeviceGetStatusRequest,
-          typename TDeviceGetChangesRequest,
-          typename TFolderGetInfoRequest,
-          typename TFileGetInfoRequest>
 PollChanges<TDeviceGetStatusRequest,
             TDeviceGetChangesRequest,
             TFolderGetInfoRequest,
@@ -54,5 +41,139 @@ PollChanges<TDeviceGetStatusRequest,
           callback_(callback)
 {
 }
+
+template <typename TDeviceGetStatusRequest,
+          typename TDeviceGetChangesRequest,
+          typename TFolderGetInfoRequest,
+          typename TFileGetInfoRequest>
+void PollChanges<TDeviceGetStatusRequest,
+                 TDeviceGetChangesRequest,
+                 TFolderGetInfoRequest,
+                 TFileGetInfoRequest>::CoroutineBody(pull_type & yield)
+{
+    auto self = shared_from_this();  // Hold a reference to our
+    // object until the coroutine
+    // is complete, otherwise
+    // handler will have invalid
+    // reference to this because
+    // the base object has
+    // disappeared from scope
+
+    auto HandleGetChangesDevice = [this, self](
+            uint32_t latest_device_revision,
+            const std::vector<File> & updated_files,
+            const std::vector<Folder> & updated_folders,
+            const std::vector<File> & deleted_files,
+            const std::vector<Folder> & deleted_folders,
+            const std::vector<DeviceGetStatusErrorType> & get_status_errors,
+            const std::vector<DeviceGetChangesErrorType> & get_changes_errors)
+    {
+        latest_device_revision_ = latest_device_revision;
+
+        get_status_errors_ = get_status_errors;
+        get_changes_errors_ = get_changes_errors;
+
+        updated_files_ = updated_files;
+
+        // updated_folders_ = updated_folders;
+        // Hack around updated_folders containing trash folder key
+        // -_-
+
+        for (const auto & updated_folder : updated_folders)
+            if (updated_folder.folderkey != "trash")
+                updated_folders_.push_back(updated_folder);
+
+        deleted_files_ = deleted_files;
+        deleted_folders_ = deleted_folders;
+
+        Resume();
+    };
+
+    auto get_changes_device = GetChangesDeviceType::Create(
+            stm_, revision_, std::move(HandleGetChangesDevice));
+    work_manager_->QueueWork(get_changes_device, &yield);
+    work_manager_->ExecuteWork();
+
+    // Get info on all the files
+    for (const auto & file : updated_files_)
+    {
+        auto callback =
+                [this, self](const GetInfoFileResponseType & response,
+                             const std::vector<FileGetInfoErrorType> & errors)
+        {
+            if (!errors.empty())
+            {
+                get_info_file_errors_.insert(std::end(get_info_file_errors_),
+                                             std::begin(errors),
+                                             std::end(errors));
+            }
+            else
+            {
+                updated_files_info_.push_back(response);
+            }
+
+            Resume();
+        };
+
+        auto get_info_file = GetInfoFileType::Create(
+                stm_, file.quickkey, std::move(callback));
+        work_manager_->QueueWork(get_info_file, &yield);
+    }
+
+    work_manager_->ExecuteWork();
+
+    // Get info on all the folders
+    for (const auto & folder : updated_folders_)
+    {
+        auto callback =
+                [this, self](const GetInfoFolderResponseType & response,
+                             const std::vector<FolderGetInfoErrorType> & errors)
+        {
+            if (!errors.empty())
+            {
+                get_info_folder_errors_.insert(
+                        std::end(get_info_folder_errors_),
+                        std::begin(errors),
+                        std::end(errors));
+            }
+            else
+            {
+                updated_folders_info_.push_back(response);
+            }
+
+            Resume();
+        };
+
+        auto get_info_folder = GetInfoFolderType::Create(
+                stm_, folder.folderkey, std::move(callback));
+        work_manager_->QueueWork(get_info_folder, &yield);
+    }
+
+    work_manager_->ExecuteWork();
+
+    // Coroutine is done, so call the callback.
+    callback_(latest_device_revision_,
+              deleted_files_,
+              deleted_folders_,
+              updated_files_info_,
+              updated_folders_info_,
+              get_status_errors_,
+              get_changes_errors_,
+              get_info_file_errors_,
+              get_info_folder_errors_);
+}
+
+template <typename TDeviceGetStatusRequest,
+          typename TDeviceGetChangesRequest,
+          typename TFolderGetInfoRequest,
+          typename TFileGetInfoRequest>
+void PollChanges<TDeviceGetStatusRequest,
+                 TDeviceGetChangesRequest,
+                 TFolderGetInfoRequest,
+                 TFileGetInfoRequest>::Cancel()
+{
+    cancelled_ = true;
+}
+
 }  // namespace mf
 }  // namespace api

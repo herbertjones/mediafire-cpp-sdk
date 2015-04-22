@@ -9,6 +9,11 @@
 
 #include "coroutine.hpp"
 
+namespace
+{
+    int MAX_LOOP_ITERATIONS = 100;
+}
+
 namespace mf
 {
 namespace api
@@ -39,6 +44,8 @@ private:
     std::shared_ptr<WorkManager> work_manager_;
     CallbackType callback_;
 
+    bool cancelled_ = false;
+
     std::vector<File> files_;
     std::vector<Folder> folders_;
 
@@ -46,63 +53,9 @@ private:
 
     std::deque<std::string> new_folder_keys_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this();  // Hold reference to ourselves
-                                                 // until coroutine is complete
-                while (!new_folder_keys_.empty())
-                {
-                    std::string folder_key = new_folder_keys_.front();
-                    new_folder_keys_.pop_front();
+    void CoroutineBody(pull_type & yield) override;
 
-                    typename GetFolderContentsType::CallbackType
-                            HandleGetFolderContents = [this, self](
-                                    const std::vector<File> & files,
-                                    const std::vector<Folder> & folders,
-                                    const std::vector<
-                                            typename GetFolderContentsType::
-                                                    ErrorType> & errors)
-                    {
-                        // Not much we can do with errors from
-                        // folder/get_contents really, propagate them I guess
-                        errors_.insert(std::end(errors_),
-                                       std::begin(errors),
-                                       std::end(errors));
-
-                        // Append the results
-                        files_.insert(std::end(files_),
-                                      std::begin(files),
-                                      std::end(files));
-                        folders_.insert(std::end(folders_),
-                                        std::begin(folders),
-                                        std::end(folders));
-
-                        for (const auto & folder : folders)
-                        {
-                            new_folder_keys_.push_back(folder.folderkey);
-                        }
-
-                        (*this)();
-                    };
-
-                    auto get_contents = GetFolderContentsType::Create(
-                            stm_,
-                            folder_key,
-                            GetFolderContentsType::FilesOrFoldersOrBoth::Both,
-                            std::move(HandleGetFolderContents));
-
-                    work_manager_->QueueWork(get_contents, &yield);
-
-                    if (new_folder_keys_.empty())
-                        work_manager_->ExecuteWork();  // May insert more keys
-                                                       // back onto
-                                                       // new_folder_keys_
-                                                       // continuing the loop
-                }
-
-                callback_(files_, folders_, errors_);
-            }};
+    void Cancel();
 
     /**
      *  @brief Private constructor.
@@ -123,11 +76,6 @@ public:
             const std::string & folder_key,
             std::shared_ptr<WorkManager> work_manager,
             CallbackType && call_back);
-
-    /**
-     *  @brief  Runs/resumes the coroutine
-     **/
-    void operator()() override;
 };
 
 }  // namespace mf

@@ -48,10 +48,7 @@ public:
                                                const std::string & folder_key,
                                                CallbackType && callback);
 
-    /**
-     *  @brief Starts/resumes the coroutine.
-     */
-    void operator()() override;
+    void Cancel() override;
 
 private:
     /**
@@ -71,48 +68,9 @@ private:
     ResponseType response_;
     std::vector<ErrorType> errors_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this();  // Hold a reference to our
-                // object until the coroutine
-                // is complete, otherwise
-                // handler will have invalid
-                // reference to this because
-                // the base object has
-                // disappeared from scope
+    bool cancelled_ = false;
 
-                std::function<void(const ResponseType & response)>
-                        HandleFileGetInfo =
-                                [this, self](const ResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        // If there was an error, insert into vector and
-                        // propagate at the callback.
-                        std::string error_str = "No error string provided";
-                        if (response.error_string)
-                            error_str = *response.error_string;
-
-                        errors_.push_back(ErrorType(
-                                folder_key_, response.error_code, error_str));
-                    }
-                    else
-                    {
-                        response_ = response;
-                    }
-
-                    // Resume the coroutine
-                    (*this)();
-                };
-
-                stm_->Call(RequestType(folder_key_), HandleFileGetInfo);
-
-                yield();
-
-                // Coroutine is done, so call the callback.
-                callback_(response_, errors_);
-            }};
+    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf

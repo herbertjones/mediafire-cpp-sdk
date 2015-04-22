@@ -73,10 +73,7 @@ public:
             uint32_t latest_known_revision,
             CallbackType && callback);
 
-    /**
-     *  @brief Starts/resumes the coroutine.
-     */
-    void operator()() override;
+    void Cancel() override;
 
 private:
     /**
@@ -103,116 +100,10 @@ private:
     std::vector<File> deleted_files_;
     std::vector<Folder> deleted_folders_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this(); // Hold a reference to our
-                                                // object until the coroutine
-                                                // is complete, otherwise
-                                                // handler will have invalid
-                                                // reference to this because
-                                                // the base object has
-                                                // disappeared from scope
+    bool cancelled_ = false;
 
-                std::function<void(const DeviceGetStatusResponseType &
-                                           response)> HandleDeviceGetStatus =
-                        [this, self](
-                                const DeviceGetStatusResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        // If there was an error, insert into vector and
-                        // propagate at the callback.
-                        std::string error_str = "No error string provided";
-                        if (response.error_string)
-                            error_str = *response.error_string;
+    void CoroutineBody(pull_type & yield) override;
 
-                        get_status_errors_.push_back(DeviceGetStatusErrorType(
-                                response.error_code, error_str));
-                    }
-                    else
-                    {
-                        latest_device_revision_ = response.device_revision;
-                    }
-
-                    // Resume the coroutine
-                    (*this)();
-                };
-
-                stm_->Call(DeviceGetStatusRequestType(), HandleDeviceGetStatus);
-
-                yield();
-
-                uint32_t start_revision = latest_known_revision_;
-                uint32_t min_revision = latest_known_revision_ + 1;
-                uint32_t max_revision = ((min_revision / 500) + 1) * 500;
-
-                while (start_revision < latest_device_revision_)
-                {
-                    std::function<void(const DeviceGetChangesResponseType &
-                                               response)> HandleDeviceGetChanges
-                            = [this, self, start_revision](
-                                    const DeviceGetChangesResponseType &
-                                            response)
-                    {
-                        if (response.error_code)
-                        {
-                            // If there was an error, insert
-                            // into vector and
-                            // propagate at the callback.
-                            std::string error_str = "No error string provided ";
-                            if (response.error_string)
-                                error_str = *response.error_string;
-
-                            get_changes_errors_.push_back(
-                                    DeviceGetChangesErrorType(
-                                            start_revision,
-                                            response.error_code,
-                                            error_str));
-                        }
-                        else
-                        {
-                            updated_files_.insert(
-                                    std::end(updated_files_),
-                                    std::begin(response.updated_files),
-                                    std::end(response.updated_files));
-                            updated_folders_.insert(
-                                    std::end(updated_folders_),
-                                    std::begin(response.updated_folders),
-                                    std::end(response.updated_folders));
-                            deleted_files_.insert(
-                                    std::end(deleted_files_),
-                                    std::begin(response.deleted_files),
-                                    std::end(response.deleted_files));
-                            deleted_folders_.insert(
-                                    std::end(deleted_folders_),
-                                    std::begin(response.deleted_folders),
-                                    std::end(response.deleted_folders));
-                        }
-
-                        // Resume the coroutine
-                        (*this)();
-                    };
-
-                    stm_->Call(DeviceGetChangesRequestType(start_revision),
-                               HandleDeviceGetChanges);
-
-                    yield();
-
-                    start_revision = max_revision;
-                    min_revision = start_revision + 1;
-                    max_revision = ((min_revision / 500) + 1) * 500;
-                }
-
-                // Coroutine is done, so call the callback.
-                callback_(latest_device_revision_,
-                          updated_files_,
-                          updated_folders_,
-                          deleted_files_,
-                          deleted_folders_,
-                          get_status_errors_,
-                          get_changes_errors_);
-            }};
 };
 
 }  // namespace mf

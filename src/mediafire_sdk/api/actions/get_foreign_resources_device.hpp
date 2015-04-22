@@ -52,10 +52,7 @@ public:
             SessionMaintainer * stm,
             CallbackType && callback);
 
-    /**
-     *  @brief Starts/resumes the coroutine.
-     */
-    void operator()() override;
+    void Cancel() override;
 
 private:
     /**
@@ -75,41 +72,7 @@ private:
     std::vector<File> files_;
     std::vector<Folder> folders_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this();  // Hold a reference to our
-                                                 // object until the coroutine
-                                                 // is complete, otherwise
-                                                 // handler will have invalid
-                                                 // reference to this because
-                                                 // the base object has
-                                                 // disappeared from scope
-
-                auto HandleDeviceGetForeignResources = [this, self](
-                        const DeviceGetForeignResourcesResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        errors_.push_back(ErrorType(response.error_code,
-                                                    response.error_string));
-                    }
-                    else
-                    {
-                        files_ = response.files;
-                        folders_ = response.folders;
-                    }
-
-                    (*this)();
-                };
-
-                stm_->Call(DeviceGetForeignResourcesRequestType(),
-                           HandleDeviceGetForeignResources);
-
-                yield();
-
-                callback_(files_, folders_, errors_);
-            }};
+    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf

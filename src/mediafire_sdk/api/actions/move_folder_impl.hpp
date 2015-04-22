@@ -26,12 +26,6 @@ std::shared_ptr<MoveFolder<TRequest>> MoveFolder<TRequest>::Create(
 }
 
 template <class TRequest>
-void MoveFolder<TRequest>::operator()()
-{
-    coro_();
-}
-
-template <class TRequest>
 MoveFolder<TRequest>::MoveFolder(
         SessionMaintainer * stm,
         const std::string & folder_key,
@@ -42,6 +36,51 @@ MoveFolder<TRequest>::MoveFolder(
           destination_parent_folder_key_(destination_parent_folder_key),
           callback_(callback)
 {
+}
+
+template <class TRequest>
+void MoveFolder<TRequest>::Cancel()
+{
+}
+
+template <class TRequest>
+void MoveFolder<TRequest>::CoroutineBody(pull_type & yield)
+{
+    auto self = shared_from_this();  // Hold a reference to our
+    // object until the coroutine
+    // is complete, otherwise
+    // handler will have invalid
+    // reference to this because
+    // the base object has
+    // disappeared from scope
+
+    std::function<void(const ResponseType & response)> HandleMoveFolder =
+            [this, self](const ResponseType & response)
+    {
+        if (response.error_code)
+        {
+            // If there was an error, insert into vector and
+            // propagate at the callback.
+
+            errors_.push_back(
+                    ErrorType(response.error_code, response.error_string));
+        }
+        else
+        {
+            response_ = response;
+        }
+
+        // Resume the coroutine
+        Resume();
+    };
+
+    stm_->Call(RequestType(folder_key_, destination_parent_folder_key_),
+               HandleMoveFolder);
+
+    yield();
+
+    // Coroutine is done, so call the callback.
+    callback_(response_, errors_);
 }
 }  // namespace mf
 }  // namespace api

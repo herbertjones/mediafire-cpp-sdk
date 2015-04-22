@@ -52,6 +52,11 @@ public:
      **/
     void ExecuteWork();
 
+    /**
+     *  @brief Cancel all current work.
+     */
+    void Cancel();
+
 private:
     WorkManager(boost::asio::io_service * io_service)
             : io_service_(io_service){};

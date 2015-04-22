@@ -43,21 +43,18 @@ public:
      *  @return std::shared_ptr Shared pointer to the created instance.
      **/
     static std::shared_ptr<DeleteFile> Create(SessionMaintainer * stm,
-                                                const std::string & quick_key,
-                                                CallbackType && callback);
+                                              const std::string & quick_key,
+                                              CallbackType && callback);
 
-    /**
-     *  @brief Starts/resumes the coroutine.
-     */
-    void operator()() override;
+    void Cancel() override;
 
 private:
     /**
      *  @brief  Private constructor.
      **/
     DeleteFile(SessionMaintainer * stm,
-                 const std::string & quick_key,
-                 CallbackType && callback);
+               const std::string & quick_key,
+               CallbackType && callback);
 
 private:
     SessionMaintainer * stm_;
@@ -69,45 +66,7 @@ private:
     ResponseType response_;
     std::vector<ErrorType> errors_;
 
-    push_type coro_{
-            [this](pull_type & yield)
-            {
-                auto self = shared_from_this();  // Hold a reference to our
-                // object until the coroutine
-                // is complete, otherwise
-                // handler will have invalid
-                // reference to this because
-                // the base object has
-                // disappeared from scope
-
-                std::function<void(const ResponseType & response)>
-                        HandleDeleteFile =
-                                [this, self](const ResponseType & response)
-                {
-                    if (response.error_code)
-                    {
-                        // If there was an error, insert into vector and
-                        // propagate at the callback.
-
-                        errors_.push_back(ErrorType(response.error_code,
-                                                    response.error_string));
-                    }
-                    else
-                    {
-                        response_ = response;
-                    }
-
-                    // Resume the coroutine
-                    (*this)();
-                };
-
-                stm_->Call(RequestType(quick_key_), HandleDeleteFile);
-
-                yield();
-
-                // Coroutine is done, so call the callback.
-                callback_(response_, errors_);
-            }};
+    void CoroutineBody(pull_type & yield) override;
 };
 
 }  // namespace mf

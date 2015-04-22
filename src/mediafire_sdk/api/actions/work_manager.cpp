@@ -41,7 +41,11 @@ void WorkManager::ExecuteWork()
 
     while (true)
     {
-        bool queue_more_work = false; // Flag to keep track of whether or not to queue more work. This is needed because if we were to call ExecuteWork recursively, we would blow up the stack if we have too much work to queue.
+        bool queue_more_work
+                = false;  // Flag to keep track of whether or not to queue more
+                          // work. This is needed because if we were to call
+                          // ExecuteWork recursively, we would blow up the stack
+                          // if we have too much work to queue.
 
         while (num_work_in_progress_ < max_concurrent_work_
                && !work_queue_.empty())
@@ -55,7 +59,7 @@ void WorkManager::ExecuteWork()
             auto work = work_yield_pair.first;
             io_service_->post([work, this, self]()
                               {
-                                  work->operator()();
+                                  work->Start();
                               });
 
             // Enqueue the yield so we can yield after posting as much work as
