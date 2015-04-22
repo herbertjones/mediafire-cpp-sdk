@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(UTGetChangesDevice)
     auto get_folder_info = GetChangesDeviceType::Create(
             &stm, 0, std::move(HandleGetChangesDevice));
 
-    get_folder_info->operator()();
+    get_folder_info->Start();
 
     io_service.run();
 }

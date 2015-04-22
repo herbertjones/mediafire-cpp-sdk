@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(UTPollForeignChanges)
             work_manager,
             std::move(HandlePollForeignChanges));
 
-    poll_foreign_changes->operator()();
+    poll_foreign_changes->Start();
 
     io_service.run();
 }

@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
 
     auto HandleGetForeignResourcesDeviceType =
             [this, &io_service](const std::vector<File> & files,
-               const std::vector<Folder> & folders,
-               const std::vector<ErrorType> errors)
+                                const std::vector<Folder> & folders,
+                                const std::vector<ErrorType> errors)
     {
         BOOST_FAIL(!errors.empty());
 
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
 
     auto get_foreign_resources_device = GetForeignResourcesDeviceType::Create(
             &stm, HandleGetForeignResourcesDeviceType);
-    get_foreign_resources_device->operator()();
+    get_foreign_resources_device->Start();
 
     io_service.run();
 }

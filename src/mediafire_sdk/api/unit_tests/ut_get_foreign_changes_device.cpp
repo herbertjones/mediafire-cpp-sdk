@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(UTGetForeignChangesDevice)
     auto get_foreign_changes_device = GetForeignChangesDeviceType::Create(
             &stm, "t4j3iee", 0, std::move(HandleGetForeignChangesDevice));
 
-    get_foreign_changes_device->operator()();
+    get_foreign_changes_device->Start();
 
     io_service.run();
 }

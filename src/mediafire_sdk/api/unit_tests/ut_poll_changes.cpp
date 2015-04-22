@@ -117,8 +117,8 @@ BOOST_AUTO_TEST_CASE(UTPollChanges)
     auto work_manager = mf::api::WorkManager::Create(&io_service);
 
     auto poll_changes = PollChangesType::Create(
-            &stm, 193000, work_manager, std::move(HandlePollChanges));
-    poll_changes->operator()();
+            &stm, 0, work_manager, std::move(HandlePollChanges));
+    poll_changes->Start();
 
     io_service.run();
 }

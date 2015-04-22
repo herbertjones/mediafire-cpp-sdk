@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(UTGetInfoFolder)
     auto get_folder_info = GetInfoFolderType::Create(
             &stm, "", std::move(HandleGetInfoFolder));
 
-    get_folder_info->operator()();
+    get_folder_info->Start();
 
     io_service.run();
 }

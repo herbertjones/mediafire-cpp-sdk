@@ -28,12 +28,6 @@ const std::string username = TEST_USER_1_USERNAME;
 const std::string password = TEST_USER_1_PASSWORD;
 const std::string root_folderkey = "";
 
-namespace globals
-{
-uint32_t file_count = 0;
-uint32_t folder_count = 0;
-}  // namespace globals
-
 }  // end anonymous namespace
 
 namespace api = mf::api;
@@ -71,10 +65,10 @@ BOOST_AUTO_TEST_CASE(UTGetContentFiles)
 
     auto get_folder_contents = GetFolderContentType::Create(
             &stm,
-            "",
+            root_folderkey,
             GetFolderContentType::FilesOrFoldersOrBoth::Files,
             std::move(HandleGetFolderContents));
-    get_folder_contents->operator()();
+    get_folder_contents->Start();
 
     io_service.run();
 }
@@ -112,10 +106,10 @@ BOOST_AUTO_TEST_CASE(UTGetContentFolders)
 
     auto get_folder_contents = GetFolderContentType::Create(
             &stm,
-            "",
+            root_folderkey,
             GetFolderContentType::FilesOrFoldersOrBoth::Folders,
             std::move(HandleGetFolderContents));
-    get_folder_contents->operator()();
+    get_folder_contents->Start();
 
     io_service.run();
 }
@@ -151,10 +145,10 @@ BOOST_AUTO_TEST_CASE(UTGetContentFilesAndFolders)
 
     auto get_folder_contents = GetFolderContentType::Create(
             &stm,
-            "",
+            root_folderkey,
             GetFolderContentType::FilesOrFoldersOrBoth::Both,
             std::move(HandleGetFolderContents));
-    get_folder_contents->operator()();
+    get_folder_contents->Start();
 
     io_service.run();
 }
@@ -190,10 +184,10 @@ BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
     // io_service.
     auto work_manager = mf::api::WorkManager::Create(&io_service);
     work_manager->SetMaxConcurrentWork(10);
-//
+
     auto clone_cloud_tree = CloneCloudTreeType::Create(
-            &stm, "", work_manager, std::move(HandleCloneCloudTree));
-    clone_cloud_tree->operator()();
+            &stm, root_folderkey, work_manager, std::move(HandleCloneCloudTree));
+    clone_cloud_tree->Start();
 
     io_service.run();
 }

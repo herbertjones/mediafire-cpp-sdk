@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(UTGetInfoFile)
     auto get_folder_info
             = GetInfoFileType::Create(&stm, "", std::move(HandleGetInfoFile)); // TODO: Add a default quickkey
 
-    get_folder_info->operator()();
+    get_folder_info->Start();
 
     io_service.run();
 }
