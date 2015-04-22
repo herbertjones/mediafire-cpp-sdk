@@ -290,6 +290,8 @@ std::string ApiConditionImpl::message(int ev) const
             return "user invalid";
         case errc::AccountTemporarilyLocked:
             return "account temporarily locked";
+        case errc::FileTooBig:
+            return "file size exceeds maximum limit";
         default:
         {
             assert(!"Unimplemented condition");

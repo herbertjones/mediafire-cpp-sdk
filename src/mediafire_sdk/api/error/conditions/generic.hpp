@@ -138,6 +138,7 @@ enum class errc
     UrlInvalid,
     UserInvalid,
     AccountTemporarilyLocked,
+    FileTooBig,
 };
 
 /**
