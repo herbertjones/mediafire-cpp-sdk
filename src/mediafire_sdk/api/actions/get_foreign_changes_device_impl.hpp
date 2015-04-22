@@ -40,6 +40,7 @@ GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::
 template <typename TDeviceGetForeignChangesRequest>
 void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::Cancel()
 {
+    cancelled_ = true;
 }
 
 template <typename TDeviceGetForeignChangesRequest>
@@ -59,7 +60,7 @@ void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::CoroutineBody(
     uint32_t min_revision = latest_known_revision_ + 1;
     uint32_t max_revision = ((min_revision / 500) + 1) * 500;
 
-    while (start_revision < latest_device_revision_ && !failed_)
+    while (start_revision < latest_device_revision_ && !cancelled_)
     {
         std::function<void(const DeviceGetForeignChangesResponseType &
                                    response)> HandleDeviceGetForeignChanges =
@@ -75,8 +76,6 @@ void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::CoroutineBody(
                 get_foreign_changes_errors_.push_back(
                         DeviceGetForeignChangesErrorType(
                                 response.error_code, response.error_string));
-
-                failed_ = true;
             }
             else
             {

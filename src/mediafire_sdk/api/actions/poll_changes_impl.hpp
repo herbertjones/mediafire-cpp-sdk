@@ -91,8 +91,13 @@ void PollChanges<TDeviceGetStatusRequest,
 
     auto get_changes_device = GetChangesDeviceType::Create(
             stm_, revision_, std::move(HandleGetChangesDevice));
-    work_manager_->QueueWork(get_changes_device, &yield);
-    work_manager_->ExecuteWork();
+
+    if (!cancelled_)
+    {
+        get_changes_device->Start();
+
+        yield();
+    }
 
     // Get info on all the files
     for (const auto & file : updated_files_)
@@ -120,7 +125,10 @@ void PollChanges<TDeviceGetStatusRequest,
         work_manager_->QueueWork(get_info_file, &yield);
     }
 
-    work_manager_->ExecuteWork();
+    if (!cancelled_)
+        work_manager_->ExecuteWork();
+    else
+        work_manager_->Cancel();
 
     // Get info on all the folders
     for (const auto & folder : updated_folders_)
@@ -149,7 +157,10 @@ void PollChanges<TDeviceGetStatusRequest,
         work_manager_->QueueWork(get_info_folder, &yield);
     }
 
-    work_manager_->ExecuteWork();
+    if (!cancelled_)
+        work_manager_->ExecuteWork();
+    else
+        work_manager_->Cancel();
 
     // Coroutine is done, so call the callback.
     callback_(latest_device_revision_,

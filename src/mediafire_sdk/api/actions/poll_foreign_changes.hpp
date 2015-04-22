@@ -123,6 +123,8 @@ private:
 
     uint32_t latest_changes_revision_;
 
+    bool cancelled_ = false;
+
     void CoroutineBody(pull_type & yield) override;
 };
 

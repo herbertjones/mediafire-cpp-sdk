@@ -87,5 +87,18 @@ void WorkManager::ExecuteWork()
     }
 }
 
+void WorkManager::Cancel()
+{
+    while (!work_queue_.empty())
+    {
+        auto work_yield_pair = work_queue_.front();
+        work_queue_.pop();
+
+        auto work = work_yield_pair.first;
+
+        work->Cancel();
+    }
+}
+
 }  // namespace mf
 }  // namespace api

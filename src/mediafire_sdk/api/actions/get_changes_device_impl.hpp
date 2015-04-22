@@ -91,7 +91,7 @@ void GetChangesDevice<TDeviceGetStatusRequest,
     uint32_t min_revision = latest_known_revision_ + 1;
     uint32_t max_revision = ((min_revision / 500) + 1) * 500;
 
-    while (start_revision < latest_device_revision_)
+    while (start_revision < latest_device_revision_ && !cancelled_)
     {
         std::function<void(const DeviceGetChangesResponseType & response)>
                 HandleDeviceGetChanges = [this, self, start_revision](

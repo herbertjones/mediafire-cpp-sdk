@@ -76,7 +76,7 @@ void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
     int folders_chunk_num = 1;
 
     // Do we still have work left to queue?
-    while (folder_chunks_remaining_ || file_chunks_remaining_)
+    while ((folder_chunks_remaining_ || file_chunks_remaining_) && !cancelled_)
     {
         int yield_count = 0;
 

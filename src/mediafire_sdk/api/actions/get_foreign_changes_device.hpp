@@ -77,8 +77,6 @@ private:
 
     uint32_t latest_known_revision_;
 
-    bool failed_ = false;
-
     CallbackType callback_;
 
     uint32_t latest_device_revision_ = std::numeric_limits<uint32_t>::max();
@@ -90,6 +88,8 @@ private:
     std::vector<Folder> updated_folders_;
     std::vector<File> deleted_files_;
     std::vector<Folder> deleted_folders_;
+
+    bool cancelled_ = false;
 
     void CoroutineBody(pull_type & yield) override;
 };

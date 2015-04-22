@@ -18,7 +18,7 @@ class WorkManager : public std::enable_shared_from_this<WorkManager>
 public:
     /**
      *  @brief Creates shared_ptr to a newly created instance of this class.
-     **/
+     */
     static std::shared_ptr<WorkManager> Create(
             boost::asio::io_service * io_service);
 
@@ -47,13 +47,12 @@ public:
 
     /**
      *  @brief Dequeue and posts some work onto the io_sevice_. This then
-     *yields the amount of work queued onto the io_service. Additionally every
-     *time
-     **/
+     *yields the amount of work queued onto the io_service.
+     */
     void ExecuteWork();
 
     /**
-     *  @brief Cancel all current work.
+     *  @brief Cancel everything on the work_queue_
      */
     void Cancel();
 
