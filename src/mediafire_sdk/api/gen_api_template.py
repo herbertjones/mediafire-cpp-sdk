@@ -65,8 +65,8 @@ class InvalidParameter(Exception):
         self.value = value
 
     def __str__(self):
-        return ('"' + str(self.key) + '" does not accept : ' + str(self.value)
-                + ' in ' + pretty_json(self.json_obj))
+        return ('"' + str(self.key) + '" does not accept : ' +
+                str(self.value) + ' in ' + pretty_json(self.json_obj))
 
 
 class UnuniqueParameter(Exception):
@@ -75,9 +75,9 @@ class UnuniqueParameter(Exception):
         self.key = key
 
     def __str__(self):
-        return ('Duplicate parameter "' + str(self.key)
-                + '" that should be unique to the API type in \n'
-                + pretty_json(self.json_obj))
+        return ('Duplicate parameter "' + str(self.key) +
+                '" that should be unique to the API type in \n' +
+                pretty_json(self.json_obj))
 
 
 class RequiredParameter(Exception):
@@ -86,8 +86,8 @@ class RequiredParameter(Exception):
         self.value = value
 
     def __str__(self):
-        return ('Missing required parameter: \\"' + str(self.value) + '\\" in '
-                + pretty_json(self.json_obj))
+        return ('Missing required parameter: \\"' + str(self.value) +
+                '\\" in ' + pretty_json(self.json_obj))
 
 # # Pull in API list
 # execfile("templates/api_list.py")
@@ -107,16 +107,16 @@ def is_optional(opt):
 
 
 def is_optional_no_default(opt):
-    if (opt is Optional
-            or type(opt) is Optional
-            and opt.default_value is None):
+    if (opt is Optional or
+            type(opt) is Optional and
+            opt.default_value is None):
         return True
     return False
 
 
 def is_optional_with_default(opt):
-    if (type(opt) is Optional
-            and opt.default_value is not None):
+    if (type(opt) is Optional and
+            opt.default_value is not None):
         return True
     return False
 
@@ -175,6 +175,27 @@ def get_api_action_path(api):
 
 
 def parse_input_params(input_param_array, api):
+    ret = list()
+    for input_params in input_param_array:
+        cpp_type = safe_json_get(input_params, "cpp_type")
+        cpp_name = safe_json_get(input_params, "cpp_name")
+        api_path = safe_json_get(input_params, "api_path")
+        if 'http_method' in input_params:
+            http_method = input_params['http_method']
+        elif 'delivery_method' in api:
+            # Use selected default
+            http_method = api['delivery_method']
+        else:
+            http_method = default_http_input_method
+        if 'description' in input_params:
+            description = input_params['description']
+        else:
+            description = None
+        ret.append((cpp_type, cpp_name, api_path, http_method, description))
+    return ret
+
+
+def parse_additional_input_params(input_param_array, api):
     ret = list()
     for input_params in input_param_array:
         cpp_type = safe_json_get(input_params, "cpp_type")
@@ -342,8 +363,8 @@ def namespace_begin(base_parts):
     for part in base_parts:
         if part != 'api':
             current_parts.append(part)
-            ret.append('/** API action path "' + '/'.join(current_parts)
-                       + '" */')
+            ret.append('/** API action path "' + '/'.join(current_parts) +
+                       '" */')
         ret.append('namespace ' + part + ' {')
     return '\n'.join(ret)
 
@@ -379,8 +400,8 @@ def format_parameter_documentation(indent_level, parameter_name, description):
         if line_num == 0:
             ret = ret + '     * ' + start_description + line + '\n'
         else:
-            ret = (ret + '     * ' + (' ' * start_description_width) + line
-                   + '\n')
+            ret = (ret + '     * ' + (' ' * start_description_width) + line +
+                   '\n')
         line_num = line_num + 1
     return ret
 
@@ -447,8 +468,8 @@ def get_hpp_optional_setters(api):
             if 'description' in optional_params:
                 description = optional_params['description']
             else:
-                description = ('Set parameter "' + api_path
-                               + '" in API request.')
+                description = ('Set parameter "' + api_path +
+                               '" in API request.')
 
             ret = ret + format_parameter_documentation(1, cpp_name,
                                                        description)
@@ -471,12 +492,12 @@ def delivery_method(api):
 
     # If has POST data must be POST
     if 'input_params' in api:
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             if http_method == 'POST':
                 return 'POST'
     if 'optional_input_params' in api:
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['optional_input_params'], api):
             if http_method == 'POST':
                 return 'POST'
@@ -523,7 +544,7 @@ def get_cpp_post_data_impl_def(api):
 
     if 'input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             if http_method == 'POST':
                 params_set_count = params_set_count + 1
@@ -538,7 +559,7 @@ def get_cpp_post_data_impl_def(api):
 
     if 'optional_input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['optional_input_params'], api):
             if http_method == 'POST':
                 params_set_count = params_set_count + 1
@@ -591,7 +612,7 @@ def get_class_member_vars(api):
     if 'input_params' in api:
         lines = []
 
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             lines.append('    ' + cpp_type + ' ' + cpp_name + '_;')
 
@@ -603,8 +624,8 @@ def get_class_member_vars(api):
             cpp_type = safe_json_get(optional_params, "cpp_type")
             cpp_name = safe_json_get(optional_params, "cpp_name")
             # api_path = safe_json_get(optional_params, "api_path")
-            lines.append('    boost::optional<' + cpp_type + '> ' + cpp_name
-                         + '_;')
+            lines.append('    boost::optional<' + cpp_type + '> ' + cpp_name +
+                         '_;')
         if len(lines) > 0:
             ret = ret + '\n'.join(lines) + '\n'
     return ret
@@ -616,7 +637,7 @@ def get_cpp_ctor_args(api):
     ret = []
     if 'input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             lines.append(cpp_type + ' ' + cpp_name)
         if len(lines) > 0:
@@ -624,27 +645,101 @@ def get_cpp_ctor_args(api):
     return '\n'.join(ret)
 
 
+def get_cpp_ctor(api, cpp_variable_names):
+    '''Additional CPP Constructor definition.'''
+
+    input_args = ''
+    lines = []
+    for cpp_name in cpp_variable_names:
+        cpp_type, api_path, http_method, description = \
+                                    get_input_cpp_variable_info(api, cpp_name)
+        lines.append(cpp_type + ' ' + cpp_name)
+    if len(lines) > 0:
+        input_args = '\n        ' + ',\n        '.join(lines) + '\n    '
+
+    passthru_args = []
+    for cpp_name in cpp_variable_names:
+        passthru_args.append(cpp_name)
+
+    ret = ''
+    ret = ret + 'Request::Request(' + input_args + ') :\n'
+    ret = ret + '    impl_(new Impl(' + ', '.join(passthru_args) + '))\n'
+
+    ret = ret + '{\n}\n'
+    return ret
+
+
+def get_default_ctor_cpp_names(api):
+    ret = []
+    if 'input_params' in api:
+        for (cpp_type, cpp_name, api_path, http_method, description) \
+                in parse_input_params(api['input_params'], api):
+            ret.append(cpp_name)
+    return ret
+
+
+def get_cpp_ctors(api):
+    '''Constructors for class definition.'''
+    if 'constructors' in api:
+        ctors = []
+        for additional_ctor in api['constructors']:
+            cpp_variable_names = additional_ctor['cpp_variable_names']
+            ctors.append(get_cpp_ctor(api, cpp_variable_names))
+    else:
+        ctors = [get_cpp_ctor(api, get_default_ctor_cpp_names(api))]
+    return '\n\n'.join(ctors)
+
+
+def get_impl_ctor(api, cpp_variable_names):
+    '''CPP Constructor definition.'''
+
+    input_args = ''
+    lines = []
+    for cpp_name in cpp_variable_names:
+        cpp_type, api_path, http_method, description = \
+                                    get_input_cpp_variable_info(api, cpp_name)
+        lines.append(cpp_type + ' ' + cpp_name)
+    if len(lines) > 0:
+        input_args = '\n        ' + ',\n        '.join(lines) + '\n    '
+
+    init_args = ''
+    if len(cpp_variable_names) > 0:
+        lines = []
+        for cpp_name in cpp_variable_names:
+            cpp_type, api_path, http_method, description = \
+                                        get_input_cpp_variable_info(api,
+                                                                    cpp_name)
+            lines.append(cpp_name + '_(' + cpp_name + ')')
+        init_args = ' :\n    ' + ',\n    '.join(lines)
+
+    ret = ''
+    ret = ret + 'Impl::Impl(' + input_args + ')'
+    ret = ret + init_args + '\n'
+
+    ret = ret + '{\n}\n'
+    return ret
+
+
+def get_impl_ctor_definitions(api):
+    if 'constructors' in api:
+        ctors = []
+        for additional_ctor in api['constructors']:
+            cpp_variable_names = additional_ctor['cpp_variable_names']
+            ctors.append(get_impl_ctor(api, cpp_variable_names))
+    else:
+        ctors = [get_impl_ctor(api, get_default_ctor_cpp_names(api))]
+    return '\n\n'.join(ctors)
+
+
 def get_impl_passthru_args(api):
     '''Constructor arguments for Impl.'''
 
     names = []
     if 'input_params' in api:
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             names.append(cpp_name)
     return ', '.join(names)
-
-
-def get_ctor_init_args(api):
-    '''Class initializer list if class has arguments.'''
-    ret = []
-    if 'input_params' in api and len(api['input_params']) > 0:
-        lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
-                in parse_input_params(api['input_params'], api):
-            lines.append(cpp_name + '_(' + cpp_name + ')')
-        ret.append(' :\n    ' + ',\n    '.join(lines))
-    return '\n'.join(ret)
 
 
 def get_hpp_ctor_args(api):
@@ -653,11 +748,11 @@ def get_hpp_ctor_args(api):
     ret = []
     if 'input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             lines.append(cpp_type + ' ' + cpp_name)
-        ret.append('\n            ' + ',\n            '.join(lines)
-                   + '\n        ')
+        ret.append('\n            ' + ',\n            '.join(lines) +
+                   '\n        ')
     return '\n'.join(ret)
 
 
@@ -685,6 +780,88 @@ def get_hpp_ctor_documentation(api):
     return ret
 
 
+def get_input_cpp_variable_info(api, cpp_name_to_find):
+    if 'input_params' in api:
+        for (cpp_type, cpp_name, api_path, http_method, description) \
+                in parse_input_params(api['input_params'], api):
+            if cpp_name == cpp_name_to_find:
+                return (cpp_type, api_path, http_method, description)
+    if 'optional_input_params' in api:
+        for (cpp_type, cpp_name, api_path, http_method, description) \
+                in parse_input_params(api['optional_input_params'], api):
+            if cpp_name == cpp_name_to_find:
+                return (cpp_type, api_path, http_method, description)
+    return None
+
+
+def get_hpp_ctor(api, cpp_variable_names, make_doc, class_name,
+                 ctor_description):
+    doc = '    /**\n'
+    doc = doc + '     * API request "' + get_api_action_path(api) + '"\n'
+
+    if ctor_description is not None:
+        doc = doc + '     *\n'
+        doc = doc + '     * ' + ctor_description + '\n'
+
+    if len(cpp_variable_names) > 0:
+        doc = doc + '     *\n'
+
+    for cpp_name in cpp_variable_names:
+        cpp_type, api_path, http_method, description = \
+                                    get_input_cpp_variable_info(api, cpp_name)
+
+        if description is None:
+            description = 'API parameter "' + api_path + '"'
+
+        doc = doc + format_parameter_documentation(1, cpp_name, description)
+    doc = doc + '     */'
+
+    args = ''
+    lines = []
+    for cpp_name in cpp_variable_names:
+        cpp_type, api_path, http_method, description = \
+                                    get_input_cpp_variable_info(api, cpp_name)
+        lines.append(cpp_type + ' ' + cpp_name)
+        args = ('\n            ' + ',\n            '.join(lines) +
+                '\n        ')
+    ret = ''
+    if make_doc is True:
+        ret = ret + doc + '\n'
+
+    ret = (ret + '    ' + get_explicit(api) + class_name + '(' + args + ');')
+
+    return ret
+
+
+def get_hpp_ctors(api):
+    if 'constructors' in api:
+        ctors = []
+        for additional_ctor in api['constructors']:
+            cpp_variable_names = additional_ctor['cpp_variable_names']
+            description = None
+            if 'description' in additional_ctor:
+                description = additional_ctor['description']
+            ctors.append(get_hpp_ctor(api, cpp_variable_names,
+                                      True, 'Request', description))
+    else:
+        ctors = [get_hpp_ctor(api, get_default_ctor_cpp_names(api), True,
+                              'Request', None)]
+    return '\n\n'.join(ctors)
+
+
+def get_impl_ctor_declarations(api):
+    if 'constructors' in api:
+        ctors = []
+        for additional_ctor in api['constructors']:
+            cpp_variable_names = additional_ctor['cpp_variable_names']
+            ctors.append(get_hpp_ctor(api, cpp_variable_names,
+                                      False, 'Impl', None))
+    else:
+        ctors = [get_hpp_ctor(api, get_default_ctor_cpp_names(api), False,
+                              'Impl', None)]
+    return '\n\n'.join(ctors)
+
+
 def get_url_creation(api):
     '''Create the url using required and optional input parameters.'''
 
@@ -693,7 +870,7 @@ def get_url_creation(api):
 
     if 'input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             if http_method == 'GET':
                 params_set_count = params_set_count + 1
@@ -708,7 +885,7 @@ def get_url_creation(api):
 
     if 'optional_input_params' in api:
         lines = []
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['optional_input_params'], api):
             if http_method == 'GET':
                 params_set_count = params_set_count + 1
@@ -748,7 +925,7 @@ def get_as_string_funcs(api):
 
     type_names = set()
     if 'input_params' in api:
-        for (cpp_type, cpp_name, api_path, http_method) \
+        for (cpp_type, cpp_name, api_path, http_method, description) \
                 in parse_input_params(api['input_params'], api):
             type_names.add(cpp_type)
     if 'optional_input_params' in api:
@@ -923,8 +1100,8 @@ def create_content_enum_parse(api, ob, t, n, r, dt, optional, pt):
                 values = [enum_api_value] + additional_api_values
                 for value in values:
                     case = 'if ( optval == "' + value + '" )\n'
-                    case = (case + '                ' + ob + '->' + n + ' = '
-                            + enum_cpp_name + '::' + enum_cpp_key + ';')
+                    case = (case + '                ' + ob + '->' + n + ' = ' +
+                            enum_cpp_name + '::' + enum_cpp_key + ';')
                     cases.append(case)
             ret = ret + '            ' + "\n            else ".join(cases)
             if optional is Required:
@@ -1111,11 +1288,11 @@ def create_data_type(indent_level, cpp_type, cpp_name, r, parse_data_type,
     ret = ret + format_simple_documentation(indent_level, description)
 
     if parse_data_type is TArray:
-        ret = (ret + indent + 'std::vector<' + cpp_type + '> ' + cpp_name
-               + ';\n')
+        ret = (ret + indent + 'std::vector<' + cpp_type + '> ' + cpp_name +
+               ';\n')
     elif is_optional_no_default(optional):
-        ret = (ret + indent + 'boost::optional<' + cpp_type + '> ' + cpp_name
-               + ';\n')
+        ret = (ret + indent + 'boost::optional<' + cpp_type + '> ' + cpp_name +
+               ';\n')
     else:
         ret = ret + indent + cpp_type + ' ' + cpp_name + ';\n'
 
@@ -1145,8 +1322,8 @@ def get_data_ctor(api):
             = get_return_parameters(ret_data)
         if is_optional_with_default(optional):
             if cpp_type in enum_names:
-                args_with_defaults.append((cpp_name, cpp_type + '::'
-                                           + optional.default_value))
+                args_with_defaults.append((cpp_name, cpp_type + '::' +
+                                           optional.default_value))
             else:
                 args_with_defaults.append((cpp_name, optional.default_value))
     if len(args_with_defaults) == 0:
@@ -1218,16 +1395,17 @@ def get_data_type_struct_extractor(api, name, param_list):
     lines.append(I(2) + 'const boost::property_tree::wptree & pt')
     lines.append(I(1) + ')')
     lines.append(I(0) + '{')
-    lines.append(I(0) + '#   define return_error(error_type, error_message)   '
-                 + '                          \\')
-    lines.append(I(1) + '{                                                    '
-                 + '                      \\')
-    lines.append(I(2) + 'response->error_code = make_error_code( error_type );'
-                 + '                  \\')
-    lines.append(I(2) + 'response->error_string = error_message;              '
-                 + '                  \\')
-    lines.append(I(2) + 'return false;                                        '
-                 + '                  \\')
+    lines.append(I(0) + '#   define return_error(error_type, error_message)' +
+                 '                             \\')
+    lines.append(I(1) + '{                                                 ' +
+                 '                         \\')
+    lines.append(I(2) + 'response->error_code = make_error_code( ' +
+                 'error_type );' +
+                 '                  \\')
+    lines.append(I(2) + 'response->error_string = error_message;           ' +
+                 '                     \\')
+    lines.append(I(2) + 'return false;                                     ' +
+                 '                     \\')
     lines.append(I(1) + '}')
 
     lines.append(I(1) + 'using mf::api::GetIfExists;')
@@ -1349,11 +1527,11 @@ def content_parse_branch(api, ob, pt, return_param_list):
 
         if is_optional_with_default(optional):
             if cpp_type in enum_names:
-                ret.append('    ' + ob + '->' + cpp_name + ' = ' + cpp_type
-                           + '::' + optional.default_value + ';')
+                ret.append('    ' + ob + '->' + cpp_name + ' = ' + cpp_type +
+                           '::' + optional.default_value + ';')
             else:
-                ret.append('    ' + ob + '->' + cpp_name + ' = '
-                           + optional.default_value + ';')
+                ret.append('    ' + ob + '->' + cpp_name + ' = ' +
+                           optional.default_value + ';')
 
     for ret_data in return_param_list:
         (cpp_type, cpp_name, api_path, json_type, optional, description) \
@@ -1528,8 +1706,8 @@ def get_additional_hpp_local_includes(api):
         lambda header: '#include "' + header + '"\n')
 
     if delivery_method(api) == 'POST':
-        includes = (includes
-                    + '#include "mediafire_sdk/http/shared_buffer.hpp"\n')
+        includes = (includes +
+                    '#include "mediafire_sdk/http/shared_buffer.hpp"\n')
 
     return includes
 
@@ -1589,6 +1767,7 @@ def create_templates(api, target_path):
     replacements['__CLASS_MEMBER_VARS__'] = get_class_member_vars(api)
     replacements['__CONTENT_PARSING__'] = get_content_parsing(api)
     replacements['__CPPSAFE_NAME__'] = cppsafe_name
+    replacements['__CPP_CTORS__'] = get_cpp_ctors(api)
     replacements['__CPP_CTOR_ARGS__'] = get_cpp_ctor_args(api)
     replacements['__CPP_FILENAME__'] = filename + '.cpp'
     replacements['__CPP_OPTIONAL_SETTERS__'] = get_cpp_optional_setters(api)
@@ -1600,7 +1779,6 @@ def create_templates(api, target_path):
         = get_cpp_post_data_template(api)
     replacements['__CPP_SESSION_TOKEN_TEMPLATE__'] \
         = get_session_token_api_cpp_template(api)
-    replacements['__CTOR_INIT_VARS__'] = get_ctor_init_args(api)
     replacements['__DATA_TYPES__'] = get_data_types(api)
     replacements['__DATA_TYPE_CTOR__'] = get_data_ctor(api)
     replacements['__DATA_TYPE_STRUCTS__'] = get_data_type_structs(api)
@@ -1608,9 +1786,8 @@ def create_templates(api, target_path):
         = get_data_type_struct_extractors(api)
     replacements['__ENUMS__'] = get_enums(api)
     replacements['__EXPLICIT__'] = get_explicit(api)
+    replacements['__HPP_CTORS__'] = get_hpp_ctors(api)
     replacements['__HPP_CTOR_ARGS__'] = get_hpp_ctor_args(api)
-    replacements['__HPP_CTOR_DOCUMENTATION__'] \
-        = get_hpp_ctor_documentation(api)
     replacements['__HPP_FILENAME__'] = version_str + '.hpp'
     replacements['__HPP_RELATIVE_FILENAME__'] = relative_pathname + '.hpp'
     replacements['__HPP_OPTIONAL_SETTERS__'] = get_hpp_optional_setters(api)
@@ -1619,6 +1796,9 @@ def create_templates(api, target_path):
     replacements['__HPP_SESSION_TOKEN_TEMPLATE__'] \
         = get_session_token_api_hpp_template(api)
     replacements['__IMPL_PASSTHRU_ARGS__'] = get_impl_passthru_args(api)
+    replacements['__IMPL_CTOR_DECLARATIONS__'] = get_impl_ctor_declarations(
+        api)
+    replacements['__IMPL_CTOR_DEFINITIONS__'] = get_impl_ctor_definitions(api)
     replacements['__NAMESPACE_BEGIN__'] = namespace_begin(base_parts)
     replacements['__NAMESPACE_END__'] = namespace_end(base_parts)
     replacements['__NAMESPACE__'] = '::'.join(base_parts)
@@ -1731,7 +1911,8 @@ class JsonAnalyser:
     def is_private_field(self, key):
         return key[0:1] == '_'
 
-    def run(self, json, identifier=None, ef=None, duplicate_checker=None):
+    def run(self, full_json, json, identifier=None, ef=None,
+            duplicate_checker=None):
         if ef is None:
             ef = ErrorFormatter()
 
@@ -1769,7 +1950,7 @@ class JsonAnalyser:
         # Validate
         for key, values in self.fields.iteritems():
             if values['validator'] is not None and key in json:
-                errors = values['validator'](json[key])
+                errors = values['validator'](full_json, json[key])
                 for err in errors:
                     ef.add(err)
             if values['permitted_values'] is not None and key in json:
@@ -1787,8 +1968,8 @@ class JsonAnalyser:
 
                 if key in duplicate_checker[d]:
                     if val in duplicate_checker[d][key]:
-                        ef.add('Duplicate field ' + quote(key) + ' with value '
-                               + quote(val))
+                        ef.add('Duplicate field ' + quote(key) +
+                               ' with value ' + quote(val))
                     else:
                         duplicate_checker[d][key][val] = True
                 else:
@@ -1803,10 +1984,11 @@ class JsonAnalyser:
                 for child in json[key]:
                     if identifier is None:
                         child_identifier = quote(key) + ' #' + str(child_id)
-                        values['analyser'].run(child, child_identifier, ef,
+                        values['analyser'].run(full_json, child,
+                                               child_identifier, ef,
                                                duplicate_checker)
                     else:
-                        values['analyser'].run(child, None, ef,
+                        values['analyser'].run(full_json, child, None, ef,
                                                duplicate_checker)
             duplicate_checker.pop()
 
@@ -1883,6 +2065,25 @@ def api_template_input_param_analyser():
     return ja
 
 
+def additional_variable_names_validator(full_json, cpp_names):
+    ret = []
+    for cpp_name in cpp_names:
+        if get_input_cpp_variable_info(full_json, cpp_name) is None:
+            ret.append('constructors cpp_variable_name ' +
+                       'not a cpp variable name: ' + cpp_name)
+    return ret
+
+
+def api_template_additional_constructor_analyser():
+    ja = JsonAnalyser()
+
+    ja.add_field('cpp_variable_names',
+                 validator=additional_variable_names_validator, required=True)
+    ja.add_field('description')
+
+    return ja
+
+
 def api_template_return_struct_analyser():
     ja = JsonAnalyser()
     members = JsonAnalyser()
@@ -1929,10 +2130,12 @@ def api_template_errors(json):
     ja.add_array('return_params',
                  analyser=api_template_return_param_analyser())
     ja.add_array('input_params', analyser=api_template_input_param_analyser())
+    ja.add_array('constructors',
+                 analyser=api_template_additional_constructor_analyser())
     ja.add_array('system_cpp_includes')
     ja.add_array('system_hpp_includes')
 
-    return ja.run(json)
+    return ja.run(json, json)
 
 
 def generate_cmake_include(target_file, cpp_sources, hpp_sources):

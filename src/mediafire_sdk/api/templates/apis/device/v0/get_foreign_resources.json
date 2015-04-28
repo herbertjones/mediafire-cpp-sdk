@@ -2,202 +2,211 @@
     "api": "/api/device/get_foreign_resources",
     "version": "0",
     "enums": [
-    {
-        "cpp_name": "ContentType",
-        "members": [
         {
-            "cpp_name": "Folders",
-            "api_value": "folders"
+            "cpp_name": "ContentType",
+            "members": [
+                {
+                    "cpp_name": "Folders",
+                    "api_value": "folders"
+                },
+                {
+                    "cpp_name": "Files",
+                    "api_value": "files"
+                }
+            ]
         },
         {
-            "cpp_name": "Files",
-            "api_value": "files"
-        }
-        ]
-    },
-    {
-        "cpp_name": "ShareLinkEnabled",
-        "members": [
-        {
-            "cpp_name": "LinkDisabled",
-            "api_value": "0"
+            "cpp_name": "ShareLinkEnabled",
+            "members": [
+                {
+                    "cpp_name": "LinkDisabled",
+                    "api_value": "0"
+                },
+                {
+                    "cpp_name": "LinkEnabled",
+                    "api_value": "1"
+                }
+            ]
         },
         {
-            "cpp_name": "LinkEnabled",
-            "api_value": "1"
+            "cpp_name": "SyncToDesktopFilter",
+            "members": [
+                {
+                    "cpp_name": "All",
+                    "api_value": "0"
+                },
+                {
+                    "cpp_name": "DesktopSyncedOnly",
+                    "api_value": "1"
+                }
+            ]
         }
-        ]
-    },
-    {
-        "cpp_name": "SyncToDesktopFilter",
-        "members": [
-        {
-            "cpp_name": "All",
-            "api_value": "0"
-        },
-        {
-            "cpp_name": "DesktopSyncedOnly",
-            "api_value": "1"
-        }
-        ]
-    }
     ],
-        "return_structs": [
+    "return_structs": [
         {
             "cpp_name": "File",
             "members": [
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "attributes",
-                "api_path": "attributes"
-            },
-            {
-                "cpp_type": "boost::posix_time::ptime",
-                "cpp_name": "created_datetime",
-                "api_path": "created"
-            },
-            {
-                "cpp_type": "boost::posix_time::ptime",
-                "cpp_name": "shared_datetime",
-                "api_path": "date_shared"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "description",
-                "api_path": "desc",
-                "optional": true
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "filename",
-                "api_path": "filename"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "filetype",
-                "api_path": "filetype"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "hash",
-                "api_path": "md5"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "mimetype",
-                "api_path": "mimetype",
-                "default_value": "\"\""
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "options",
-                "api_path": "options"
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "permissions",
-                "api_path": "permissions",
-                "optional": true
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "quickkey",
-                "api_path": "quickkey"
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "revision",
-                "api_path": "revision"
-            },
-            {
-                "cpp_type": "ShareLinkEnabled",
-                "cpp_name": "share_link_enabled",
-                "api_path": "share_link_enabled",
-                "default_value": "LinkDisabled"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "sharer",
-                "api_path": "sharer"
-            },
-            {
-                "cpp_type": "uint64_t",
-                "cpp_name": "filesize",
-                "api_path": "size"
-            }
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "attributes",
+                    "api_path": "attributes"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "created_datetime",
+                    "api_path": "created"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "shared_datetime",
+                    "api_path": "date_shared"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "description",
+                    "api_path": "desc",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "filename",
+                    "api_path": "filename"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "filetype",
+                    "api_path": "filetype"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "hash",
+                    "api_path": "md5"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "mimetype",
+                    "api_path": "mimetype",
+                    "default_value": "\"\""
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "options",
+                    "api_path": "options"
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "permissions",
+                    "api_path": "permissions",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "quickkey",
+                    "api_path": "quickkey"
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "revision",
+                    "api_path": "revision"
+                },
+                {
+                    "cpp_type": "ShareLinkEnabled",
+                    "cpp_name": "share_link_enabled",
+                    "api_path": "share_link_enabled",
+                    "default_value": "LinkDisabled"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "sharer",
+                    "api_path": "sharer"
+                },
+                {
+                    "cpp_type": "uint64_t",
+                    "cpp_name": "filesize",
+                    "api_path": "size"
+                }
             ]
         },
         {
             "cpp_name": "Folder",
             "members": [
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "attributes",
-                "api_path": "attributes"
-            },
-            {
-                "cpp_type": "boost::posix_time::ptime",
-                "cpp_name": "created_datetime",
-                "api_path": "created"
-            },
-            {
-                "cpp_type": "boost::posix_time::ptime",
-                "cpp_name": "shared_datetime",
-                "api_path": "date_shared"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "description",
-                "api_path": "desc",
-                "optional": true
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "folderkey",
-                "api_path": "folderkey"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "name",
-                "api_path": "name"
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "options",
-                "api_path": "options"
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "permissions",
-                "api_path": "permissions",
-                "optional": true
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "resource_key",
-                "api_path": "resource_key",
-                "optional": true
-            },
-            {
-                "cpp_type": "uint32_t",
-                "cpp_name": "revision",
-                "api_path": "revision"
-            },
-            {
-                "cpp_type": "ShareLinkEnabled",
-                "cpp_name": "share_link_enabled",
-                "api_path": "share_link_enabled",
-                "default_value": "LinkDisabled"
-            },
-            {
-                "cpp_type": "std::string",
-                "cpp_name": "sharer",
-                "api_path": "sharer"
-            }
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "attributes",
+                    "api_path": "attributes"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "created_datetime",
+                    "api_path": "created"
+                },
+                {
+                    "cpp_type": "boost::posix_time::ptime",
+                    "cpp_name": "shared_datetime",
+                    "api_path": "date_shared"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "description",
+                    "api_path": "desc",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "folderkey",
+                    "api_path": "folderkey"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "name",
+                    "api_path": "name"
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "options",
+                    "api_path": "options"
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "permissions",
+                    "api_path": "permissions",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "resource_key",
+                    "api_path": "resource_key",
+                    "optional": true
+                },
+                {
+                    "cpp_type": "uint32_t",
+                    "cpp_name": "revision",
+                    "api_path": "revision"
+                },
+                {
+                    "cpp_type": "ShareLinkEnabled",
+                    "cpp_name": "share_link_enabled",
+                    "api_path": "share_link_enabled",
+                    "default_value": "LinkDisabled"
+                },
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "sharer",
+                    "api_path": "sharer"
+                }
             ]
         }
     ],
-        "optional_input_params": [
+    "constructors": [
+        {
+            "cpp_variable_names": []
+        },
+        {
+            "description": "Deprecated constructor",
+            "cpp_variable_names": ["chunk_number", "content_type"]
+        }
+    ],
+    "optional_input_params": [
         {
             "cpp_type": "uint32_t",
             "cpp_name": "chunk_number",
@@ -219,7 +228,7 @@
             "api_path": "sync"
         }
     ],
-        "return_params": [
+    "return_params": [
         {
             "cpp_type": "File",
             "cpp_name": "files",

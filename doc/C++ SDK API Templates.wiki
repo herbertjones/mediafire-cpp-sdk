@@ -59,6 +59,12 @@ An API template is a JSON formatted file that should look something like this:
             "cpp_type": "uint32_t"
         }
     ],
+    "additional_constructors": [
+        {
+            "description": "Deprecated constructor",
+            "cpp_variable_names": ["product_id", "family"]
+        }
+    ],
     "return_params": [
         {
             "api_path": "response.products",
@@ -108,6 +114,9 @@ The top level name/value pairs should have the following format:
 : Optional API request parameters.
 : These become Set... functions of the Request object.
 : Enums created in the "enums" section may be used here.
+;[[#Constructors|constructors]]
+: OPTIONAL
+: Request constructors that will be used instead of one created from "input_params".
 ;[[#Return Parameters|return_params]]
 : OPTIONAL
 : List of expected parameters returned from the API.
@@ -223,6 +232,14 @@ data to C++ enum values.
 === Optional Input Parameters ===
 
 The arguments are the same as [[#Input Parameters|"input_params"]].
+
+=== Constructors ===
+
+;cpp_variable_names
+: REQUIRED
+: Array of cpp_name values found in "input_params" and "optional_input_params".
+: OPTIONAL
+: Set the documentation for the constructor in the header file.
 
 === Return Parameters ===
 

@@ -34,7 +34,7 @@ const std::string api_path("__API_PATH__");
 class Impl : public __API_REQUEST_BASE__
 {
 public:
-    __EXPLICIT__Impl(__HPP_CTOR_ARGS__);
+__IMPL_CTOR_DECLARATIONS__
 
 __CLASS_MEMBER_VARS__    virtual void BuildUrl(
         std::string * path,
@@ -44,10 +44,7 @@ __CLASS_MEMBER_VARS__    virtual void BuildUrl(
     virtual void ParseResponse( Response * __PR_OPT_ADT__ ) override;
 __CPP_POST_DATA_IMPL_DECL__};
 
-Impl::Impl(__CPP_CTOR_ARGS__)__CTOR_INIT_VARS__
-{
-}
-
+__IMPL_CTOR_DEFINITIONS__
 void Impl::BuildUrl(
             std::string * path,
             std::map<std::string, std::string> * __QUERY_PARTS_ARG__
@@ -71,11 +68,7 @@ __CONTENT_PARSING__
 
 __CPP_POST_DATA_IMPL_DEF__// Request ---------------------------------------------------------------------
 
-Request::Request(__CPP_CTOR_ARGS__) :
-    impl_(new Impl(__IMPL_PASSTHRU_ARGS__))
-{
-}
-
+__CPP_CTORS__
 void Request::SetCallback( CallbackType callback_function )
 {
     impl_->SetCallback(callback_function);

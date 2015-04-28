@@ -376,6 +376,11 @@ class Impl : public SessionTokenApiBase<Response>
 public:
     Impl();
 
+    Impl(
+            uint32_t chunk_number,
+            ContentType content_type
+        );
+
     boost::optional<uint32_t> chunk_number_;
     boost::optional<ContentType> content_type_;
     boost::optional<std::string> filter_;
@@ -396,6 +401,16 @@ public:
 };
 
 Impl::Impl()
+{
+}
+
+
+Impl::Impl(
+        uint32_t chunk_number,
+        ContentType content_type
+    ) :
+    chunk_number_(chunk_number),
+    content_type_(content_type)
 {
 }
 
@@ -479,6 +494,15 @@ mf::http::SharedBuffer::Pointer Impl::GetPostData()
 
 Request::Request() :
     impl_(new Impl())
+{
+}
+
+
+Request::Request(
+        uint32_t chunk_number,
+        ContentType content_type
+    ) :
+    impl_(new Impl(chunk_number, content_type))
 {
 }
 

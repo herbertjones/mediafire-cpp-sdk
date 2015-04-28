@@ -164,6 +164,19 @@ public:
     Request();
 
     /**
+     * API request "device/get_foreign_resources"
+     *
+     * Deprecated constructor
+     *
+     * @param chunk_number API parameter "chunk"
+     * @param content_type API parameter "type"
+     */
+    Request(
+            uint32_t chunk_number,
+            ContentType content_type
+        );
+
+    /**
      * Optional API parameter "chunk"
      *
      * @param chunk_number Set parameter "chunk" in API request.

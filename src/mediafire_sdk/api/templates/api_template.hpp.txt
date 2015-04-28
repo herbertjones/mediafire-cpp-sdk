@@ -41,8 +41,7 @@ class Impl;
 class Request
 {
 public:
-    __HPP_CTOR_DOCUMENTATION__
-    __EXPLICIT__Request(__HPP_CTOR_ARGS__);
+__HPP_CTORS__
 
 __HPP_OPTIONAL_SETTERS__    // Remaining functions are for use by API library only. --------------------
 
