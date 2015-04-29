@@ -22,26 +22,9 @@ uint64_t mf::utils::str_to_uint64(
         int base
     )
 {
-    char const * const begin = str.c_str();
-    char const * const end = str.c_str() + str.size();
-    char const * const endptr = end;
-
-    uint64_t retval = _strtoui64(
-        begin,
-        const_cast<char**>(&endptr),
-        base );
-
-    if (endptr == begin)
-    {
-        // Invalid conversion
-        throw std::invalid_argument("Invalid argument");
-    }
-    else if (retval == _UI64_MAX)
-    {
-        throw std::out_of_range("Overflow");
-    }
-
-    return retval;
+    // Newer version of MinGW doesn't have _strtoui64, so I've removed that
+    // workaround with this one.
+    return strtoull(str.c_str(), nullptr, base);
 }
 
 // MinGW doesn't have #include <codecvt>
