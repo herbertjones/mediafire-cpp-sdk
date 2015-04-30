@@ -9,6 +9,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     billing/purchase_plan/v1_1.cpp
     contact/add/v1_1.cpp
     device/get_changes/v0.cpp
+    device/get_foreign_changes/v1_3.cpp
     device/get_foreign_resources/v0.cpp
     device/get_patch/v0.cpp
     device/get_resource_shares/v0.cpp
@@ -118,6 +119,8 @@ set(API_TEMPLATE_GENERATED_HEADERS
     contact/add/v1_1.hpp
     device/get_changes.hpp
     device/get_changes/v0.hpp
+    device/get_foreign_changes.hpp
+    device/get_foreign_changes/v1_3.hpp
     device/get_foreign_resources.hpp
     device/get_foreign_resources/v0.hpp
     device/get_patch.hpp
