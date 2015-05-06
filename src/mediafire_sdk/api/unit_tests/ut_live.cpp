@@ -46,6 +46,7 @@ Fixture::Fixture()
         : credentials_(globals::connection1),
           http_config_(mf::http::HttpConfig::Create()),
           timeout_timer_(*http_config_->GetWorkIoService()),
+          start_in_timer_(*http_config_->GetWorkIoService()),
           stm_(http_config_, constants::host),
           async_wait_logged_(false)
 {

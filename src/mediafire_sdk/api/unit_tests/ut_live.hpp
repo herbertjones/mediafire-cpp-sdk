@@ -64,6 +64,21 @@ public:
         requests_.insert(stm_.Call(request, callback));
     }
 
+    template <typename Request, typename Callback>
+    void CallIn(boost::posix_time::time_duration start_in,
+                Request request,
+                Callback callback)
+    {
+        timeout_timer_.expires_from_now(start_in);
+
+        timeout_timer_.async_wait(
+                [this, request, callback](const boost::system::error_code & err)
+                {
+                    if (!err)
+                        Call(request, callback);
+                });
+    }
+
     template <typename Response>
     void Fail(const Response & response)
     {
@@ -123,6 +138,7 @@ protected:
     mf::api::Credentials credentials_;
     mf::http::HttpConfig::Pointer http_config_;
     boost::asio::deadline_timer timeout_timer_;
+    boost::asio::deadline_timer start_in_timer_;
     mf::api::SessionMaintainer stm_;
     std::set<mf::api::SessionMaintainer::Request> requests_;
     bool async_wait_logged_;
