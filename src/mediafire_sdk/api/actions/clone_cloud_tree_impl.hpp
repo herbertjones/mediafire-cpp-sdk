@@ -89,6 +89,9 @@ void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
 
         work_manager_->QueueWork(get_contents, &yield);
 
+        if (cancelled_)
+            work_manager_->Cancel();
+
         if (new_folder_keys_.empty())
             work_manager_->ExecuteWork();  // May insert more keys
                                                // back onto
