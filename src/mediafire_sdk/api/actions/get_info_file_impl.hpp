@@ -35,6 +35,9 @@ template <class TRequest>
 void GetInfoFile<TRequest>::Cancel()
 {
     cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -71,7 +74,10 @@ void GetInfoFile<TRequest>::CoroutineBody(pull_type & yield)
         Resume();
     };
 
-    stm_->Call(RequestType(folder_key_), HandleFileGetInfo);
+    request_ = stm_->Call(RequestType(folder_key_), HandleFileGetInfo);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

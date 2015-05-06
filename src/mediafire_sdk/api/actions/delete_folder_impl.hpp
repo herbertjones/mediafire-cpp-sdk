@@ -32,6 +32,9 @@ DeleteFolder<TRequest>::DeleteFolder(SessionMaintainer * stm,
 template <class TRequest>
 void DeleteFolder<TRequest>::Cancel()
 {
+    cancelled_ = true;
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -65,7 +68,10 @@ void DeleteFolder<TRequest>::CoroutineBody(pull_type & yield)
         Resume();
     };
 
-    stm_->Call(RequestType(folder_key_), HandleDeleteFolder);
+    request_ = stm_->Call(RequestType(folder_key_), HandleDeleteFolder);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

@@ -39,6 +39,11 @@ MoveFile<TRequest>::MoveFile(SessionMaintainer * stm,
 template <class TRequest>
 void MoveFile<TRequest>::Cancel()
 {
+
+    cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -72,8 +77,12 @@ void MoveFile<TRequest>::CoroutineBody(pull_type & yield)
         Resume();
     };
 
-    stm_->Call(RequestType(quick_key_, destination_parent_folder_key_),
-               HandleMoveFile);
+    request_ = stm_->Call(
+            RequestType(quick_key_, destination_parent_folder_key_),
+            HandleMoveFile);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

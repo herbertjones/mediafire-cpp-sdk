@@ -61,6 +61,8 @@ private:
     GetForeignResourcesDevice(SessionMaintainer * stm,
                               CallbackType && callback);
 
+    void CoroutineBody(pull_type & yield) override;
+
 private:
     SessionMaintainer * stm_;
 
@@ -72,7 +74,9 @@ private:
     std::vector<File> files_;
     std::vector<Folder> folders_;
 
-    void CoroutineBody(pull_type & yield) override;
+    bool cancelled_ = false;
+
+    SessionMaintainer::Request request_ = nullptr;
 };
 
 }  // namespace mf

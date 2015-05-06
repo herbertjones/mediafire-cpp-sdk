@@ -49,6 +49,8 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
                         TFileGetInfoRequest>::Cancel()
 {
     cancelled_ = true;
+
+    work_manager_->Cancel();
 }
 
 template <typename TDeviceGetForeignChangesRequest,
@@ -168,11 +170,12 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
             revision_,
             std::move(HandleGetForeignChangesDevice));
 
-    if (!cancelled_)
-    {
-        get_foreign_changes_device->Start();
-        yield();
-    }
+    work_manager_->QueueWork(get_foreign_changes_device, &yield);
+
+    if (cancelled_)
+        work_manager_->Cancel();
+
+    work_manager_->ExecuteWork();
 
     // Get info on all the files
     for (const auto & file : updated_files_)
@@ -191,8 +194,8 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
 
     if (cancelled_)
         work_manager_->Cancel();
-    else
-        work_manager_->ExecuteWork();
+
+    work_manager_->ExecuteWork();
 
     // Get info on all the folders
     for (const auto & folder : updated_folders_)
@@ -212,8 +215,8 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
 
     if (cancelled_)
         work_manager_->Cancel();
-    else
-        work_manager_->ExecuteWork();
+
+    work_manager_->ExecuteWork();
 
     // Coroutine is done, so call the callback.
     callback_(latest_changes_revision_,

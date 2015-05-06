@@ -9,11 +9,6 @@
 
 #include "coroutine.hpp"
 
-namespace
-{
-int MAX_LOOP_ITERATIONS = 100;
-}
-
 namespace mf
 {
 namespace api
@@ -43,8 +38,6 @@ private:
     SessionMaintainer * stm_;
     std::shared_ptr<WorkManager> work_manager_;
     CallbackType callback_;
-
-    bool cancelled_ = false;
 
     std::vector<File> files_;
     std::vector<Folder> folders_;

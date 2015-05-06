@@ -183,7 +183,6 @@ BOOST_AUTO_TEST_CASE(UTCloneCloudTree)
     // Setup the work manager to limit the number of things posted onto
     // io_service.
     auto work_manager = mf::api::WorkManager::Create(&io_service);
-    work_manager->SetMaxConcurrentWork(10);
 
     auto clone_cloud_tree = CloneCloudTreeType::Create(
             &stm, root_folderkey, work_manager, std::move(HandleCloneCloudTree));

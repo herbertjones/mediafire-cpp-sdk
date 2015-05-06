@@ -56,6 +56,8 @@ private:
                  const std::string & folder_key,
                  CallbackType && callback);
 
+    void CoroutineBody(pull_type & yield) override;
+
 private:
     SessionMaintainer * stm_;
 
@@ -66,7 +68,7 @@ private:
     ResponseType response_;
     std::vector<ErrorType> errors_;
 
-    void CoroutineBody(pull_type & yield) override;
+    SessionMaintainer::Request request_ = nullptr;
 };
 
 }  // namespace mf

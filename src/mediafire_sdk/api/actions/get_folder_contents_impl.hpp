@@ -58,6 +58,12 @@ template <class TRequest>
 void GetFolderContents<TRequest>::Cancel()
 {
     cancelled_ = true;
+
+    if (files_request_ != nullptr)
+        files_request_->Cancel();
+
+    if (folders_request_ != nullptr)
+        folders_request_->Cancel();
 }
 
 template <class TRequest>
@@ -160,10 +166,13 @@ void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
                 this->HandleFolderGetContentsFiles(response);
             };
 
-            stm_->Call(
+            files_request_ = stm_->Call(
                     RequestType(
                             folder_key_, files_chunk_num, ContentType::Files),
                     HandleFolderGetContentsFiles);
+
+            if (cancelled_)
+                files_request_->Cancel();
 
             ++yield_count;
         }
@@ -180,10 +189,12 @@ void GetFolderContents<TRequest>::CoroutineBody(pull_type & yield)
                 this->HandleFolderGetContentsFolders(response);
             };
 
-            stm_->Call(RequestType(folder_key_,
-                                   folders_chunk_num,
-                                   ContentType::Folders),
-                       HandleFolderGetContentsFolders);
+            folders_request_ = stm_->Call(RequestType(folder_key_,
+                                                      folders_chunk_num,
+                                                      ContentType::Folders),
+                                          HandleFolderGetContentsFolders);
+            if (cancelled_)
+                folders_request_->Cancel();
 
             ++yield_count;
         }

@@ -1,3 +1,8 @@
+namespace
+{
+    int MAX_LOOP_ITERATIONS = 100;
+}
+
 namespace mf
 {
 namespace api
@@ -53,7 +58,7 @@ void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
     auto self = shared_from_this();  // Hold reference to ourselves
     // until coroutine is complete
     int num_loop_iterations = 0;
-    while (!new_folder_keys_.empty() && !cancelled_)
+    while (!new_folder_keys_.empty())
     {
         if (num_loop_iterations > MAX_LOOP_ITERATIONS)
         {
@@ -81,16 +86,13 @@ void CloneCloudTree<TRequest>::CoroutineBody(pull_type & yield)
                 GetFolderContentsType::FilesOrFoldersOrBoth::Both,
                 std::move(HandleGetFolderContents));
 
-        if (!cancelled_)
-        {
-            work_manager_->QueueWork(get_contents, &yield);
 
-            if (new_folder_keys_.empty())
-                work_manager_->ExecuteWork();  // May insert more keys
+        work_manager_->QueueWork(get_contents, &yield);
+
+        if (new_folder_keys_.empty())
+            work_manager_->ExecuteWork();  // May insert more keys
                                                // back onto
                                                // new_folder_keys_
-                                               // continuing the loop
-        }
 
         ++num_loop_iterations;
     }
@@ -102,6 +104,7 @@ template <typename TRequest>
 void CloneCloudTree<TRequest>::Cancel()
 {
     cancelled_ = true;
+
     work_manager_->Cancel();
 }
 

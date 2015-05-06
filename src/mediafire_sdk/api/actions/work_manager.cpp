@@ -43,28 +43,35 @@ void WorkManager::ExecuteWork()
     {
         bool queue_more_work
                 = false;  // Flag to keep track of whether or not to queue more
-                          // work. This is needed because if we were to call
-                          // ExecuteWork recursively, we would blow up the stack
-                          // if we have too much work to queue.
+        // work. This is needed because if we were to call
+        // ExecuteWork recursively, we would blow up the stack
+        // if we have too much work to queue.
 
-        while (num_work_in_progress_ < max_concurrent_work_
+        while (in_progress_list_.size() < max_concurrent_work_
                && !work_queue_.empty())
         {
-            ++num_work_in_progress_;
-
             auto work_yield_pair = work_queue_.front();
             work_queue_.pop();
 
-            // Post work onto io_service
             auto work = work_yield_pair.first;
-            io_service_->post([work, this, self]()
+            auto yield = work_yield_pair.second;
+
+            CoroutineWorkManagerAttorney::SetCompletionHandler(
+                    work,
+                    [this, self, work]()
+                    {
+                        in_progress_list_.remove(work);
+                    });
+
+            // Post work onto io_service
+            io_service_->post([work]()
                               {
                                   work->Start();
                               });
 
             // Enqueue the yield so we can yield after posting as much work as
             // possible
-            yield_queue.push(work_yield_pair.second);
+            yield_queue.push(yield);
 
             queue_more_work = true;
         }
@@ -78,8 +85,6 @@ void WorkManager::ExecuteWork()
             {
                 yield->operator()();
             }
-
-            --num_work_in_progress_;
         }
 
         if (yield_queue.empty() && !queue_more_work)
@@ -89,15 +94,26 @@ void WorkManager::ExecuteWork()
 
 void WorkManager::Cancel()
 {
-    while (!work_queue_.empty())
-    {
-        auto work_yield_pair = work_queue_.front();
-        work_queue_.pop();
+    auto self = shared_from_this();
 
-        auto work = work_yield_pair.first;
+    io_service_->post([this, self]()
+                    {
+                        while (!work_queue_.empty())
+                        {
+                            auto work_yield_pair = work_queue_.front();
+                            work_queue_.pop();
 
-        work->Cancel();
-    }
+                            auto work = work_yield_pair.first;
+
+                            work->Cancel();
+                        }
+
+                        for (auto & work : in_progress_list_)
+                        {
+                            work->Cancel();
+                        }
+                        in_progress_list_.clear();
+                    });
 }
 
 }  // namespace mf

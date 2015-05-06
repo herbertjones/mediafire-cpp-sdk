@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <queue>
 #include <memory>
 
@@ -70,7 +71,13 @@ private:
     std::queue<WorkYieldPair>
             work_queue_;  // Queue of work to be posted onto io_service
 
-    int num_work_in_progress_ = 0;
+    std::list<std::shared_ptr<Coroutine>> in_progress_list_;  // List of work
+                                                              // that have
+                                                              // been posted
+                                                              // onto the
+                                                              // io_service
+                                                              // but have not
+                                                              // completed
 
     int max_concurrent_work_ = 10;  // Default to 10
 };

@@ -37,6 +37,10 @@ CreateFolder<TRequest>::CreateFolder(SessionMaintainer * stm,
 template <class TRequest>
 void CreateFolder<TRequest>::Cancel()
 {
+    cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -73,7 +77,10 @@ void CreateFolder<TRequest>::CoroutineBody(pull_type & yield)
     auto request = RequestType(folder_name_);
     request.SetParentFolderkey(parent_folder_key_);
 
-    stm_->Call(request, HandleCreateFolder);
+    request_ = stm_->Call(request, HandleCreateFolder);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

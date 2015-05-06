@@ -101,7 +101,8 @@ private:
     bool file_chunks_remaining_ = false;
     bool folder_chunks_remaining_ = false;
 
-    bool cancelled_ = false;
+    SessionMaintainer::Request files_request_ = nullptr;
+    SessionMaintainer::Request folders_request_ = nullptr;
 };
 
 }  // namespace mf

@@ -32,6 +32,10 @@ GetForeignResourcesDevice<TDeviceGetForeignResourcesRequest>::
 template <typename TDeviceGetForeignResourcesRequest>
 void GetForeignResourcesDevice<TDeviceGetForeignResourcesRequest>::Cancel()
 {
+    cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <typename TDeviceGetForeignResourcesRequest>
@@ -63,8 +67,11 @@ void GetForeignResourcesDevice<TDeviceGetForeignResourcesRequest>::
         Resume();
     };
 
-    stm_->Call(DeviceGetForeignResourcesRequestType(),
-               HandleDeviceGetForeignResources);
+    request_ = stm_->Call(DeviceGetForeignResourcesRequestType(),
+                          HandleDeviceGetForeignResources);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

@@ -41,6 +41,9 @@ template <typename TDeviceGetForeignChangesRequest>
 void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::Cancel()
 {
     cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <typename TDeviceGetForeignChangesRequest>
@@ -108,9 +111,12 @@ void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::CoroutineBody(
             Resume();
         };
 
-        stm_->Call(DeviceGetForeignChangesRequestType(start_revision,
-                                                      contact_key_),
-                   HandleDeviceGetForeignChanges);
+        request_ = stm_->Call(DeviceGetForeignChangesRequestType(start_revision,
+                                                                 contact_key_),
+                              HandleDeviceGetForeignChanges);
+
+        if (cancelled_)
+            request_->Cancel();
 
         yield();
 

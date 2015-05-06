@@ -32,6 +32,9 @@ DeleteFile<TRequest>::DeleteFile(SessionMaintainer * stm,
 template <class TRequest>
 void DeleteFile<TRequest>::Cancel()
 {
+    cancelled_ = true;
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -65,7 +68,10 @@ void DeleteFile<TRequest>::CoroutineBody(pull_type & yield)
         Resume();
     };
 
-    stm_->Call(RequestType(quick_key_), HandleDeleteFile);
+    request_ = stm_->Call(RequestType(quick_key_), HandleDeleteFile);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

@@ -67,6 +67,8 @@ private:
     std::vector<ErrorType> errors_;
 
     void CoroutineBody(pull_type & yield) override;
+
+    SessionMaintainer::Request request_ = nullptr;
 };
 
 }  // namespace mf

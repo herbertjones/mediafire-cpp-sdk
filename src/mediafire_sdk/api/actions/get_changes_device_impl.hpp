@@ -83,7 +83,10 @@ void GetChangesDevice<TDeviceGetStatusRequest,
         Resume();
     };
 
-    stm_->Call(DeviceGetStatusRequestType(), HandleDeviceGetStatus);
+    request_ = stm_->Call(DeviceGetStatusRequestType(), HandleDeviceGetStatus);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 
@@ -128,8 +131,11 @@ void GetChangesDevice<TDeviceGetStatusRequest,
             Resume();
         };
 
-        stm_->Call(DeviceGetChangesRequestType(start_revision),
+        request_ = stm_->Call(DeviceGetChangesRequestType(start_revision),
                    HandleDeviceGetChanges);
+
+        if (cancelled_)
+            request_->Cancel();
 
         yield();
 
@@ -153,6 +159,9 @@ void GetChangesDevice<TDeviceGetStatusRequest,
                       TDeviceGetChangesRequest>::Cancel()
 {
     cancelled_ = true;
+
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 }  // namespace mf
 }  // namespace api

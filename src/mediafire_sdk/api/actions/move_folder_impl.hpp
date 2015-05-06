@@ -41,6 +41,9 @@ MoveFolder<TRequest>::MoveFolder(
 template <class TRequest>
 void MoveFolder<TRequest>::Cancel()
 {
+    cancelled_ = true;
+    if (request_ != nullptr)
+        request_->Cancel();
 }
 
 template <class TRequest>
@@ -74,8 +77,12 @@ void MoveFolder<TRequest>::CoroutineBody(pull_type & yield)
         Resume();
     };
 
-    stm_->Call(RequestType(folder_key_, destination_parent_folder_key_),
-               HandleMoveFolder);
+    request_ = stm_->Call(
+            RequestType(folder_key_, destination_parent_folder_key_),
+            HandleMoveFolder);
+
+    if (cancelled_)
+        request_->Cancel();
 
     yield();
 

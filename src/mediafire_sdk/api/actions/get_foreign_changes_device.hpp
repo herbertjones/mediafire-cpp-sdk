@@ -70,6 +70,8 @@ private:
                             uint32_t latest_known_revision,
                             CallbackType && callback);
 
+    void CoroutineBody(pull_type & yield) override;
+
 private:
     SessionMaintainer * stm_;
 
@@ -91,7 +93,7 @@ private:
 
     bool cancelled_ = false;
 
-    void CoroutineBody(pull_type & yield) override;
+    SessionMaintainer::Request request_ = nullptr;
 };
 
 }  // namespace mf
