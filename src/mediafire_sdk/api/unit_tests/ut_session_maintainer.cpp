@@ -460,7 +460,7 @@ public:
         ++tokens_served_;
 
         boost::property_tree::wptree pt =
-            api::ut::MakeBaseApiContent("user/get_session_token");
+            api::ut::MakeBaseApiContent("1.3/user/get_session_token");
         pt.put(L"response.session_token", mf::utils::bytes_to_wide(st.token) );
         pt.put(L"response.secret_key", mf::utils::bytes_to_wide(mf::utils::to_string(st.secret_key)) );
         pt.put(L"response.time", mf::utils::bytes_to_wide(st.time) );
@@ -629,7 +629,7 @@ BOOST_AUTO_TEST_CASE(FolderGetContentFolders)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
     handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
@@ -693,7 +693,7 @@ BOOST_AUTO_TEST_CASE(FolderGetContentFiles)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
     handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
@@ -759,7 +759,7 @@ BOOST_AUTO_TEST_CASE(RepeatedTokenVerify)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
     handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
@@ -858,7 +858,7 @@ BOOST_AUTO_TEST_CASE(RepeatedParallelTokenVerify)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     FolderGetContentServer rcc_responder;
     handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
@@ -964,10 +964,10 @@ BOOST_AUTO_TEST_CASE(GetActionToken)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     GetActionTokenServer at_responder;
-    handlers["/api/1.0/user/get_action_token.php"] = PHBind(&at_responder);
+    handlers["/api/1.3/user/get_action_token.php"] = PHBind(&at_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -1033,7 +1033,7 @@ BOOST_AUTO_TEST_CASE(TimeoutSeconds)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     TimeoutServer rcc_responder(&io_service, 10);
     handlers["/api/1.2/folder/get_content.php"] = PHBind(&rcc_responder);
@@ -1110,10 +1110,10 @@ BOOST_AUTO_TEST_CASE(CleanupAssurance)
     api::ut::PathHandlers handlers;
 
     SessionTokenServer st_responder;
-    handlers["/api/user/get_session_token.php"] = PHBind(&st_responder);
+    handlers["/api/1.3/user/get_session_token.php"] = PHBind(&st_responder);
 
     GetActionTokenServer at_responder;
-    handlers["/api/1.0/user/get_action_token.php"] = PHBind(&at_responder);
+    handlers["/api/1.3/user/get_action_token.php"] = PHBind(&at_responder);
 
     api::ut::SessionTokenTestServer server(
         &io_service,
@@ -1177,4 +1177,3 @@ BOOST_AUTO_TEST_CASE(CleanupAssurance)
 
 /** @todo hjones: Add test to ensure session token manager doesn't spam server
  * when failures occur. */
-
