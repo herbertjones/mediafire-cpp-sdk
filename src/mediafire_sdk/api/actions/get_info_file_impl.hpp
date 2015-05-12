@@ -71,6 +71,9 @@ void GetInfoFile<TRequest>::CoroutineBody(pull_type & yield)
         }
 
         // Resume the coroutine
+
+        request_ = nullptr;  // Must free request_ or coroutine cannot be
+        // destructed.
         Resume();
     };
 

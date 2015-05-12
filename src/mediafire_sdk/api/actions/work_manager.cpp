@@ -63,6 +63,8 @@ void WorkManager::ExecuteWork()
                         in_progress_list_.remove(work);
                     });
 
+            in_progress_list_.push_back(work);
+
             // Post work onto io_service
             io_service_->post([work]()
                               {
@@ -97,23 +99,24 @@ void WorkManager::Cancel()
     auto self = shared_from_this();
 
     io_service_->post([this, self]()
-                    {
-                        while (!work_queue_.empty())
-                        {
-                            auto work_yield_pair = work_queue_.front();
-                            work_queue_.pop();
+                      {
+                          while (!work_queue_.empty())
+                          {
+                              auto work_yield_pair = work_queue_.front();
+                              work_queue_.pop();
 
-                            auto work = work_yield_pair.first;
+                              auto work = work_yield_pair.first;
 
-                            work->Cancel();
-                        }
+                              work->Cancel();
+                          }
 
-                        for (auto & work : in_progress_list_)
-                        {
-                            work->Cancel();
-                        }
-                        in_progress_list_.clear();
-                    });
+                          for (auto & work : in_progress_list_)
+                          {
+                              work->Cancel();
+                          }
+
+                          in_progress_list_.clear();
+                      });
 }
 
 }  // namespace mf

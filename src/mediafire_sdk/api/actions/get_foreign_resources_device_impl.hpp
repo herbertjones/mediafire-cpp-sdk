@@ -64,6 +64,9 @@ void GetForeignResourcesDevice<TDeviceGetForeignResourcesRequest>::
             folders_ = response.folders;
         }
 
+        request_ = nullptr;  // Must free request_ or coroutine cannot be
+        // destructed.
+
         Resume();
     };
 

@@ -18,6 +18,9 @@ private:
 private:
     using WorkManagerCompletionHandlerType = std::function<void()>;
 
+protected:
+    virtual ~Coroutine() {}
+
 public:
     virtual void Start() { coro_(); }
 
@@ -34,6 +37,10 @@ private:
                         CoroutineBody(yield);
 
                         WorkManagerCompletionHandler();
+
+                        WorkManagerCompletionHandler = nullptr;
+
+                        auto self = shared_from_this();
                     }};
 
 

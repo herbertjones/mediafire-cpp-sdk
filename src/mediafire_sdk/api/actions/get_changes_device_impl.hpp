@@ -80,6 +80,9 @@ void GetChangesDevice<TDeviceGetStatusRequest,
             latest_device_revision_ = response.device_revision;
         }
 
+        request_ = nullptr;  // Must free request_ or coroutine cannot be
+        // destructed.
+
         Resume();
     };
 
@@ -127,6 +130,9 @@ void GetChangesDevice<TDeviceGetStatusRequest,
                                         std::begin(response.deleted_folders),
                                         std::end(response.deleted_folders));
             }
+
+            request_ = nullptr;  // Must free request_ or coroutine cannot be
+            // destructed.
 
             Resume();
         };

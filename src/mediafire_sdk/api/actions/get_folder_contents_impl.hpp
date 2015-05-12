@@ -94,6 +94,9 @@ void GetFolderContents<TRequest>::HandleFolderGetContentsFiles(
             file_chunks_remaining_ = false;
     }
 
+    files_request_ = nullptr;  // Must free files_request_ or coroutine cannot
+    // be destructed.
+
     // Resume the coroutine
     Resume();
 }
@@ -129,6 +132,9 @@ void GetFolderContents<TRequest>::HandleFolderGetContentsFolders(
             == mf::api::folder::get_content::ChunksRemaining::LastChunk)
             folder_chunks_remaining_ = false;
     }
+
+    folders_request_ = nullptr;  // Must free folders_request_ or coroutine
+    // cannot be destructed.
 
     // Resume the coroutine
     Resume();

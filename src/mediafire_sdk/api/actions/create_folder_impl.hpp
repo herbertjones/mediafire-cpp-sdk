@@ -70,6 +70,9 @@ void CreateFolder<TRequest>::CoroutineBody(pull_type & yield)
             response_ = response;
         }
 
+        request_ = nullptr;  // Must free request_ or coroutine cannot be
+        // destructed.
+        
         // Resume the coroutine
         Resume();
     };
@@ -80,7 +83,7 @@ void CreateFolder<TRequest>::CoroutineBody(pull_type & yield)
     request_ = stm_->Call(request, HandleCreateFolder);
 
     if (cancelled_)
-        request_->Cancel();
+        Cancel();
 
     yield();
 

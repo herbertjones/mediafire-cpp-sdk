@@ -168,7 +168,6 @@ void PollChanges<TDeviceGetStatusRequest,
     auto get_changes_device = GetChangesDeviceType::Create(
             stm_, revision_, std::move(HandleGetChangesDevice));
 
-
     work_manager_->QueueWork(get_changes_device, &yield);
 
     if (cancelled_)

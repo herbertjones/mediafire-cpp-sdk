@@ -65,6 +65,9 @@ void GetInfoFolder<TRequest>::CoroutineBody(pull_type & yield)
             response_ = response;
         }
 
+        request_ = nullptr;  // Must free request_ or coroutine cannot be
+        // destructed.
+
         // Resume the coroutine
         Resume();
     };

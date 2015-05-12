@@ -352,7 +352,7 @@ private:
 #       ifdef OUTPUT_DEBUG // Debug code
         std::cout << "++SessionMaintainerRequest: " << (object_count+1) << std::endl;
 #       endif
-        assert( object_count < 100 );
+        assert( object_count < 100000 );
 #endif
     }
 };

@@ -189,6 +189,7 @@ void PollForeignChanges<TDeviceGetForeignChangesRequest,
 
         auto get_info_file = GetInfoFileType::Create(
                 stm_, file.quickkey, std::move(HandleGetInfoFile));
+
         work_manager_->QueueWork(get_info_file, &yield);
     }
 

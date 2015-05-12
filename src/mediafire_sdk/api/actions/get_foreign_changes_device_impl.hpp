@@ -107,6 +107,9 @@ void GetForeignChangesDevice<TDeviceGetForeignChangesRequest>::CoroutineBody(
                 latest_device_revision_ = response.device_revision;
             }
 
+            request_ = nullptr;  // Must free request_ or coroutine cannot be
+            // destructed.
+
             // Resume the coroutine
             Resume();
         };
