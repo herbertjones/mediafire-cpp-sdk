@@ -277,6 +277,19 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Resumable = enum Resumable;
+    using HashAlreadyInSystem = enum HashAlreadyInSystem;
+    using HashAlreadyInAccount = enum HashAlreadyInAccount;
+    using HashAlreadyInFolder = enum HashAlreadyInFolder;
+    using FilenameInFolder = enum FilenameInFolder;
+    using FileExistsWithDifferentHash = enum FileExistsWithDifferentHash;
+    using StorageLimitExceeded = enum StorageLimitExceeded;
+    using ActionOnDuplicate = enum ActionOnDuplicate;
+    using VersionControl = enum VersionControl;
+    using AllUnitsReady = enum AllUnitsReady;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

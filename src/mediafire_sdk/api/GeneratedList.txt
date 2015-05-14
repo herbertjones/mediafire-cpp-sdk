@@ -8,6 +8,7 @@ set(API_TEMPLATE_GENERATED_SOURCES
     billing/get_products/v1_1.cpp
     billing/purchase_plan/v1_1.cpp
     contact/add/v1_1.cpp
+    contact/fetch/v0.cpp
     device/get_changes/v0.cpp
     device/get_foreign_changes/v1_3.cpp
     device/get_foreign_resources/v0.cpp
@@ -117,6 +118,8 @@ set(API_TEMPLATE_GENERATED_HEADERS
     billing/purchase_plan/v1_1.hpp
     contact/add.hpp
     contact/add/v1_1.hpp
+    contact/fetch.hpp
+    contact/fetch/v0.hpp
     device/get_changes.hpp
     device/get_changes/v0.hpp
     device/get_foreign_changes.hpp

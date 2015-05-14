@@ -86,3 +86,16 @@ target_link_libraries(ut_variant
     ${Boost_LIBRARIES}
 )
 add_test(ut_variant ut_variant)
+
+# --- ut_container_algorithms ---------------------------
+add_executable(ut_container_algorithms
+    ut_container_algorithms.cpp
+)
+target_link_libraries(ut_container_algorithms
+    ${WINSOCK_LIBRARY}
+    mf_sdk_utils
+    ${OPENSSL_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${PTHREAD_LIBRARY}
+)
+add_test(ut_container_algorithms ut_container_algorithms)

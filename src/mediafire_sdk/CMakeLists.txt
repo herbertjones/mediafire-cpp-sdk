@@ -5,12 +5,24 @@ include_directories("..")
 # safe.
 add_definitions(-DBOOST_SPIRIT_THREADSAFE)
 
+IF (APPLE)
+    if (CMAKE_GENERATOR STREQUAL "Xcode")
+        # Xcode
+        message(STATUS "Xcode detected")
+        set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvm.clang.1_0")
+        set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+        set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+    else()
+        # Clang
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    endif()
+ENDIF (APPLE)
+
 IF (NOT MSVC)
+    #Clang, GCC, or MinGW
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 ENDIF (NOT MSVC)
-IF (APPLE)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-ENDIF (APPLE)
+
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     # We support down to Windows XP
@@ -91,6 +103,8 @@ endif(USE_SYSTEM_ZLIB)
 
 find_package(Boost 1.50 REQUIRED
     chrono
+    context
+    coroutine
     date_time
     filesystem
     iostreams

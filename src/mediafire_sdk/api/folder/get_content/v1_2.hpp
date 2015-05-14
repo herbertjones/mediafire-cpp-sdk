@@ -401,6 +401,21 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using ContentType = enum ContentType;
+    using OrderBy = enum OrderBy;
+    using OrderDirection = enum OrderDirection;
+    using Details = enum Details;
+    using Privacy = enum Privacy;
+    using ExplicitShare = enum ExplicitShare;
+    using FileDrop = enum FileDrop;
+    using PasswordProtected = enum PasswordProtected;
+    using Permission = enum Permission;
+    using SharedByUser = enum SharedByUser;
+    using SharedWithUser = enum SharedWithUser;
+    using ChunksRemaining = enum ChunksRemaining;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

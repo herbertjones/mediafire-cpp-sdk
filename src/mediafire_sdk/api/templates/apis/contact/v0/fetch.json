@@ -1,0 +1,25 @@
+{
+    "api": "/api/contact/fetch",
+    "version": "0",
+    "return_structs": [
+        {
+            "cpp_name": "Contact",
+            "members" : [
+                {
+                    "cpp_type": "std::string",
+                    "cpp_name": "contact_key",
+                    "api_path": "contact_key"
+                }
+            ]
+        }
+    ],
+    "return_params": [
+        {
+            "cpp_type": "Contact",
+            "cpp_name": "contacts",
+            "api_path": "response.contacts",
+            "json_type": "array",
+            "optional": true
+        }
+    ]
+}

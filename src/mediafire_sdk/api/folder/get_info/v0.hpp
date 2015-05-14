@@ -224,6 +224,14 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Details = enum Details;
+    using FileDrop = enum FileDrop;
+    using SharedByUser = enum SharedByUser;
+    using ExplicitShare = enum ExplicitShare;
+    using Permission = enum Permission;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

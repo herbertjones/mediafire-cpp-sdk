@@ -244,6 +244,15 @@ public:
     /** Requester optional method. */
     mf::http::SharedBuffer::Pointer GetPostData();
 
+
+    // Enums in class namespace for usage with templates
+    using Recurring = enum Recurring;
+    using Trial = enum Trial;
+    using Activity = enum Activity;
+    using UsesCredits = enum UsesCredits;
+    using YearlyOnly = enum YearlyOnly;
+    using Legacy = enum Legacy;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

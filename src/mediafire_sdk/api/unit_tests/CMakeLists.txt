@@ -147,3 +147,106 @@ target_link_libraries(ut_live_folder ut_live)
 file(COPY check_expected.sh DESTINATION .)
 file(COPY ut_live_general-expected-failures.txt DESTINATION .)
 
+# --- ut_clone_cloud_tree ----------------------------------
+add_executable(ut_clone_cloud_tree
+    ut_clone_cloud_tree.cpp)
+
+target_link_libraries(ut_clone_cloud_tree
+    mf_api_sdk
+)
+
+# --- ut_poll_changes --------------------------------------
+add_executable(ut_poll_changes
+    ut_poll_changes.cpp)
+
+target_link_libraries(ut_poll_changes
+    mf_api_sdk
+)
+
+# --- ut_get_info_folder --------------------------------------
+add_executable(ut_get_info_folder
+    ut_get_info_folder.cpp)
+
+target_link_libraries(ut_get_info_folder
+    mf_api_sdk
+)
+
+# --- ut_get_info_file --------------------------------------
+add_executable(ut_get_info_file
+    ut_get_info_file.cpp)
+
+target_link_libraries(ut_get_info_file
+    mf_api_sdk
+)
+
+# --- ut_get_changes_device --------------------------------------
+add_executable(ut_get_changes_device
+    ut_get_changes_device.cpp)
+
+target_link_libraries(ut_get_changes_device
+    mf_api_sdk
+)
+
+# --- ut_get_foreign_changes_device --------------------------------------
+add_executable(ut_get_foreign_changes_device
+    ut_get_foreign_changes_device.cpp)
+
+target_link_libraries(ut_get_foreign_changes_device
+    mf_api_sdk
+)
+
+# --- ut_poll_foreign_changes --------------------------------------
+add_executable(ut_poll_foreign_changes
+    ut_poll_foreign_changes.cpp)
+
+target_link_libraries(ut_poll_foreign_changes
+    mf_api_sdk
+)
+
+# --- ut_move_file --------------------------------------
+add_executable(ut_move_file
+    ut_move_file.cpp)
+
+target_link_libraries(ut_move_file
+    mf_api_sdk
+)
+
+# --- ut_move_folder --------------------------------------
+add_executable(ut_move_folder
+    ut_move_folder.cpp)
+
+target_link_libraries(ut_move_folder
+    mf_api_sdk
+)
+
+# --- ut_delete_file --------------------------------------
+add_executable(ut_delete_file
+    ut_delete_file.cpp)
+
+target_link_libraries(ut_delete_file
+    mf_api_sdk
+)
+
+# --- ut_delete_folder --------------------------------------
+add_executable(ut_delete_folder
+    ut_delete_folder.cpp)
+
+target_link_libraries(ut_delete_folder
+    mf_api_sdk
+)
+
+# --- ut_create_folder --------------------------------------
+add_executable(ut_create_folder
+    ut_create_folder.cpp)
+
+target_link_libraries(ut_create_folder
+    mf_api_sdk
+)
+
+# --- ut_get_foreign_resources_device ------------------------
+add_executable(ut_get_foreign_resources_device
+    ut_get_foreign_resources_device.cpp)
+
+target_link_libraries(ut_get_foreign_resources_device
+    mf_api_sdk
+)

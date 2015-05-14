@@ -8,8 +8,10 @@
 
 #include <string>
 
-namespace mf {
-namespace api {
+namespace mf
+{
+namespace api
+{
 
 /** The intended target HTTP method. */
 enum class RequestMethod
@@ -22,7 +24,8 @@ enum class RequestMethod
 
 /** Option to prevent SessionMaintainer from starting API HttpRequest.
  * Used if additional options must be set on HttpRequest object. */
-enum class RequestStarted {
+enum class RequestStarted
+{
     /** Do not start the HttpRequest immediately. */
     No,
     /** Start the HttpRequest before passing back to caller. */
@@ -35,6 +38,19 @@ struct SessionTokenData
     std::string pkey;
     std::string time;
     int secret_key;
+};
+
+enum class ActionResult
+{
+    Success,
+    Failure
+};
+
+enum class FilesFoldersOrBoth
+{
+    Folders,
+    Files,
+    Both
 };
 
 }  // namespace api

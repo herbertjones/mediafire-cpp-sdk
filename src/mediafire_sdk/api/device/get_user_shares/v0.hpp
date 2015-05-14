@@ -146,6 +146,11 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using ContactIndirect = enum ContactIndirect;
+    using Permissions = enum Permissions;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

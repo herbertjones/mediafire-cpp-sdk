@@ -181,6 +181,12 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using Filter = enum Filter;
+    using Activity = enum Activity;
+    using Status = enum Status;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

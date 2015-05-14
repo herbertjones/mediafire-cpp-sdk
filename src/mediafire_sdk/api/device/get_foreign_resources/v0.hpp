@@ -241,6 +241,12 @@ public:
             std::string time,
             int secret_key
         );
+
+    // Enums in class namespace for usage with templates
+    using ContentType = enum ContentType;
+    using ShareLinkEnabled = enum ShareLinkEnabled;
+    using SyncToDesktopFilter = enum SyncToDesktopFilter;
+
 private:
     std::shared_ptr<Impl> impl_;
 };

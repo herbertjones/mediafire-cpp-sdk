@@ -30,6 +30,8 @@ set(API_SOURCES
     user/get_session_token/v1_3.cpp
     user/renew_session_token.cpp
 
+    actions/work_manager.cpp
+
     app_constants.cpp
     connection_state.cpp
     credentials.cpp
@@ -55,6 +57,38 @@ set(API_HEADERS
     user/get_session_token/v0.hpp
     user/get_session_token/v1_3.hpp
     user/renew_session_token.hpp
+
+    actions/coroutine.hpp
+    actions/work_manager.hpp
+
+    actions/clone_cloud_tree.hpp
+    actions/clone_cloud_tree_impl.hpp
+    actions/create_folder.hpp
+    actions/create_folder_impl.hpp
+    actions/delete_file.hpp
+    actions/delete_file_impl.hpp
+    actions/delete_folder.hpp
+    actions/delete_folder_impl.hpp
+    actions/get_changes_device.hpp
+    actions/get_changes_device_impl.hpp
+    actions/get_folder_contents.hpp
+    actions/get_folder_contents_impl.hpp
+    actions/get_foreign_changes_device.hpp
+    actions/get_foreign_changes_device_impl.hpp
+    actions/get_info_file.hpp
+    actions/get_info_file_impl.hpp
+    actions/get_info_folder.hpp
+    actions/get_info_folder_impl.hpp
+    actions/move_file.hpp
+    actions/move_file_impl.hpp
+    actions/move_folder.hpp
+    actions/move_folder_impl.hpp
+    actions/poll_changes.hpp
+    actions/poll_changes_impl.hpp
+    actions/poll_foreign_changes.hpp
+    actions/poll_foreign_changes_impl.hpp
+    actions/get_foreign_resources_device.hpp
+    actions/get_foreign_resources_device_impl.hpp
 
     app_constants.hpp
     connection_state.hpp
