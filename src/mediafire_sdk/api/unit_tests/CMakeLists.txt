@@ -153,6 +153,7 @@ add_executable(ut_clone_cloud_tree
 
 target_link_libraries(ut_clone_cloud_tree
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_poll_changes --------------------------------------
@@ -161,6 +162,7 @@ add_executable(ut_poll_changes
 
 target_link_libraries(ut_poll_changes
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_get_info_folder --------------------------------------
@@ -169,6 +171,7 @@ add_executable(ut_get_info_folder
 
 target_link_libraries(ut_get_info_folder
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_get_info_file --------------------------------------
@@ -177,6 +180,7 @@ add_executable(ut_get_info_file
 
 target_link_libraries(ut_get_info_file
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_get_changes_device --------------------------------------
@@ -185,6 +189,7 @@ add_executable(ut_get_changes_device
 
 target_link_libraries(ut_get_changes_device
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_get_foreign_changes_device --------------------------------------
@@ -193,6 +198,7 @@ add_executable(ut_get_foreign_changes_device
 
 target_link_libraries(ut_get_foreign_changes_device
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_poll_foreign_changes --------------------------------------
@@ -201,6 +207,7 @@ add_executable(ut_poll_foreign_changes
 
 target_link_libraries(ut_poll_foreign_changes
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_move_file --------------------------------------
@@ -209,6 +216,7 @@ add_executable(ut_move_file
 
 target_link_libraries(ut_move_file
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_move_folder --------------------------------------
@@ -217,6 +225,7 @@ add_executable(ut_move_folder
 
 target_link_libraries(ut_move_folder
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_delete_file --------------------------------------
@@ -225,6 +234,7 @@ add_executable(ut_delete_file
 
 target_link_libraries(ut_delete_file
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_delete_folder --------------------------------------
@@ -233,6 +243,7 @@ add_executable(ut_delete_folder
 
 target_link_libraries(ut_delete_folder
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_create_folder --------------------------------------
@@ -241,6 +252,7 @@ add_executable(ut_create_folder
 
 target_link_libraries(ut_create_folder
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
 
 # --- ut_get_foreign_resources_device ------------------------
@@ -249,4 +261,5 @@ add_executable(ut_get_foreign_resources_device
 
 target_link_libraries(ut_get_foreign_resources_device
     mf_api_sdk
+    ${Boost_LIBRARIES}
 )
