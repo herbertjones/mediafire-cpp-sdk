@@ -1,0 +1,17 @@
+Building Boost is a little bit tricky on MinGW. In order to build Boost.Context,
+you must provide ml.exe in your PATH.
+
+You can acquire ml.exe by installing Visual Studio 2013 Express.
+
+After acquiring and extracting Boost, you can bootstrap it with the following
+command:
+
+./bootstrap.sh --with-toolset=mingw
+
+Due to bugs in the way that Boost treats mingw, you must now open
+project-config.jam and replace all instances of 'mingw' with 'gcc' (without 
+quotes).
+
+Finally, the required command to actually build and install Boost:
+
+./b2 --prefix=<your preferred install location> address-model=32 link=static runtime-link=static threading=multi -j9 install

@@ -17,6 +17,8 @@ This library uses the C++11 version of C++.
 
 [Boost](http://www.boost.org/) is required to build this library.
 
+MinGW users, please read MINGW.NOTES
+
 ## Build System
 
 This library requires [cmake](http://www.cmake.org/) in order to be built.
