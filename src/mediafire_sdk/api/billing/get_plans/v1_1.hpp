@@ -92,6 +92,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Recurring = enum Recurring;
+
     /**
      * API request "billing/get_plans"
      */
@@ -141,10 +145,6 @@ public:
 
     /** Requester optional method. */
     mf::http::SharedBuffer::Pointer GetPostData();
-
-
-    // Enums in class namespace for usage with templates
-    using Recurring = enum Recurring;
 
 private:
     std::shared_ptr<Impl> impl_;

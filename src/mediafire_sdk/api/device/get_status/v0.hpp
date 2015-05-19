@@ -57,6 +57,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using AsyncJobs = enum AsyncJobs;
+
     /**
      * API request "device/get_status"
      */
@@ -106,10 +110,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using AsyncJobs = enum AsyncJobs;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

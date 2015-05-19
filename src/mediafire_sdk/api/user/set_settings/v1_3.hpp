@@ -62,6 +62,11 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using ShareLinkStatus = enum ShareLinkStatus;
+    using CollectMetadata = enum CollectMetadata;
+
     /**
      * API request "user/set_settings"
      */
@@ -128,11 +133,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using ShareLinkStatus = enum ShareLinkStatus;
-    using CollectMetadata = enum CollectMetadata;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

@@ -76,6 +76,12 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Asynchronous = enum Asynchronous;
+    using Privacy = enum Privacy;
+    using PrivacyRecursive = enum PrivacyRecursive;
+
     /**
      * API request "folder/update"
      *
@@ -158,12 +164,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using Asynchronous = enum Asynchronous;
-    using Privacy = enum Privacy;
-    using PrivacyRecursive = enum PrivacyRecursive;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

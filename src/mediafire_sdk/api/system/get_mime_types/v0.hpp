@@ -110,6 +110,12 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Category = enum Category;
+    using ViewSystem = enum ViewSystem;
+    using EditSystem = enum EditSystem;
+
     /**
      * API request "system/get_mime_types"
      */
@@ -142,12 +148,6 @@ public:
 
     /** Requester expected method. */
     std::string Url(const std::string & hostname) const;
-
-
-    // Enums in class namespace for usage with templates
-    using Category = enum Category;
-    using ViewSystem = enum ViewSystem;
-    using EditSystem = enum EditSystem;
 
 private:
     std::shared_ptr<Impl> impl_;

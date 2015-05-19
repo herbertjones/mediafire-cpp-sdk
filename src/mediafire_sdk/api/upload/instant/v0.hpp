@@ -59,6 +59,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using ActionOnDuplicate = enum ActionOnDuplicate;
+
     /**
      * API request "upload/instant"
      *
@@ -159,10 +163,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using ActionOnDuplicate = enum ActionOnDuplicate;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

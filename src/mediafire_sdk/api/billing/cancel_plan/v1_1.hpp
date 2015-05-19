@@ -60,6 +60,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using CancellationReason = enum CancellationReason;
+
     /**
      * API request "billing/cancel_plan"
      */
@@ -182,10 +186,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using CancellationReason = enum CancellationReason;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

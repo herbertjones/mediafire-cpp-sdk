@@ -1740,10 +1740,10 @@ def create_templates(api, target_path):
 
     template_data['domain'] = relative_path
 
-    cpp_path = os.path.join(relative_path, version_str + '.cpp')
+    cpp_path = relative_path + '/' + version_str + '.cpp'
     template_data['cpp'] = cpp_path
 
-    hpp_path = os.path.join(relative_path, version_str + '.hpp')
+    hpp_path = relative_path + '/' + version_str + '.hpp'
     template_data['hpp'] = hpp_path
 
     filename = path_parts_cpp_safe[-1]

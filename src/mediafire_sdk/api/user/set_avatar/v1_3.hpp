@@ -57,6 +57,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Action = enum Action;
+
     /**
      * API request "user/set_avatar"
      */
@@ -125,10 +129,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using Action = enum Action;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

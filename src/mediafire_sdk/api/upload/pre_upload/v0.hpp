@@ -132,6 +132,15 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Resumability = enum Resumability;
+    using ActionOnDuplicate = enum ActionOnDuplicate;
+    using StorageLimit = enum StorageLimit;
+    using DuplicateName = enum DuplicateName;
+    using UnitsReady = enum UnitsReady;
+    using KnownByCloud = enum KnownByCloud;
+
     /**
      * API request "upload/pre_upload"
      */
@@ -239,15 +248,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using Resumability = enum Resumability;
-    using ActionOnDuplicate = enum ActionOnDuplicate;
-    using StorageLimit = enum StorageLimit;
-    using DuplicateName = enum DuplicateName;
-    using UnitsReady = enum UnitsReady;
-    using KnownByCloud = enum KnownByCloud;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

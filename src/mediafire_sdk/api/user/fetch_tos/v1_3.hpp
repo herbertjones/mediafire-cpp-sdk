@@ -69,6 +69,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using TOSAccepted = enum TOSAccepted;
+
     /**
      * API request "user/fetch_tos"
      */
@@ -111,10 +115,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using TOSAccepted = enum TOSAccepted;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

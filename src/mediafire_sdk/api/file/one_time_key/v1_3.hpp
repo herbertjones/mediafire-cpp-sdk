@@ -92,6 +92,12 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using NofifyOwnerByEmail = enum NofifyOwnerByEmail;
+    using BurnAfterUse = enum BurnAfterUse;
+    using GetCountsOnly = enum GetCountsOnly;
+
     /**
      * API request "file/one_time_key"
      */
@@ -201,12 +207,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using NofifyOwnerByEmail = enum NofifyOwnerByEmail;
-    using BurnAfterUse = enum BurnAfterUse;
-    using GetCountsOnly = enum GetCountsOnly;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

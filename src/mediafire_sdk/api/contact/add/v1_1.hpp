@@ -66,6 +66,11 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using ContactType = enum ContactType;
+    using Gender = enum Gender;
+
     /**
      * API request "contact/add"
      */
@@ -206,11 +211,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using ContactType = enum ContactType;
-    using Gender = enum Gender;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

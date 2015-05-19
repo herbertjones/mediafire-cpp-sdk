@@ -194,6 +194,14 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using ExplicitShare = enum ExplicitShare;
+    using Privacy = enum Privacy;
+    using PasswordProtected = enum PasswordProtected;
+    using Permission = enum Permission;
+    using SharedByUser = enum SharedByUser;
+
     /**
      * API request "file/get_info"
      *
@@ -240,14 +248,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using ExplicitShare = enum ExplicitShare;
-    using Privacy = enum Privacy;
-    using PasswordProtected = enum PasswordProtected;
-    using Permission = enum Permission;
-    using SharedByUser = enum SharedByUser;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

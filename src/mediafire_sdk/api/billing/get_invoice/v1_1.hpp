@@ -232,6 +232,16 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using Activity = enum Activity;
+    using Legacy = enum Legacy;
+    using Recurring = enum Recurring;
+    using ResellerEntitled = enum ResellerEntitled;
+    using Trial = enum Trial;
+    using UsesCredits = enum UsesCredits;
+    using Yearly = enum Yearly;
+
     /**
      * API request "billing/get_invoice"
      */
@@ -274,16 +284,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using Activity = enum Activity;
-    using Legacy = enum Legacy;
-    using Recurring = enum Recurring;
-    using ResellerEntitled = enum ResellerEntitled;
-    using Trial = enum Trial;
-    using UsesCredits = enum UsesCredits;
-    using Yearly = enum Yearly;
-
 private:
     std::shared_ptr<Impl> impl_;
 };

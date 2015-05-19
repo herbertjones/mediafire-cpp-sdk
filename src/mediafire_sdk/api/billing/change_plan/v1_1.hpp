@@ -66,6 +66,10 @@ class Impl;
 class Request
 {
 public:
+
+    // Enums in class namespace for usage with templates
+    using InfoOnly = enum InfoOnly;
+
     /**
      * API request "billing/change_plan"
      *
@@ -128,10 +132,6 @@ public:
             std::string time,
             int secret_key
         );
-
-    // Enums in class namespace for usage with templates
-    using InfoOnly = enum InfoOnly;
-
 private:
     std::shared_ptr<Impl> impl_;
 };
