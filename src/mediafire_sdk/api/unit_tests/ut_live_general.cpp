@@ -71,6 +71,12 @@
 namespace posix_time = boost::posix_time;
 namespace api = mf::api;
 
+#ifdef MF_UNIT_TEST_LONG_WAIT
+const auto skRevisionTimeout = boost::posix_time::minutes(20);
+#else
+const auto skRevisionTimeout = boost::posix_time::seconds(0);
+#endif
+
 namespace globals
 {
 using namespace ut::globals;
@@ -595,7 +601,7 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
 
     // How long will we wait for the internal versioning system to catch up?
     // Accoring to one API person, 5 to 10 minutes
-    const auto duration_till_timeout = boost::posix_time::minutes(6);
+    const auto duration_till_timeout = skRevisionTimeout;
 
     const boost::posix_time::ptime timeout
             = boost::posix_time::second_clock::universal_time()
@@ -613,10 +619,7 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
 
                    if (response.error_code)
                    {
-                       if (timed_out)
-                       {
-                           Fail(response);
-                       }
+                       Fail(response);
                    }
                    else
                    {
@@ -628,7 +631,9 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
                                Debug(response.debug);
 
                                Fail("There should be at least two file "
-                                    "versions after replacement upload.");
+                                    "versions after replacement upload. "
+                                    "Try running the long-wait version of "
+                                    "this test if you are not doing so.");
                            }
                        }
                        else
@@ -655,7 +660,7 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
                                         "in get_version.");
                                }
                            }
-                           if (!new_revision_found)
+                           else if (!new_revision_found)
                            {
                                if (timed_out)
                                {
@@ -664,7 +669,7 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
                                         "in get_version.");
                                }
                            }
-                           if (original_revision_found && new_revision_found)
+                           else
                            {
                                Debug(response.debug);
                                Success();
@@ -686,7 +691,7 @@ BOOST_AUTO_TEST_CASE(VerifyNewVersionExists)
 
     MakeCall();
 
-    StartWithTimeout(duration_till_timeout + posix_time::seconds(10));
+    StartWithTimeout(duration_till_timeout + posix_time::seconds(15));
 }
 
 BOOST_AUTO_TEST_CASE(RestoreFile)

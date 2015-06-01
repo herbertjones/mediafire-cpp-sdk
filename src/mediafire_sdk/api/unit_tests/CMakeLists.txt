@@ -120,6 +120,18 @@ target_link_libraries(ut_live_general
   ${Boost_LIBRARIES}
   )
 
+add_executable(ut_live_general_wait ut_live_general.cpp)
+set_target_properties(ut_live_general_wait
+  PROPERTIES
+    COMPILE_DEFINITIONS "MF_UNIT_TEST_LONG_WAIT"
+  )
+target_link_libraries(ut_live_general_wait
+  ut_live
+  mf_api_sdk
+  mf_uploader_sdk
+  ${Boost_LIBRARIES}
+  )
+
 add_executable(ut_live_billing ut_live_billing.cpp)
 target_link_libraries(ut_live_billing ut_live)
 

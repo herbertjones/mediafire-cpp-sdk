@@ -11,5 +11,5 @@ fatal error in "VerifyRestoreFile": Hash on restored file incorrect!
 # file/upload is not creating new revisions reliably
 # STARS 27316
 fatal error in "VerifyNewVersionExists": There should be at least two file versions after replacement upload.
-fatal error in "RestoreFile": file/restore: The revision you requested is invalid or cannot be restored
+fatal error in "RestoreFile": Failed getting original version.  Unable to proceed.
 
