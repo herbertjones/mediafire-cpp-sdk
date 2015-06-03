@@ -8,6 +8,7 @@
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/asio.hpp"
 #include "boost/asio/ssl.hpp"
+#include "boost/system/system_error.hpp"
 
 #include "mediafire_sdk/http/detail/default_http_headers.hpp"
 #include "mediafire_sdk/http/detail/default_pem.hpp"
@@ -25,11 +26,19 @@ ssl::context DefaultSslContext()
     // Use Operating System's certificates if available
     ssl_ctx.set_default_verify_paths();
 
-    for (std::size_t i = 0; i < (sizeof(pem)/sizeof(pem[0])); ++i)
+    for (std::size_t i = 0; i < (sizeof(pem) / sizeof(pem[0])); ++i)
     {
-        ssl_ctx.add_certificate_authority(
-            asio::const_buffer(pem[i], std::strlen(pem[i]))
-        );
+        try
+        {
+            // This can fail if the certificate exists already due to the call
+            // to set_default_verify_paths.
+            ssl_ctx.add_certificate_authority(
+                    asio::const_buffer(pem[i], std::strlen(pem[i])));
+        }
+        catch (const boost::system::system_error & ex)
+        {
+            // We should be able to safely ignore the error.
+        }
     }
 
     return ssl_ctx;
