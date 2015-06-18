@@ -153,6 +153,15 @@ void Impl::ParseResponse( Response * response )
                 "no value in response.privacy");
     }
 
+    // create_content_parse_single required
+    if ( ! GetIfExists(
+            response->pt,
+            "response.revision",
+            &response->revision ) )
+        return_error(
+            mf::api::api_code::ContentInvalidData,
+            "missing \"response.revision\"");
+
 #   undef return_error
 }
 

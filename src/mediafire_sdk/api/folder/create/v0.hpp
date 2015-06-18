@@ -71,6 +71,9 @@ public:
 
     /** API response field "response.privacy" */
     Privacy privacy;
+
+    /** API response field "response.revision" */
+    uint32_t revision;
 };
 
 class Impl;
