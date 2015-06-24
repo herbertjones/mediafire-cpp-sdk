@@ -280,6 +280,9 @@ void HandleContentRead(
 {
     using mf::http::http_error;
 
+    auto callback_data = fsm.get_callback();
+    auto iface = callback_data.iface;
+
     if (state_data->cancelled == true)
         return;
 
@@ -321,23 +324,17 @@ void HandleContentRead(
             // Non gzip buffer passing.
             std::istream post_data_stream(state_data->read_buffer.get());
             std::unique_ptr<uint8_t[]> data(new uint8_t[bytes_to_process]);
-            post_data_stream.read( reinterpret_cast<char*>(data.get()),
-                bytes_to_process );
+            post_data_stream.read(reinterpret_cast<char *>(data.get()),
+                                  bytes_to_process);
             std::shared_ptr<mf::http::BufferInterface> return_buffer(
-                    new HttpRequestBuffer(
-                        std::move(data),
-                        bytes_to_process )
-                    );
-
-            auto iface = fsm.get_callback();
+                    new HttpRequestBuffer(std::move(data), bytes_to_process));
 
             fsm.get_callback_io_service()->dispatch(
                     [iface, return_buffer, total_previously_read]()
                     {
-                        iface->ResponseContentReceived(
-                            total_previously_read, return_buffer );
-                    }
-                );
+                        iface->ResponseContentReceived(total_previously_read,
+                                                       return_buffer);
+                    });
         }
 
         // Also handle content-length.
@@ -400,16 +397,14 @@ void HandleContentRead(
                     return;
                 }
 
-                auto iface = fsm.get_callback();
                 const uint64_t start_pos = state_data->filter_buf_consumed;
 
                 fsm.get_callback_io_service()->dispatch(
                         [iface, return_buffer, start_pos]()
                         {
-                            iface->ResponseContentReceived(
-                                start_pos, return_buffer );
-                        }
-                    );
+                            iface->ResponseContentReceived(start_pos,
+                                                           return_buffer);
+                        });
 
                 // New byte counts
                 state_data->filter_buf_consumed += return_buffer->buffer.size();
@@ -516,6 +511,9 @@ void HandleContentChunkRead(
 {
     using mf::http::http_error;
 
+    auto callback_data = fsm.get_callback();
+    auto iface = callback_data.iface;
+
     // Stop processing if actions cancelled.
     if (state_data->cancelled == true)
         return;
@@ -560,24 +558,19 @@ void HandleContentChunkRead(
         {
             // Non gzip buffer passing.
             std::istream post_data_stream(state_data->read_buffer.get());
-            std::unique_ptr<uint8_t[]> data( new uint8_t[chunk_size] );
-            post_data_stream.read( reinterpret_cast<char*>(data.get()),
-                chunk_size );
+            std::unique_ptr<uint8_t[]> data(new uint8_t[chunk_size]);
+            post_data_stream.read(reinterpret_cast<char *>(data.get()),
+                                  chunk_size);
 
             std::shared_ptr<mf::http::BufferInterface> return_buffer(
-                    new HttpRequestBuffer(
-                        std::move(data),
-                        chunk_size )
-                    );
-            auto iface = fsm.get_callback();
+                    new HttpRequestBuffer(std::move(data), chunk_size));
             const auto start_pos = output_bytes_consumed;
             fsm.get_callback_io_service()->dispatch(
                     [iface, return_buffer, start_pos]()
                     {
-                        iface->ResponseContentReceived(
-                            start_pos, return_buffer );
-                    }
-                    );
+                        iface->ResponseContentReceived(start_pos,
+                                                       return_buffer);
+                    });
 
             // New byte counts
             output_bytes_consumed += chunk_size;
@@ -716,6 +709,9 @@ void HandleCompleteAllChunks(
 {
     using mf::http::http_error;
 
+    auto callback_data = fsm.get_callback();
+    auto iface = callback_data.iface;
+
     // Stop processing if actions cancelled.
     if (state_data->cancelled == true)
         return;
@@ -782,16 +778,12 @@ void HandleCompleteAllChunks(
             return;
         }
 
-        auto iface = fsm.get_callback();
-
         const uint64_t start_pos = state_data->filter_buf_consumed;
         fsm.get_callback_io_service()->dispatch(
-            [iface, return_buffer, start_pos]()
-            {
-                iface->ResponseContentReceived(
-                    start_pos, return_buffer );
-            }
-        );
+                [iface, return_buffer, start_pos]()
+                {
+                    iface->ResponseContentReceived(start_pos, return_buffer);
+                });
 
         // New byte counts
         state_data->filter_buf_consumed += return_buffer->buffer.size();
