@@ -8,7 +8,10 @@
 
 #include <chrono>
 
+#include "boost/algorithm/string/case_conv.hpp"
+#include "boost/algorithm/string/find.hpp"
 #include "boost/algorithm/string/trim.hpp"
+#include "boost/lexical_cast.hpp"
 #include "boost/msm/front/state_machine_def.hpp"
 
 #include "mediafire_sdk/http/detail/http_request_events.hpp"
@@ -56,7 +59,7 @@ void HandleHeaderRead(
     if (fsm.get_bw_analyser())
     {
         fsm.get_bw_analyser()->RecordIncomingBytes(
-            read_buffer->size(), start_time, sclock::now() );
+                read_buffer->size(), start_time, sclock::now());
     }
 
     if (!err)
