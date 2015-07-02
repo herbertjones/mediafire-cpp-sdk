@@ -495,7 +495,11 @@ void SessionMaintainer::HandleSessionTokenResponse(
                 // Can only proceed to ProlongedError from Initialized, but will
                 // continue to re-emit ProlongedError as long as we keep getting
                 // errors. The locker will only emit a state change if the
-                // actual error changes.
+                // actual error changes. The reason we can only proceed to
+                // ProlongedError from Initialized is that they are essentially
+                // equivalent for all purposes, except that prolonged error
+                // advises users that we have been stuck in Initialized for
+                // a long time due to prolonged errors.
                 if (IsInitialized(session_state)
                     || IsProlongedError(session_state))
                 {
