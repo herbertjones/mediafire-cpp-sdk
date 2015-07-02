@@ -311,6 +311,10 @@ void SessionMaintainer::AttemptConnection()
 {
     auto running_ptr = is_running_;
 
+#ifdef OUTPUT_DEBUG  // Debug code
+        std::cout << "SessionMaintainer: Checking connection by calling system/get_status.\n";
+#endif
+
     hl::HttpRequest::Pointer http_request = requester_.Call(
             system::get_status::Request(),
             [this, running_ptr](const system::get_status::Response & response)
@@ -325,6 +329,12 @@ void SessionMaintainer::AttemptConnection()
 void SessionMaintainer::HandleCheckConnectionStatusResponse(
         const system::get_status::Response & response)
 {
+#ifdef OUTPUT_DEBUG  // Debug code
+        std::cout << "SessionMaintainer: system/get_status response: "
+                  << response.error_code.message() << "\n" << response.debug
+                  << std::endl;
+#endif
+
     UpdateConnectionStateFromErrorCode(response.error_code);
     if (IsConnected(GetConnectionState()))
         AttemptRequests();
@@ -362,7 +372,7 @@ void SessionMaintainer::RequestNeededSessionTokens(
         else
         {
 #ifdef OUTPUT_DEBUG
-            std::cout << BOOST_CURRENT_FUNCTION << ": No credentials.\n")
+            std::cout << BOOST_CURRENT_FUNCTION << ": No credentials.\n";
 #endif
         }
     }
