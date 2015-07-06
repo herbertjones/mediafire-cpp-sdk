@@ -311,8 +311,9 @@ void SessionMaintainer::AttemptConnection()
 {
     auto running_ptr = is_running_;
 
-    /// @note This debug code is always enabled while debugging conneciton issues.
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
     std::cout << "SessionMaintainer: Checking connection by calling system/get_status.\n";
+#endif
 
     hl::HttpRequest::Pointer http_request = requester_.Call(
             system::get_status::Request(),
@@ -328,10 +329,11 @@ void SessionMaintainer::AttemptConnection()
 void SessionMaintainer::HandleCheckConnectionStatusResponse(
         const system::get_status::Response & response)
 {
-    /// @note This debug code is always enabled while debugging conneciton issues.
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
     std::cout << "SessionMaintainer: system/get_status response: "
             << response.error_code.message() << "\n" << response.debug
             << std::endl;
+#endif
 
     UpdateConnectionStateFromErrorCode(response.error_code);
     if (IsConnected(GetConnectionState()))

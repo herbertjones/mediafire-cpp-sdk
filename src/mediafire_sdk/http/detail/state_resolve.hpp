@@ -50,9 +50,11 @@ void HandleResolve(
 
     bool is_first = race_preventer.IsFirst();
 
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
     std::cout << "In HandleResolve- Canceled: " << state_data->cancelled
         << ", First: " << is_first << ", err: \"" << err.message() << "\""
         << std::endl;
+#endif
 
     // Stop processing if actions cancelled.
     if (state_data->cancelled == true)
@@ -109,7 +111,9 @@ public:
         auto race_preventer = fsm.SetAsyncTimeout("resolving", kResolvingTimeout);
         auto fsmp = fsm.AsFrontShared();
 
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
         std::cout << "Attempting name resolution: " << host << std::endl;
+#endif
 
         asio::ip::tcp::resolver::query query(host, port);
         state_data->resolver.async_resolve(
