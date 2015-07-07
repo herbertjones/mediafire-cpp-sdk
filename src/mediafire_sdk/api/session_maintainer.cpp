@@ -193,34 +193,29 @@ void SessionMaintainer::UpdateConnectionStateFromErrorCode(
 {
     using hl::http_error;
 
-    if (ec)
+    // Check for errors that we count as connection errors
+    if (ec.category() == hl::http_category()
+        && (    ec == http_error::UnableToConnect
+            ||  ec == http_error::UnableToConnectToProxy
+            ||  ec == http_error::UnableToResolve
+            ||  ec == http_error::SslHandshakeFailure
+            ||  ec == http_error::WriteFailure
+            ||  ec == http_error::ReadFailure
+            ||  ec == http_error::ProxyProtocolFailure
+            ||  ec == http_error::IoTimeout
+        ))
     {
-        if (ec.category() == hl::http_category()
-            && (ec == http_error::UnableToConnect
-                || ec == http_error::UnableToConnectToProxy
-                || ec == http_error::UnableToResolve
-                || ec == http_error::SslHandshakeFailure
-                || ec == http_error::WriteFailure
-                || ec == http_error::ReadFailure
-                || ec == http_error::ProxyProtocolFailure
-                || ec == http_error::IoTimeout))
-        {
-            connection_state::Unconnected new_state = {ec};
+        connection_state::Unconnected new_state = {ec};
 
-            SetConnectionState(new_state);
+        SetConnectionState(new_state);
 
-            // State is disconnected, so schedule a state check later
-            connection_state_recheck_timer_.expires_from_now(
-                    std::chrono::milliseconds(
-                            connection_state_recheck_timeout_ms));
-            connection_state_recheck_timer_.async_wait(boost::bind(
-                    &SessionMaintainer::HandleConnectionStateRecheckTimeout,
-                    this, boost::asio::placeholders::error));
-        }
-        else
-        {
-            SetConnectionState(connection_state::Connected());
-        }
+        // State is disconnected, so schedule a state check later
+        connection_state_recheck_timer_.expires_from_now(
+                std::chrono::milliseconds(
+                        connection_state_recheck_timeout_ms));
+        connection_state_recheck_timer_.async_wait(boost::bind(
+                &SessionMaintainer::HandleConnectionStateRecheckTimeout,
+                this, boost::asio::placeholders::error));
     }
     else
     {
@@ -289,6 +284,10 @@ void SessionMaintainer::AttemptConnection()
 {
     auto maintainer_exists = maintainer_exists_;
 
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
+    std::cout << "SessionMaintainer: Checking connection by calling system/get_status.\n";
+#endif
+
     hl::HttpRequest::Pointer http_request = requester_.Call(
             system::get_status::Request(),
             [this, maintainer_exists](
@@ -304,6 +303,12 @@ void SessionMaintainer::AttemptConnection()
 void SessionMaintainer::HandleCheckConnectionStatusResponse(
         const system::get_status::Response & response)
 {
+#if defined(OUTPUT_DEBUG) || defined(DEBUG_API_CONNECTION)
+    std::cout << "SessionMaintainer: system/get_status response: "
+            << response.error_code.message() << "\n" << response.debug
+            << std::endl;
+#endif
+
     UpdateConnectionStateFromErrorCode(response.error_code);
     if (IsConnected(GetConnectionState()))
         AttemptRequests();
@@ -341,7 +346,7 @@ void SessionMaintainer::RequestNeededSessionTokens(
         else
         {
 #ifdef OUTPUT_DEBUG
-            std::cout << BOOST_CURRENT_FUNCTION << ": No credentials.\n")
+            std::cout << BOOST_CURRENT_FUNCTION << ": No credentials.\n";
 #endif
         }
     }
