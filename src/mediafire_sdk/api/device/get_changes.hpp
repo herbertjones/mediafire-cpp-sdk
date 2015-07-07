@@ -9,6 +9,7 @@
 #pragma once
 
 #include "get_changes/v0.hpp"
+#include "get_changes/v1_3.hpp"
 
 namespace mf {
 namespace api {
@@ -18,7 +19,7 @@ namespace device {
 namespace get_changes {
 
 // Default version
-using namespace v0;  // NOLINT
+using namespace v1_3;  // NOLINT
 
 }  // namespace get_changes
 }  // namespace device
